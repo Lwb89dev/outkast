@@ -885,7 +885,7 @@
     <string name="profile_user_feed_title">Krmivo %1$s</string>
     <string name="profile_user_is_muted">%1$s je tlumený.</string>
     <string name="profile_follows_you">Sleduje tě.</string>
-    <string name="profile_followed_by">Následuje</string>
+    <string name="profile_following_label">Sleduje</string>
     <string name="profile_save_user_feed_title">%1$s \'s Nejnovější</string>
     <string name="profile_save_user_feed_description">Poslední poznámky od %1$s \'s následující</string>
     <string name="profile_invalid_profile_id">Nelze načíst profil. Zkontrolujte prosím spojení a zkuste to znovu.</string>

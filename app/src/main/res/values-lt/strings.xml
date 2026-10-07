@@ -885,7 +885,7 @@
     <string name="profile_user_feed_title">%1$s \'s pašaras</string>
     <string name="profile_user_is_muted">%1$s nuslopintas.</string>
     <string name="profile_follows_you">Suteikia jums</string>
-    <string name="profile_followed_by">Paliktas</string>
+    <string name="profile_following_label">Seka</string>
     <string name="profile_save_user_feed_title">%1$s \'s Paskutinė diena</string>
     <string name="profile_save_user_feed_description">Paskutinės pastabos %1$s \'s:</string>
     <string name="profile_invalid_profile_id">Nepavyksta įkelti profilio. Prašome patikrinti savo ryšį ir bandykite dar kartą.</string>

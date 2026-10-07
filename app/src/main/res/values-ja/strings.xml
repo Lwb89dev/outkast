@@ -885,7 +885,7 @@
     <string name="profile_user_feed_title">%1$sのフィード</string>
     <string name="profile_user_is_muted">%1$s はミュートされます。</string>
     <string name="profile_follows_you">あなたをフォローしています</string>
-    <string name="profile_followed_by">がフォローしています</string>
+    <string name="profile_following_label">フォロー中</string>
     <string name="profile_save_user_feed_title">%1$s の 最新</string>
     <string name="profile_save_user_feed_description">%1$sの最新のメモは以下です。</string>
     <string name="profile_invalid_profile_id">プロファイルをロードできません。 是非ご応募ください。</string>

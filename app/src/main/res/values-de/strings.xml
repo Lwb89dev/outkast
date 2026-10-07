@@ -885,7 +885,7 @@
     <string name="profile_user_feed_title">%1$s Futter</string>
     <string name="profile_user_is_muted">%1$s ist gedämpft.</string>
     <string name="profile_follows_you">Folge dir</string>
-    <string name="profile_followed_by">Gefolgt von</string>
+    <string name="profile_following_label">Folgt</string>
     <string name="profile_save_user_feed_title">%1$s Neueste</string>
     <string name="profile_save_user_feed_description">Neueste Notizen von %1$s folgt</string>
     <string name="profile_invalid_profile_id">Kann das Profil nicht laden. Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.</string>

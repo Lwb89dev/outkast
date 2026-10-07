@@ -15,6 +15,7 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import net.primal.android.core.serialization.datastore.StringSerializer
 import net.primal.android.theme.active.ActiveThemeStore
+import net.primal.android.theme.domain.PrimalTheme
 import net.primal.core.testing.CoroutinesTestRule
 import net.primal.core.testing.advanceUntilIdleAndDelay
 import org.junit.Rule
@@ -132,5 +133,62 @@ class ActiveThemeStoreTest {
 
             val persisted = persistence.data.first()
             persisted shouldBe "ice"
+        }
+
+    /**
+     * A store wired like the one `ThemeModule` provides: its serializer reads an absent file as
+     * the default theme. [DATA_STORE_FILE] is not reused so these stores start from no file at all,
+     * which is the state a fresh install is in.
+     */
+    private fun createStoreLikeProduction(fileName: String): Pair<DataStore<String>, ActiveThemeStore> {
+        val productionPersistence = DataStoreFactory.create(
+            serializer = StringSerializer(defaultValue = ActiveThemeStore.DEFAULT_THEME.themeName),
+            produceFile = { testContext.dataStoreFile(fileName) },
+        )
+        val store = ActiveThemeStore(
+            dispatchers = coroutinesTestRule.dispatcherProvider,
+            persistence = productionPersistence,
+        )
+        return productionPersistence to store
+    }
+
+    @Test
+    fun `dark pixel is the default theme`() {
+        ActiveThemeStore.DEFAULT_THEME shouldBe PrimalTheme.DarkPixel
+    }
+
+    @Test
+    fun `a theme that was never chosen is the default theme`() {
+        val (_, store) = createStoreLikeProduction(fileName = "neverChosenTheme")
+
+        store.userThemeState.value shouldBe ActiveThemeStore.DEFAULT_THEME
+    }
+
+    @Test
+    fun `choosing another theme replaces the default`() =
+        runTest {
+            val (_, store) = createStoreLikeProduction(fileName = "chosenOverDefaultTheme")
+
+            store.setUserTheme(PrimalTheme.Ice.themeName)
+            advanceUntilIdleAndDelay()
+
+            store.userThemeState.value shouldBe PrimalTheme.Ice
+        }
+
+    @Test
+    fun `following the system stays null instead of falling back to the default theme`() =
+        runTest {
+            // "Adjust to the system" is stored as an empty string. It is a choice the user made, so
+            // changing the default for people who never chose must not turn it into Dark Pixel.
+            val (persistence, _) = createStoreLikeProduction(fileName = "followSystemTheme")
+            persistence.updateData { "" }
+
+            val store = ActiveThemeStore(
+                dispatchers = coroutinesTestRule.dispatcherProvider,
+                persistence = persistence,
+            )
+            advanceUntilIdle()
+
+            store.userThemeState.value.shouldBeNull()
         }
 }

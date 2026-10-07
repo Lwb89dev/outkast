@@ -885,7 +885,7 @@
     <string name="profile_user_feed_title">Корм %1$s</string>
     <string name="profile_user_is_muted">%1$s приглушен.</string>
     <string name="profile_follows_you">Следуйте за вами</string>
-    <string name="profile_followed_by">Последующий</string>
+    <string name="profile_following_label">Подписан на</string>
     <string name="profile_save_user_feed_title">%1$s Последний</string>
     <string name="profile_save_user_feed_description">Последние ноты %1$s\'s</string>
     <string name="profile_invalid_profile_id">Невозможно загрузить профиль. Пожалуйста, проверьте свою связь и попробуйте еще раз.</string>

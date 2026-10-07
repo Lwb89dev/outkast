@@ -43,4 +43,14 @@ class ActiveThemeStore @Inject constructor(
     suspend fun setUserTheme(theme: String) {
         persistence.updateData { theme }
     }
+
+    companion object {
+        /**
+         * The theme a user sees until they pick another one. It is also what the theme store's
+         * DataStore reads as when its file does not exist yet (see `ThemeModule`), which is why
+         * a fresh install, or an existing one that never opened the appearance settings, starts
+         * here instead of following the system.
+         */
+        val DEFAULT_THEME: PrimalTheme = PrimalTheme.DarkPixel
+    }
 }

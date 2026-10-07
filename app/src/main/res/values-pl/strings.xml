@@ -885,7 +885,7 @@
     <string name="profile_user_feed_title">Pasza %1$s \'s</string>
     <string name="profile_user_is_muted">%1$s jest stłumiony.</string>
     <string name="profile_follows_you">Obserwuje cię</string>
-    <string name="profile_followed_by">Następnie</string>
+    <string name="profile_following_label">Obserwuje</string>
     <string name="profile_save_user_feed_title">Nowości %1$s \'s</string>
     <string name="profile_save_user_feed_description">Najnowsze uwagi: %1$s \'s follows</string>
     <string name="profile_invalid_profile_id">Nie można wczytać profilu. Proszę sprawdzić połączenie i spróbować ponownie.</string>

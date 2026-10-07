@@ -125,6 +125,32 @@ class NostrNotaryTest {
             verify(exactly = 0) { credentialsStore.findOrThrow(any()) }
         }
 
+    @Test
+    fun `a remote-signer credential is let through for both poll kinds`() =
+        runTest {
+            // The credential here is deliberately unusable (no bunker pubkey), so a request that
+            // gets past the signable-kind gate is rejected one step later with
+            // SigningKeyNotFoundException, while one the gate refuses is rejected with
+            // SigningRejectedException. Publishing a user poll (1068) or a zap poll (6969) used to
+            // be refused by the gate, which surfaced as the generic publish error.
+            val credentialsStore = fakeCredentialsStore(
+                Credential(
+                    nsec = null,
+                    npub = userId.hexToNpubHrp(),
+                    type = CredentialType.RemoteSigner,
+                    remoteSignerPubkey = null,
+                    remoteSignerRelays = listOf("wss://relay.example.com"),
+                    remoteSignerClientPrivateKey = "client-privkey-hex",
+                ),
+            )
+
+            listOf(NostrEventKind.Poll, NostrEventKind.ZapPoll).forEach { pollKind ->
+                val result = notary(credentialsStore).signNostrEvent(unsignedEvent(kind = pollKind.value))
+
+                (result as SignResult.Rejected).error::class shouldBe SigningKeyNotFoundException::class
+            }
+        }
+
     private fun unsignedEvent(kind: Int = 1) =
         NostrUnsignedEvent(pubKey = userId, kind = kind, content = "hello")
 

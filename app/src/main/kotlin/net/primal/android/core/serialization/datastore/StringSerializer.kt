@@ -7,9 +7,13 @@ import net.primal.android.security.Encryption
 
 class StringSerializer(
     private val encryption: Encryption? = null,
+    /**
+     * What a store reads as before anything has ever been written to its file. Only an absent
+     * file yields this: a value written later, an empty string included, is read back as written,
+     * so a store can tell "never chosen" apart from "chosen, and the choice is empty".
+     */
+    override val defaultValue: String = "",
 ) : Serializer<String> {
-
-    override val defaultValue: String = ""
 
     override suspend fun readFrom(input: InputStream): String {
         return encryption?.decrypt(input) ?: String(input.readBytes())

@@ -12,6 +12,7 @@ import net.primal.core.utils.runCatching
 import net.primal.data.remote.api.feed.model.FeedResponse
 import net.primal.data.repository.cache.LocalEventCache
 import net.primal.data.repository.fetch.FetchCoordinator
+import net.primal.data.repository.fetch.RelaysUnreachableException
 import net.primal.domain.common.ContentPrimalPaging
 import net.primal.domain.common.PrimalEvent
 import net.primal.domain.feeds.extractFollowSetDTag
@@ -29,11 +30,24 @@ import net.primal.domain.nostr.hasEventIdTag
 import net.primal.domain.nostr.pubkeyTagValues
 import net.primal.domain.nostr.relay.RelayEventQuerier
 import net.primal.domain.nostr.relay.RelayFilter
+import net.primal.domain.nostr.relay.RelayQueryOutcome
 
 /** The flat event set [RelayNotesFeedFetcher.fetchPage] resolves for one feed page. */
 internal data class NotesFeedPage(
     val page: List<NostrEvent>,
     val referencedNotes: List<NostrEvent>,
+    /**
+     * True when the page is empty because no relay answered at all, which says nothing about
+     * whether older notes exist. A page that is empty because the relays had nothing more to give
+     * is not unreachable.
+     */
+    val unreachable: Boolean = false,
+    /**
+     * Only for an empty page: the timestamp the next, older page should start from. The relays
+     * did answer, but everything they returned was filtered out (replies on a feed that hides
+     * them, say), so there is nothing on the page to derive a cursor from.
+     */
+    val resumeUntil: Long? = null,
 )
 
 internal class RelayNotesFeedFetcher(
@@ -49,6 +63,13 @@ internal class RelayNotesFeedFetcher(
     private val localBookmarkedNoteIds: (suspend (userId: String, limit: Int) -> List<String>)? = null,
 ) {
 
+    /**
+     * @param failWhenUnreachable throw [RelaysUnreachableException] instead of returning an empty
+     *   response when no relay answered. For a caller paging backwards through history, where an
+     *   empty answer normally means "that was the last page": a dropped connection must not be
+     *   mistaken for it. Off by default, so every other caller keeps getting an empty response.
+     */
+    @Throws(RelaysUnreachableException::class)
     suspend fun fetch(
         userId: String,
         feedSpec: String,
@@ -56,6 +77,7 @@ internal class RelayNotesFeedFetcher(
         limit: Int,
         until: Long? = null,
         since: Long? = null,
+        failWhenUnreachable: Boolean = false,
     ): FeedResponse {
         val feedPage = fetchPage(
             userId = userId,
@@ -65,9 +87,11 @@ internal class RelayNotesFeedFetcher(
             until = until,
             since = since,
         )
+        if (failWhenUnreachable && feedPage.unreachable) throw RelaysUnreachableException()
         return feedPage.page.toFeedResponse(
             metadata = fetchMetadataFor(feedPage),
             referencedEvents = feedPage.referencedNotes.map { it.asReferencedPrimalEvent() },
+            emptyPageCursor = feedPage.resumeUntil,
         )
     }
 
@@ -96,7 +120,16 @@ internal class RelayNotesFeedFetcher(
             )
         }
 
-    /** Every feed whose scope is a set of authors: following, a follow set, or one profile. */
+    /**
+     * Every feed whose scope is a set of authors: following, a follow set, or one profile.
+     *
+     * A page is assembled from one or more windows of history. A window asks every author chunk
+     * for its newest [limit] events older than the cursor and keeps what the feed shows (replies
+     * are dropped unless asked for). When that leaves fewer than [limit] events, which happens as
+     * soon as a window is mostly replies, the next window starts where this one stopped instead of
+     * handing back a short, or empty, page. An empty page used to be read as "no older notes
+     * exist", and a profile whose latest notes were all replies stopped loading at that point.
+     */
     private suspend fun fetchAuthoredNotesPage(
         userId: String,
         feedSpec: String,
@@ -108,23 +141,62 @@ internal class RelayNotesFeedFetcher(
         val authors = loadAuthors(userId, feedSpec)
         if (authors.isEmpty()) return NotesFeedPage(page = emptyList(), referencedNotes = emptyList())
 
-        val noteEvents = queryInChunks(
-            authors = authors,
-            kinds = listOf(
-                NostrEventKind.ShortTextNote.value,
-                NostrEventKind.ShortTextNoteRepost.value,
-            ),
-            limit = limit,
-            until = until,
-            since = since,
-        )
+        val shown = LinkedHashMap<String, NostrEvent>()
+        var cursor = until
+        var resumeUntil: Long? = null
+        var answered = false
+        var windows = 1
+        var window = queryWindow(authors = authors, limit = limit, until = cursor, since = since)
+        while (window.answered) {
+            answered = true
+            window.events.filter { it.isShownInFeed(includeReplies) }.forEach { shown[it.id] = it }
+            val next = window.nextCursor(after = cursor)?.takeIf { since == null || it >= since }
+            resumeUntil = next
+            if (shown.size >= limit || next == null || windows >= MAX_WINDOWS_PER_PAGE) break
+            cursor = next
+            window = queryWindow(authors = authors, limit = limit, until = cursor, since = since)
+            windows++
+        }
 
-        val unique = noteEvents.distinctBy { it.id }.sortedByDescending { it.createdAt }
-        val notes = unique.filter { it.kind == NostrEventKind.ShortTextNote.value }
-            .filter { includeReplies || !it.tags.hasEventIdTag() }
-        val reposts = unique.filter { it.kind == NostrEventKind.ShortTextNoteRepost.value }
-        val page = (notes + reposts).sortedByDescending { it.createdAt }.take(limit)
-        return buildPageEvents(page)
+        val page = shown.values.sortedByDescending { it.createdAt }.take(limit)
+        return buildPageEvents(page).copy(
+            unreachable = !answered && page.isEmpty(),
+            resumeUntil = resumeUntil.takeIf { page.isEmpty() },
+        )
+    }
+
+    private fun NostrEvent.isShownInFeed(includeReplies: Boolean): Boolean =
+        when (kind) {
+            NostrEventKind.ShortTextNote.value -> includeReplies || !tags.hasEventIdTag()
+            NostrEventKind.ShortTextNoteRepost.value -> true
+            else -> false
+        }
+
+    /** One window of history: every author chunk asked for its newest [limit] events. */
+    private suspend fun queryWindow(
+        authors: List<String>,
+        limit: Int,
+        until: Long?,
+        since: Long?,
+    ): AuthorsWindow {
+        val chunks = authors.take(MAX_FOLLOW_AUTHORS).chunked(AUTHOR_CHUNK)
+        val semaphore = Semaphore(MAX_PARALLEL_CHUNKS)
+        val outcomes = coroutineScope {
+            chunks.map { chunk ->
+                async {
+                    semaphore.withPermit {
+                        queryChunkWithOutcome(
+                            authors = chunk,
+                            kinds = FEED_NOTE_KINDS,
+                            limit = limit,
+                            until = until,
+                            since = since,
+                        )
+                    }
+                }
+            }.awaitAll()
+        }
+        return AuthorsWindow.from(outcomes = outcomes, limit = limit)
     }
 
     /**
@@ -377,6 +449,29 @@ internal class RelayNotesFeedFetcher(
         }.getOrDefault(emptyList())
 
     /**
+     * [queryChunk] for a caller that has to know whether the relays answered. A query that throws
+     * counts as unanswered too, where [queryChunk] folds it into an empty list.
+     */
+    private suspend fun queryChunkWithOutcome(
+        authors: List<String>,
+        kinds: List<Int>,
+        limit: Int,
+        until: Long?,
+        since: Long?,
+    ): RelayQueryOutcome =
+        runCatching {
+            querier.queryWithOutcome(
+                RelayFilter(
+                    kinds = kinds,
+                    authors = authors,
+                    limit = limit,
+                    until = until,
+                    since = since,
+                ),
+            )
+        }.getOrDefault(RelayQueryOutcome(events = emptyList(), answered = false))
+
+    /**
      * The follow list used to be fetched before every single page — a full round trip paid up
      * front, with the notes query blocked behind it — and the per-fetcher cache that replaced it
      * lived as long as the object, which meant the article feed and the profile screen each kept
@@ -401,6 +496,18 @@ internal class RelayNotesFeedFetcher(
         private const val MAX_PARALLEL_CHUNKS = 8
         private const val ID_CHUNK = 50
 
+        /**
+         * How many windows of history one page may spend looking for [limit] events worth showing.
+         * Each window is a full round of relay queries, so this bounds the cost of a feed that is
+         * mostly replies; if the cap is hit, the page reports where to resume from instead.
+         */
+        private const val MAX_WINDOWS_PER_PAGE = 4
+
+        private val FEED_NOTE_KINDS = listOf(
+            NostrEventKind.ShortTextNote.value,
+            NostrEventKind.ShortTextNoteRepost.value,
+        )
+
         /** Every page resolves the whole list, so the list a feed will ever look at is bounded. */
         private const val MAX_BOOKMARKED_NOTES = 300
         private const val BOOKMARK_LIST_QUERY_LIMIT = 5
@@ -411,15 +518,66 @@ internal class RelayNotesFeedFetcher(
     }
 }
 
+/**
+ * What one window of history returned, merged across the author chunks that were asked.
+ *
+ * A chunk that came back with [limit] events was cut short by that limit: it holds more, older,
+ * and the events it did return only cover time down to its oldest one. Taking the newest [limit]
+ * of the merged result regardless used to let a quiet chunk's older events push the page past that
+ * point, and the busy chunk's events in the gap were never requested again, because the next page
+ * starts at the oldest event shown. [cutoff] is the oldest point every chunk is known to cover.
+ */
+private class AuthorsWindow(
+    /** Merged and de-duplicated, already trimmed to what every chunk fully covers. */
+    val events: List<NostrEvent>,
+    val answered: Boolean,
+    /** The oldest second the window fully covers; null when no chunk was cut short. */
+    val cutoff: Long?,
+) {
+
+    /**
+     * Where the next window should start, or null when this one reached the end of what the
+     * relays hold. [after] is the cursor this window was asked with.
+     */
+    fun nextCursor(after: Long?): Long? =
+        cutoff?.let { covered ->
+            // A whole chunk limit of events in one second makes the cutoff equal to the cursor,
+            // which would ask the same question again forever. Skip the rest of that second.
+            if (after == null || covered < after) covered else after - 1
+        }
+
+    companion object {
+        fun from(outcomes: List<RelayQueryOutcome>, limit: Int): AuthorsWindow {
+            val cutoff = outcomes
+                .filter { it.events.size >= limit }
+                .map { outcome -> outcome.events.minOf { it.createdAt } }
+                .maxOrNull()
+            val merged = outcomes.flatMap { it.events }.distinctBy { it.id }
+            return AuthorsWindow(
+                events = if (cutoff == null) merged else merged.filter { it.createdAt >= cutoff },
+                answered = outcomes.any { it.answered },
+                cutoff = cutoff,
+            )
+        }
+    }
+}
+
 internal fun List<NostrEvent>.toFeedResponse(
     metadata: List<NostrEvent>,
     referencedEvents: List<PrimalEvent> = emptyList(),
+    /** See [NotesFeedPage.resumeUntil]; only read when this list is empty. */
+    emptyPageCursor: Long? = null,
 ): FeedResponse {
     val notes = filter { it.kind == NostrEventKind.ShortTextNote.value }
     val reposts = filter { it.kind == NostrEventKind.ShortTextNoteRepost.value }
     val created = map { it.createdAt }
     val paging = if (created.isEmpty()) {
-        ContentPrimalPaging(orderBy = "created_at", sinceId = 0, untilId = 0, elements = emptyList())
+        ContentPrimalPaging(
+            orderBy = "created_at",
+            sinceId = emptyPageCursor ?: 0,
+            untilId = emptyPageCursor ?: 0,
+            elements = emptyList(),
+        )
     } else {
         ContentPrimalPaging(
             orderBy = "created_at",

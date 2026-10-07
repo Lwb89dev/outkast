@@ -129,10 +129,10 @@ abstract class PrimalActivity : FragmentActivity() {
 
     private fun Bundle?.restoreOrDefaultPrimalTheme(): PrimalTheme {
         return when (this) {
-            null -> PrimalTheme.Midnight
+            null -> ActiveThemeStore.DEFAULT_THEME
             else -> {
-                val themeName = this.getString("primalTheme", PrimalTheme.Midnight.themeName)
-                PrimalTheme.valueOf(themeName = themeName) ?: PrimalTheme.Midnight
+                val themeName = this.getString("primalTheme", ActiveThemeStore.DEFAULT_THEME.themeName)
+                PrimalTheme.valueOf(themeName = themeName) ?: ActiveThemeStore.DEFAULT_THEME
             }
         }
     }

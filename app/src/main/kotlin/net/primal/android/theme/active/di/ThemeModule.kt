@@ -12,6 +12,7 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Qualifier
 import javax.inject.Singleton
 import net.primal.android.core.serialization.datastore.StringSerializer
+import net.primal.android.theme.active.ActiveThemeStore
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -23,7 +24,10 @@ object ThemeModule {
     fun activeThemeDataStore(@ApplicationContext context: Context): DataStore<String> =
         DataStoreFactory.create(
             produceFile = { context.dataStoreFile("active_theme.txt") },
-            serializer = StringSerializer(),
+            // A theme that was never chosen reads as the default theme. Only an absent file does:
+            // choosing "adjust to the system" writes an empty string, which is read back as such
+            // and keeps following the system.
+            serializer = StringSerializer(defaultValue = ActiveThemeStore.DEFAULT_THEME.themeName),
         )
 }
 

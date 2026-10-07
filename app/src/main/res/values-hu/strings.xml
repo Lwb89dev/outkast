@@ -885,7 +885,7 @@
     <string name="profile_user_feed_title">%1$s-es takarmány</string>
     <string name="profile_user_is_muted">%1$s el van némítva.</string>
     <string name="profile_follows_you">Követ téged.</string>
-    <string name="profile_followed_by">Ezt követi:</string>
+    <string name="profile_following_label">Követi</string>
     <string name="profile_save_user_feed_title">%1$s \'s Legutóbbi</string>
     <string name="profile_save_user_feed_description">A %1$s \'s utolsó megjegyzései</string>
     <string name="profile_invalid_profile_id">Nem sikerült betölteni a profilt. Ellenőrizze a kapcsolatot, és próbálja újra.</string>

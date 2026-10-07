@@ -885,7 +885,7 @@
     <string name="profile_user_feed_title">%1$s \'s rehu</string>
     <string name="profile_user_is_muted">%1$s on mykkä.</string>
     <string name="profile_follows_you">Seuraa sinua</string>
-    <string name="profile_followed_by">Sen jälkeen</string>
+    <string name="profile_following_label">Seuraa</string>
     <string name="profile_save_user_feed_title">%1$s \'s Uusin</string>
     <string name="profile_save_user_feed_description">Viimeisimmät huomautukset mennessä %1$s \'s seuraavat</string>
     <string name="profile_invalid_profile_id">Profiilia ei voitu ladata. Tarkista yhteys ja yritä uudelleen.</string>

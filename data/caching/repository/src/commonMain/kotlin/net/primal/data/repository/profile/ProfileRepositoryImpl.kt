@@ -135,6 +135,12 @@ internal class ProfileRepositoryImpl(
             }
         }
 
+    /**
+     * The people [profileId] follows that [userId] follows too — the intersection of the two
+     * kind-3 lists. Despite the name (inherited from Primal's `user_profile_followed_by` verb) the
+     * direction is "profile follows them", not "they follow the profile", and the profile header
+     * labels it "Following" accordingly.
+     */
     override suspend fun fetchUserProfileFollowedBy(
         profileId: String,
         userId: String,

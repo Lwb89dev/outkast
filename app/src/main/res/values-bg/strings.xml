@@ -885,7 +885,7 @@
     <string name="profile_user_feed_title">%1$s\'s feed</string>
     <string name="profile_user_is_muted">%1$s е заглушен.</string>
     <string name="profile_follows_you">Следва те.</string>
-    <string name="profile_followed_by">Последвано от</string>
+    <string name="profile_following_label">Следва</string>
     <string name="profile_save_user_feed_title">%1$s\'s Latest</string>
     <string name="profile_save_user_feed_description">Последните бележки от %1$s "и следва</string>
     <string name="profile_invalid_profile_id">Профилът не може да бъде зареден. Моля, проверете връзката и опитайте отново.</string>

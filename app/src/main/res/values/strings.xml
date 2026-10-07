@@ -1018,7 +1018,7 @@
     <string name="profile_user_feed_title">%1$s\'s feed</string>
     <string name="profile_user_is_muted">%1$s is muted.</string>
     <string name="profile_follows_you">Follows you</string>
-    <string name="profile_followed_by">Followed by</string>
+    <string name="profile_following_label">Following</string>
     <string name="profile_save_user_feed_title">%1$s\'s Latest</string>
     <string name="profile_save_user_feed_description">Latest notes by %1$s\'s follows</string>
     <string name="profile_invalid_profile_id">Unable to load the profile. Please check your connection and try again.</string>

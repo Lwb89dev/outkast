@@ -885,7 +885,7 @@
     <string name="profile_user_feed_title">%1$s \'s foder</string>
     <string name="profile_user_is_muted">%1$s er dæmpet.</string>
     <string name="profile_follows_you">Følger dig</string>
-    <string name="profile_followed_by">Efterfulgt af</string>
+    <string name="profile_following_label">Følger</string>
     <string name="profile_save_user_feed_title">%1$s \'s Seneste</string>
     <string name="profile_save_user_feed_description">Seneste noter af %1$s \'s følger</string>
     <string name="profile_invalid_profile_id">Kan ikke indlæse profilen. Tjek din forbindelse og prøv igen.</string>

@@ -885,7 +885,7 @@
     <string name="profile_user_feed_title">%1$s barība</string>
     <string name="profile_user_is_muted">%1$s ir izslēgts.</string>
     <string name="profile_follows_you">Seko jums</string>
-    <string name="profile_followed_by">Seko</string>
+    <string name="profile_following_label">Seko</string>
     <string name="profile_save_user_feed_title">%1$s jaunākais</string>
     <string name="profile_save_user_feed_description">Jaunākās piezīmes līdz %1$s \'s šādi</string>
     <string name="profile_invalid_profile_id">Neizdevās ielādēt profilu. Lūdzu pārbaudiet savu savienojumu un mēģiniet vēlreiz.</string>

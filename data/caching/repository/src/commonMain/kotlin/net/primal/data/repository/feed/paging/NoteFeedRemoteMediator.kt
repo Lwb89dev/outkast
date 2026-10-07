@@ -13,6 +13,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import kotlinx.io.IOException
 import net.primal.core.caching.MediaCacher
@@ -33,6 +34,7 @@ import net.primal.data.repository.feed.asReferencedPrimalEvent
 import net.primal.data.repository.feed.processors.FeedProcessor
 import net.primal.data.repository.feed.toFeedResponse
 import net.primal.data.repository.fetch.FetchCoordinator
+import net.primal.data.repository.fetch.RelaysUnreachableException
 import net.primal.data.repository.utils.cacheAvatarUrls
 import net.primal.domain.common.exception.NetworkException
 import net.primal.domain.feeds.isAdvancedSearchFeedSpec
@@ -60,6 +62,11 @@ internal class NoteFeedRemoteMediator(
     private val relayEventQuerier: RelayEventQuerier? = null,
     private val fetchCoordinator: FetchCoordinator,
     private val localEventCache: LocalEventCache,
+    /**
+     * How long to wait before each further attempt when an APPEND reached no relay at all. Tests
+     * pass an empty list so a failing relay does not make them sleep.
+     */
+    private val unreachableRetryDelays: List<Duration> = DEFAULT_UNREACHABLE_RETRY_DELAYS,
 ) : RemoteMediator<Int, FeedPost>() {
 
     private val relayFeedFetcher = relayEventQuerier?.let {
@@ -99,6 +106,16 @@ internal class NoteFeedRemoteMediator(
      * returned events. Lets the next attempt step strictly further back instead of repeating a
      * window the DB-derived cursor hasn't moved past. Reset only on REFRESH. */
     private val furthestAppendUntil = AtomicReference<Long?>(null)
+
+    /** The oldest `created_at` any load has reached so far, whether or not the feed shows it.
+     * The cursor the next APPEND starts from is normally derived from the last item the list
+     * displays, but the list can hide rows it has just stored (a muted author, an author outside
+     * the web of trust, a thread the user muted): when a whole batch is hidden that item is still
+     * in the previous batch, the derived cursor does not move, and the next request either repeated
+     * the last one or jumped EMPTY_BATCH_STEP_BACK past real notes. Taking the older of the two
+     * keeps the walk moving through whatever is hidden. Null until something has been loaded and
+     * after a REFRESH clears the feed. */
+    private val appendCursor = AtomicReference<Long?>(null)
 
     /** Consecutive APPEND batches that returned zero notes/polls/reposts. Reset by any batch
      * with at least one event, by REFRESH, and by a manual retry. Bounds automatic step-back
@@ -228,6 +245,11 @@ internal class NoteFeedRemoteMediator(
         } catch (error: RepeatingRequestBodyException) {
             Napier.i("feed_spec $feedSpec load exit 4", error)
             MediatorResult.Success(endOfPaginationReached = true)
+        } catch (error: RelaysUnreachableException) {
+            // Not an error to show and not the end of the feed: no relay could be reached, so
+            // nothing is known about older notes. The next scroll asks the same question again.
+            Napier.w("feed_spec $feedSpec load exit 10", error)
+            MediatorResult.Success(endOfPaginationReached = false)
         }
     }
 
@@ -261,6 +283,7 @@ internal class NoteFeedRemoteMediator(
             // stale history instead of trying the natural next window.
             furthestAppendUntil.store(null)
             consecutiveEmptyAppendBatches.store(0)
+            appendCursor.store(null)
         }
 
         // Load a deliberately larger first snapshot, then keep subsequent pages small to
@@ -307,6 +330,10 @@ internal class NoteFeedRemoteMediator(
         // (EventRepository.fetchAndCacheEventStats), once a note actually scrolls into view.
         if (isRealRefresh) {
             refreshRelayEventStats(response = syncResult.response)
+        }
+
+        if (isRealRefresh) {
+            appendCursor.store(syncResult.response.paging?.sinceId?.takeIf { it > 0 })
         }
 
         lastRequests[loadType] = syncResult.request to Clock.System.now().epochSeconds
@@ -431,15 +458,16 @@ internal class NoteFeedRemoteMediator(
         // up, and the step-back check below then correctly moves past it instead of re-querying
         // the exact spot that just produced the give-up.
         val watermark = furthestAppendUntil.load()
-        val candidateUntil = remoteKey?.sinceId ?: watermark
+        val candidateUntil = listOfNotNull(remoteKey?.sinceId, appendCursor.load()).minOrNull() ?: watermark
         val until = if (candidateUntil != null && watermark != null && candidateUntil >= watermark) {
             watermark - EMPTY_BATCH_STEP_BACK
         } else {
             candidateUntil
         }
 
+        // Consumed only once the fetch has produced something: a manual "load more" that reaches
+        // no relay should still ask for the large page when it is tried again.
         val effectiveLimit = forceNextAppendLimit.load() ?: pageSize
-        forceNextAppendLimit.store(null)
 
         val requestBody = MultiKindFeedBySpecRequestBody(
             spec = feedSpec,
@@ -455,18 +483,67 @@ internal class NoteFeedRemoteMediator(
             }
         }
 
-        val feedResponse = fetchFeedPage(requestBody)
+        val feedResponse = fetchAppendPage(requestBody)
+        forceNextAppendLimit.store(null)
 
         if (until != null) {
             furthestAppendUntil.update { current -> minOf(until, current ?: until) }
         }
-        val returnedCount = feedResponse.notes.size + feedResponse.polls.size + feedResponse.reposts.size
-        consecutiveEmptyAppendBatches.store(if (returnedCount == 0) consecutiveEmptyAppendBatches.load() + 1 else 0)
+        recordAppendProgress(response = feedResponse, requestedUntil = until)
 
         return SyncResult(request = requestBody, response = feedResponse)
     }
 
-    private suspend fun fetchFeedPage(requestBody: MultiKindFeedBySpecRequestBody): FeedResponse {
+    /**
+     * Updates the give-up counter and the in-memory cursor from what an APPEND returned.
+     *
+     * A batch counts as empty only when it brought nothing and moved the cursor nowhere. The relay
+     * fetcher reports how far it looked even when everything it found was filtered out (replies on
+     * a feed that hides them), and that is progress: the next request has somewhere new to start,
+     * so it must not use up one of the few attempts before the feed gives up.
+     */
+    private fun recordAppendProgress(response: FeedResponse, requestedUntil: Long?) {
+        val returnedCount = response.notes.size + response.polls.size + response.reposts.size
+        val reachedTo = response.paging?.sinceId?.takeIf { it > 0 }
+        val movedBack = reachedTo != null && (requestedUntil == null || reachedTo < requestedUntil)
+
+        if (returnedCount == 0 && !movedBack) {
+            consecutiveEmptyAppendBatches.store(consecutiveEmptyAppendBatches.load() + 1)
+            return
+        }
+        consecutiveEmptyAppendBatches.store(0)
+        if (reachedTo != null) {
+            appendCursor.update { current -> minOf(reachedTo, current ?: reachedTo) }
+        }
+    }
+
+    /**
+     * An APPEND page, asked for again a few times when no relay answered it at all.
+     *
+     * Nothing answering is not the same as the relays having nothing older, and the difference is
+     * what keeps the feed loading: an empty answer ends up as one of the few strikes before the
+     * feed gives up, while silence is a dropped connection or relays that are still backing off,
+     * and it is gone by the time the user scrolls again. When the attempts run out this throws and
+     * [load] answers without moving anything, so the cursor and the strike count stay as they were.
+     */
+    private suspend fun fetchAppendPage(requestBody: MultiKindFeedBySpecRequestBody): FeedResponse {
+        var attempt = 0
+        while (true) {
+            try {
+                return fetchFeedPage(requestBody = requestBody, failWhenUnreachable = true)
+            } catch (error: RelaysUnreachableException) {
+                val wait = unreachableRetryDelays.getOrNull(attempt) ?: throw error
+                attempt++
+                Napier.w("feed_spec $feedSpec APPEND reached no relay, attempt $attempt after $wait")
+                delay(wait)
+            }
+        }
+    }
+
+    private suspend fun fetchFeedPage(
+        requestBody: MultiKindFeedBySpecRequestBody,
+        failWhenUnreachable: Boolean = false,
+    ): FeedResponse {
         val advancedSearchFetcher = relayAdvancedSearchFetcher
         if (useRelayAdvancedSearch && advancedSearchFetcher != null) {
             return advancedSearchFetcher.fetch(
@@ -488,6 +565,7 @@ internal class NoteFeedRemoteMediator(
                 limit = requestBody.limit ?: FeedRepository.DEFAULT_PAGE_SIZE,
                 until = requestBody.until,
                 since = requestBody.since,
+                failWhenUnreachable = failWhenUnreachable,
             )
         }
         return retryNetworkCall(
@@ -556,6 +634,11 @@ internal class NoteFeedRemoteMediator(
 
     companion object {
         private val LAST_REQUEST_EXPIRY = 10.seconds.inWholeSeconds
+
+        /** Two more tries after a first APPEND that no relay answered. Short on purpose: it holds the
+         * list's loading row open, and a relay still backing off will not be back within a few
+         * seconds anyway, so the scroll that follows is the real retry. */
+        private val DEFAULT_UNREACHABLE_RETRY_DELAYS = listOf(1.seconds, 3.seconds)
 
         /** How far back (seconds) a stuck APPEND cursor is forced past its last attempted
          * boundary. Trade-off: too small and a genuinely sparse account (long real gaps between

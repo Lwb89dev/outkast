@@ -885,7 +885,7 @@
     <string name="profile_user_feed_title">%1$s voog</string>
     <string name="profile_user_is_muted">%1$s on vaigistatud.</string>
     <string name="profile_follows_you">Järgneb sulle.</string>
-    <string name="profile_followed_by">Järgnesid</string>
+    <string name="profile_following_label">Jälgib</string>
     <string name="profile_save_user_feed_title">%1$s viimane</string>
     <string name="profile_save_user_feed_description">Viimased %1$s noodid järgnevad:</string>
     <string name="profile_invalid_profile_id">Profiili laadimine nurjus. Palun kontrollige oma ühendust ja proovige uuesti.</string>

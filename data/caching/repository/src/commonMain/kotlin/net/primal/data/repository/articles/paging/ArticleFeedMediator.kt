@@ -20,6 +20,7 @@ import net.primal.data.local.db.CachingDatabase
 import net.primal.data.remote.api.articles.model.ArticleResponse
 import net.primal.data.repository.articles.processors.persistToDatabase
 import net.primal.data.repository.fetch.FetchCoordinator
+import net.primal.data.repository.fetch.RelaysUnreachableException
 import net.primal.data.repository.mappers.remote.mapNotNullAsArticleDataPO
 import net.primal.data.repository.utils.cacheAvatarUrls
 import net.primal.domain.common.ContentPrimalPaging
@@ -39,6 +40,9 @@ internal class ArticleFeedMediator(
 ) : RemoteMediator<Int, ArticleFeedItem>() {
 
     private val lastRequests: MutableMap<LoadType, Long> = mutableMapOf()
+
+    /** The boundary the last APPEND asked for, so only a repeat of that same question is throttled. */
+    private var lastAppendUntil: Long? = null
     private val relayFetcher = RelayArticleFeedFetcher(
         querier = relayEventQuerier,
         coordinator = fetchCoordinator,
@@ -82,14 +86,28 @@ internal class ArticleFeedMediator(
                 loadType = loadType,
             )
 
-            processAndPersistToDatabase(response = response, clearFeed = loadType == LoadType.REFRESH)
+            // A refresh that found no articles is far more likely a relay pool that is still
+            // connecting, or relays that did not answer in time, than a follow list that has
+            // never published a long-form article. Replacing the cached feed with nothing used to
+            // wipe the Reads tab on every such refresh, one that runs whenever the cache is more
+            // than a few minutes old. The note feed already refuses to clear for an empty page.
+            val replaceCachedFeed = loadType == LoadType.REFRESH && response.articles.isNotEmpty()
+            processAndPersistToDatabase(response = response, clearFeed = replaceCachedFeed)
 
             MediatorResult.Success(endOfPaginationReached = false)
         } catch (error: NetworkException) {
             MediatorResult.Error(error)
         } catch (_: RepeatingRequestBodyException) {
-            Napier.d("RepeatingRequestBody exit.")
-            MediatorResult.Success(endOfPaginationReached = true)
+            // The same boundary was asked for a moment ago. Skip this call; do not end the list.
+            // Ending it was permanent for this PagingSource, so two scrolls within ten seconds
+            // used to be enough to stop the Reads feed from ever loading another page.
+            Napier.d("Repeated APPEND skipped.")
+            MediatorResult.Success(endOfPaginationReached = false)
+        } catch (_: RelaysUnreachableException) {
+            // No relay answered, which says nothing about older articles. Leave the cursor alone
+            // so the next scroll (or refresh) asks again.
+            Napier.d("No relay answered the Reads request.")
+            MediatorResult.Success(endOfPaginationReached = false)
         }
     }
 
@@ -99,11 +117,12 @@ internal class ArticleFeedMediator(
         nextUntil: Long?,
         loadType: LoadType,
     ): ArticleResponse {
-        lastRequests[loadType]?.let { lastRequestAt ->
-            if (!lastRequestAt.isRequestCacheExpired() && loadType != LoadType.REFRESH) {
-                throw RepeatingRequestBodyException()
-            }
-        }
+        val lastRequestAt = lastRequests[loadType]
+        val isRepeat = loadType == LoadType.APPEND &&
+            nextUntil == lastAppendUntil &&
+            lastRequestAt != null &&
+            !lastRequestAt.isRequestCacheExpired()
+        if (isRepeat) throw RepeatingRequestBodyException()
 
         val response = withContext(dispatcherProvider.io()) {
             relayFetcher.fetch(
@@ -115,6 +134,7 @@ internal class ArticleFeedMediator(
         }
         mediaCacher?.cacheAvatarUrls(metadata = response.metadata, cdnResources = response.cdnResources)
         lastRequests[loadType] = Clock.System.now().epochSeconds
+        if (loadType == LoadType.APPEND) lastAppendUntil = nextUntil
         return response
     }
 

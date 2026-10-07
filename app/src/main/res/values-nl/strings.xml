@@ -885,7 +885,7 @@
     <string name="profile_user_feed_title">%1$s voer</string>
     <string name="profile_user_is_muted">%1$s is gedempt.</string>
     <string name="profile_follows_you">Volgt u</string>
-    <string name="profile_followed_by">Gevolgd door</string>
+    <string name="profile_following_label">Volgt</string>
     <string name="profile_save_user_feed_title">%1$s \'s Laatste</string>
     <string name="profile_save_user_feed_description">Laatste aantekeningen bij %1$s \'s volgt</string>
     <string name="profile_invalid_profile_id">Kan het profiel niet laden. Controleer uw verbinding en probeer het opnieuw.</string>

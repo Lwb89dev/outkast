@@ -885,7 +885,7 @@
     <string name="profile_user_feed_title">Aliments pour animaux %1$s</string>
     <string name="profile_user_is_muted">%1$s est muet.</string>
     <string name="profile_follows_you">Il vous suit</string>
-    <string name="profile_followed_by">Suivi</string>
+    <string name="profile_following_label">Suit</string>
     <string name="profile_save_user_feed_title">%1$s \'s Dernière</string>
     <string name="profile_save_user_feed_description">Dernières notes par %1$s \'s</string>
     <string name="profile_invalid_profile_id">Impossible de charger le profil. Veuillez vérifier votre connexion et réessayer.</string>

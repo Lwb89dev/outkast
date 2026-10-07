@@ -885,7 +885,7 @@
     <string name="profile_user_feed_title">Prehrana %1$s</string>
     <string name="profile_user_is_muted">%1$s je zamolklo.</string>
     <string name="profile_follows_you">Sledi vam</string>
-    <string name="profile_followed_by">Sledi:</string>
+    <string name="profile_following_label">Sledi</string>
     <string name="profile_save_user_feed_title">%1$s\'S najnovejše</string>
     <string name="profile_save_user_feed_description">Zadnje opombe do %1$s \'s sledi</string>
     <string name="profile_invalid_profile_id">Ni moč naložiti profila. Preverite povezavo in poskusite znova.</string>

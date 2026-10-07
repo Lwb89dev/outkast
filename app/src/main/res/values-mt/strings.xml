@@ -885,7 +885,7 @@
     <string name="profile_user_feed_title">%1$s \'s għalf</string>
     <string name="profile_user_is_muted">%1$s huwa mbiddel.</string>
     <string name="profile_follows_you">Segwik</string>
-    <string name="profile_followed_by">Segwitu minn</string>
+    <string name="profile_following_label">Isegwi</string>
     <string name="profile_save_user_feed_title">%1$s \'s Latest</string>
     <string name="profile_save_user_feed_description">L-aħħar noti minn %1$s \'s isegwu</string>
     <string name="profile_invalid_profile_id">Jekk jogħġbok iċċekkja l-konnessjoni tiegħek u erġa\' pprova.</string>

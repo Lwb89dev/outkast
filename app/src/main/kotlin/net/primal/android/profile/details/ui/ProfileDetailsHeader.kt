@@ -266,8 +266,14 @@ private fun UserFollowedByIndicator(
             maxAvatarsToShow = FOLLOWED_BY_AVATAR_COUNT,
             displayAvatarOverflowIndicator = false,
         )
+        // The profiles listed here are the ones this profile FOLLOWS and the signed-in user follows
+        // as well: ProfileRepositoryImpl.fetchUserProfileFollowedBy intersects the two kind-3
+        // follow lists. The label used to read "Followed by", which says the opposite (these
+        // people following the profile), so it is "Following" now. The repository function and
+        // the state field keep the old name because they mirror Primal's USER_PROFILE_FOLLOWED_BY
+        // cache-server verb; only what the user reads had to change.
         val text =
-            stringResource(id = R.string.profile_followed_by) + " " + profiles.joinToString { it.userDisplayName }
+            stringResource(id = R.string.profile_following_label) + " " + profiles.joinToString { it.userDisplayName }
         Text(
             text = text,
             maxLines = 2,

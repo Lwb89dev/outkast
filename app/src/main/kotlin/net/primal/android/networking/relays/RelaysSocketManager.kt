@@ -43,6 +43,7 @@ import net.primal.domain.nostr.cryptography.SignResult
 import net.primal.domain.nostr.relay.RelayEventQuerier
 import net.primal.domain.nostr.relay.RelayEventSubscriber
 import net.primal.domain.nostr.relay.RelayFilter
+import net.primal.domain.nostr.relay.RelayQueryOutcome
 
 @Singleton
 @Suppress("TooManyFunctions")
@@ -382,6 +383,22 @@ class RelaysSocketManager @Inject constructor(
 
     override suspend fun query(filter: RelayFilter): List<NostrEvent> {
         return queryEvents(filter.toJsonObject()).events
+    }
+
+    /**
+     * The same query, plus whether any relay answered it.
+     *
+     * [queryEvents] never throws: a pool with every relay failed, backing off or timed out hands
+     * back an empty result exactly like one whose relays all said "nothing more". The per-relay
+     * bookkeeping already tells them apart, a relay that reached EOSE is in `eoseRelays` and one
+     * that did not is in `failedRelays`, so an answer is an EOSE or an event from anyone.
+     */
+    override suspend fun queryWithOutcome(filter: RelayFilter): RelayQueryOutcome {
+        val result = queryEvents(filter.toJsonObject())
+        return RelayQueryOutcome(
+            events = result.events,
+            answered = result.events.isNotEmpty() || result.eoseRelays.isNotEmpty(),
+        )
     }
 
     override fun subscribe(filter: RelayFilter): Flow<NostrEvent> {

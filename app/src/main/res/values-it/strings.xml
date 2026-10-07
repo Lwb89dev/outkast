@@ -895,7 +895,7 @@
     <string name="profile_user_feed_title">%1$s\'s feed</string>
     <string name="profile_user_is_muted">%1$s è silenziato.</string>
     <string name="profile_follows_you">Ti segue</string>
-    <string name="profile_followed_by">Seguito da</string>
+    <string name="profile_following_label">Segue</string>
     <string name="profile_save_user_feed_title">%1$s\'s Latest</string>
     <string name="profile_save_user_feed_description">Ultime note dai follow di %1$s</string>
     <string name="profile_invalid_profile_id">Impossibile caricare il profilo. Controlla la connessione e riprova.</string>

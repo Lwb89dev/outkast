@@ -885,7 +885,7 @@
     <string name="profile_user_feed_title">%1$s的饲料</string>
     <string name="profile_user_is_muted">%1$s是哑巴。</string>
     <string name="profile_follows_you">跟着你</string>
-    <string name="profile_followed_by">随后</string>
+    <string name="profile_following_label">关注了</string>
     <string name="profile_save_user_feed_title">%1$s年最新数据</string>
     <string name="profile_save_user_feed_description">%1$s年的最新说明如下:</string>
     <string name="profile_invalid_profile_id">无法装入配置文件 。 请检查您的连接并再次尝试。</string>

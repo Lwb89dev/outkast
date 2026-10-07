@@ -885,7 +885,7 @@
     <string name="profile_user_feed_title">Η τροφή του %1$s</string>
     <string name="profile_user_is_muted">%1$s είναι βουβό.</string>
     <string name="profile_follows_you">Σε ακολουθεί.</string>
-    <string name="profile_followed_by">Ακολούθως:</string>
+    <string name="profile_following_label">Ακολουθεί</string>
     <string name="profile_save_user_feed_title">%1$s\'s Τελευταία</string>
     <string name="profile_save_user_feed_description">Τελευταίες σημειώσεις από %1$s \'s ακολουθεί</string>
     <string name="profile_invalid_profile_id">Αδυναμία φόρτωσης του προφίλ. Παρακαλώ ελέγξτε τη σύνδεσή σας και προσπαθήστε ξανά.</string>

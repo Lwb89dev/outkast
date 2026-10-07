@@ -34,7 +34,9 @@ val SIGNABLE_EVENT_KINDS: List<NostrEventKind> = listOf(
     NostrEventKind.GenericRepost,
     NostrEventKind.PictureNote,
     NostrEventKind.ChatMessage,             // live stream chat
-    NostrEventKind.PollResponse,
+    NostrEventKind.Poll,                    // creating a user poll (kind 1068)
+    NostrEventKind.ZapPoll,                 // creating a zap poll (kind 6969)
+    NostrEventKind.PollResponse,            // voting
     NostrEventKind.Reporting,
     NostrEventKind.ZapRequest,
     NostrEventKind.Highlight,               // NIP-84

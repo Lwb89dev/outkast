@@ -885,7 +885,7 @@
     <string name="profile_user_feed_title">Hrana pentru animale a %1$s</string>
     <string name="profile_user_is_muted">%1$s este mutat.</string>
     <string name="profile_follows_you">Te urmează.</string>
-    <string name="profile_followed_by">Urmat de</string>
+    <string name="profile_following_label">Urmărește</string>
     <string name="profile_save_user_feed_title">%1$s\'s Ultimele</string>
     <string name="profile_save_user_feed_description">Ultimele note de %1$s urmează:</string>
     <string name="profile_invalid_profile_id">Imposibil de încărcat profilul. Verificaţi legătura şi încercaţi din nou.</string>

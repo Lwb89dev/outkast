@@ -885,7 +885,7 @@
     <string name="profile_user_feed_title">%1$s \'s feed</string>
     <string name="profile_user_is_muted">%1$s es mudo.</string>
     <string name="profile_follows_you">Te sigue</string>
-    <string name="profile_followed_by">Followed by</string>
+    <string name="profile_following_label">Siguiendo</string>
     <string name="profile_save_user_feed_title">%1$s \'s Última</string>
     <string name="profile_save_user_feed_description">Últimas notas de %1$s \'s sigue</string>
     <string name="profile_invalid_profile_id">Incapaz de cargar el perfil. Por favor, revise su conexión e inténtelo de nuevo.</string>

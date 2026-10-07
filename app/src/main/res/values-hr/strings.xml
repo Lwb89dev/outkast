@@ -885,7 +885,7 @@
     <string name="profile_user_feed_title">%1$s je feed</string>
     <string name="profile_user_is_muted">%1$s je prigušen.</string>
     <string name="profile_follows_you">Prati te</string>
-    <string name="profile_followed_by">Slijedi me</string>
+    <string name="profile_following_label">Prati</string>
     <string name="profile_save_user_feed_title">%1$s\'s Najnoviji</string>
     <string name="profile_save_user_feed_description">Posljednje bilješke od %1$s \'s sljede</string>
     <string name="profile_invalid_profile_id">Ne mogu učitati profil. Provjerite vašu vezu i pokušajte ponovo.</string>

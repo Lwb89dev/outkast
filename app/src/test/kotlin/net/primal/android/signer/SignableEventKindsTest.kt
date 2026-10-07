@@ -21,6 +21,15 @@ class SignableEventKindsTest {
     }
 
     @Test
+    fun `creating a poll is signable`() {
+        // The 1027666ba fix added PollResponse (voting) but not the two kinds that create a poll,
+        // so publishing a user poll or a zap poll was rejected locally for Amber and bunker users
+        // and surfaced as the generic "check your connection" publish error.
+        SIGNABLE_EVENT_KINDS shouldContain NostrEventKind.Poll
+        SIGNABLE_EVENT_KINDS shouldContain NostrEventKind.ZapPoll
+    }
+
+    @Test
     fun `every user initiated action the app publishes is signable`() {
         val required = listOf(
             NostrEventKind.Metadata,

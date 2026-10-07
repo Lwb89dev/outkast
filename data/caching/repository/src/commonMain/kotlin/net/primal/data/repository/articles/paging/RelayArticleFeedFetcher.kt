@@ -4,6 +4,8 @@ import io.github.aakira.napier.Napier
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import net.primal.data.remote.api.articles.model.ArticleResponse
 import net.primal.data.repository.feed.asReferencedPrimalEvent
 import net.primal.data.repository.feed.referencedNoteIds
@@ -22,8 +24,10 @@ import net.primal.domain.nostr.NostrEventKind
 import net.primal.domain.nostr.findFirstIdentifier
 import net.primal.domain.nostr.pubkeyTagValues
 import net.primal.data.repository.fetch.FetchCoordinator
+import net.primal.data.repository.fetch.RelaysUnreachableException
 import net.primal.domain.nostr.relay.RelayEventQuerier
 import net.primal.domain.nostr.relay.RelayFilter
+import net.primal.domain.nostr.relay.RelayQueryOutcome
 
 /**
  * Loads long-form content directly from relays for the Reads feed.
@@ -66,37 +70,19 @@ internal class RelayArticleFeedFetcher(
         val searchTerm = query?.removePrefix("kind:30023")?.trim()?.takeIf { it.isNotBlank() }
         val baseFilter = RelayFilter(
             kinds = listOf(NostrEventKind.LongFormContent.value),
-            authors = authors,
             hashtagTags = topic?.let { listOf(it) },
             search = searchTerm,
             limit = limit,
             until = until,
         )
-        var firstPage = runCatching { querier.query(baseFilter) }.getOrDefault(emptyList())
+        val events = findPageEvents(
+            userId = userId,
+            feedSpec = feedSpec,
+            authors = authors,
+            baseFilter = baseFilter,
+            searchTerm = searchTerm,
+        )
 
-        // Follows alone are often too few to fill a page of long-form. Widen once to the
-        // follows-of-follows, still an explicit author list, never the open network.
-        if (firstPage.size < limit && !feedSpec.isFollowSetFeedSpec()) {
-            val network = loadFollowNetwork(userId = userId, follows = authors)
-            if (network.size > authors.size) {
-                val widened = runCatching { querier.query(baseFilter.copy(authors = network)) }
-                    .getOrDefault(emptyList())
-                firstPage = (firstPage + widened).distinctBy { it.id }
-            }
-        }
-        // NIP-50 is optional. A broad relay query plus local matching keeps Reads
-        // usable on relays which reject or ignore the search field.
-        // NIP-50 is optional. When a relay ignores or rejects the search field, match locally
-        // over the same author scope instead — the fallback keeps the authors, so it can never
-        // turn a search into an unscoped fetch.
-        val events = if (firstPage.isEmpty() && searchTerm != null) {
-            val broad = runCatching { querier.query(baseFilter.copy(search = null, limit = FALLBACK_LIMIT)) }
-                .getOrDefault(emptyList())
-            val terms = searchTerm.split(Regex("\\s+")).filter { it.isNotBlank() }
-            broad.filter { event -> terms.all { term -> event.content.contains(term, ignoreCase = true) } }
-        } else {
-            firstPage
-        }
         val page = events.distinctBy { it.id }.sortedByDescending { it.createdAt }.take(limit)
 
         // An article's markdown body can quote a note the same way a note's content can (a `q`
@@ -137,6 +123,84 @@ internal class RelayArticleFeedFetcher(
             primalPremiumInfo = null,
             blossomServers = emptyList(),
         )
+    }
+
+    /**
+     * The articles for one page, from [authors] and, when they are too few, from their follows.
+     *
+     * Throws [RelaysUnreachableException] when nothing came back and no relay answered. No relay
+     * answering is not an empty feed: without telling the two apart, a refresh that reached nobody
+     * replaced the cached articles with nothing.
+     */
+    private suspend fun findPageEvents(
+        userId: String,
+        feedSpec: String,
+        authors: List<String>,
+        baseFilter: RelayFilter,
+        searchTerm: String?,
+    ): List<NostrEvent> {
+        // The whole follow list used to go out as one `authors` array. Relays reject, or silently
+        // ignore, filters that large, so an account following a few hundred people got an empty
+        // Reads feed from every relay with a size limit. The note feed has always split the list
+        // into chunks; this does the same.
+        var answer = queryAuthors(filter = baseFilter, authors = authors)
+
+        // Follows alone are often too few to fill a page of long-form. Widen once to the
+        // follows-of-follows, still an explicit author list, never the open network. Only the
+        // people not already asked about are queried; the follows' answer is already in hand.
+        if (answer.events.size < (baseFilter.limit ?: Int.MAX_VALUE) && !feedSpec.isFollowSetFeedSpec()) {
+            val alreadyAsked = authors.toSet()
+            val network = loadFollowNetwork(userId = userId, follows = authors).filterNot { it in alreadyAsked }
+            if (network.isNotEmpty()) answer = answer + queryAuthors(filter = baseFilter, authors = network)
+        }
+
+        // NIP-50 is optional. When a relay ignores or rejects the search field, match locally
+        // over the same author scope instead — the fallback keeps the authors, so it can never
+        // turn a search into an unscoped fetch.
+        val broad = searchTerm?.takeIf { answer.events.isEmpty() }?.let { term ->
+            term to queryAuthors(filter = baseFilter.copy(search = null, limit = FALLBACK_LIMIT), authors = authors)
+        }
+        val events = broad?.let { (term, broadAnswer) -> broadAnswer.events.filter { it.matchesAll(term) } }
+            ?: answer.events
+        val anyRelayAnswered = answer.answered || broad?.second?.answered == true
+        if (events.isEmpty() && !anyRelayAnswered) throw RelaysUnreachableException()
+        return events
+    }
+
+    private fun NostrEvent.matchesAll(searchTerm: String): Boolean =
+        searchTerm.split(Regex("\\s+")).filter { it.isNotBlank() }
+            .all { term -> content.contains(term, ignoreCase = true) }
+
+    /**
+     * [filter] asked of [authors] in chunks the relays accept, merged.
+     *
+     * A chunk that returned a full `limit` was cut short: it holds older articles it did not send,
+     * and what it did send only reaches back to its oldest one. [ArticleAuthorsAnswer.cutoff]
+     * records how far back every chunk is known to cover, so a page is never assembled past a
+     * point a busy chunk has not been read to.
+     */
+    private suspend fun queryAuthors(filter: RelayFilter, authors: List<String>): ArticleAuthorsAnswer {
+        val chunks = authors.take(MAX_QUERY_AUTHORS).chunked(AUTHOR_CHUNK)
+        val semaphore = Semaphore(MAX_PARALLEL_CHUNKS)
+        val outcomes = coroutineScope {
+            chunks.map { chunk ->
+                async {
+                    semaphore.withPermit {
+                        runCatching { querier.queryWithOutcome(filter.copy(authors = chunk)) }
+                            .getOrDefault(RelayQueryOutcome(events = emptyList(), answered = false))
+                    }
+                }
+            }.awaitAll()
+        }
+        val limit = filter.limit ?: Int.MAX_VALUE
+        return ArticleAuthorsAnswer(
+            events = outcomes.flatMap { it.events }.distinctBy { it.id },
+            answered = outcomes.any { it.answered },
+            cutoff = outcomes
+                .filter { it.events.size >= limit }
+                .map { outcome -> outcome.events.minOf { it.createdAt } }
+                .maxOrNull(),
+        ).trimmedToCutoff()
     }
 
     private suspend fun queryByIds(ids: List<String>): List<NostrEvent> {
@@ -217,6 +281,13 @@ internal class RelayArticleFeedFetcher(
     companion object {
         private const val FALLBACK_LIMIT = 500
 
+        /** Authors per REQ, the same size the note feed uses; relays commonly refuse more. */
+        private const val AUTHOR_CHUNK = 250
+
+        /** Past this the follow list is cut, as the note feed does. */
+        private const val MAX_QUERY_AUTHORS = 2_000
+        private const val MAX_PARALLEL_CHUNKS = 4
+
         /** Contact lists to pull when widening; each is a few KB, so this bounds the round trip. */
         private const val MAX_NETWORK_SEEDS = 150
 
@@ -225,4 +296,23 @@ internal class RelayArticleFeedFetcher(
 
         private const val ID_CHUNK = 50
     }
+}
+
+private data class ArticleAuthorsAnswer(
+    val events: List<NostrEvent>,
+    val answered: Boolean,
+    /** The oldest second every chunk fully covers; null when no chunk was cut short. */
+    val cutoff: Long?,
+) {
+
+    /** Two answers merged: covered only as far back as the less-covered one. */
+    operator fun plus(other: ArticleAuthorsAnswer): ArticleAuthorsAnswer =
+        ArticleAuthorsAnswer(
+            events = (events + other.events).distinctBy { it.id },
+            answered = answered || other.answered,
+            cutoff = listOfNotNull(cutoff, other.cutoff).maxOrNull(),
+        ).trimmedToCutoff()
+
+    fun trimmedToCutoff(): ArticleAuthorsAnswer =
+        if (cutoff == null) this else copy(events = events.filter { it.createdAt >= cutoff })
 }

@@ -885,7 +885,7 @@
     <string name="profile_user_feed_title">%1$s:s foder</string>
     <string name="profile_user_is_muted">%1$s dämpas.</string>
     <string name="profile_follows_you">Följer dig</string>
-    <string name="profile_followed_by">Följt av</string>
+    <string name="profile_following_label">Följer</string>
     <string name="profile_save_user_feed_title">%1$s Senaste</string>
     <string name="profile_save_user_feed_description">Senaste anteckningar av %1$s: s följer</string>
     <string name="profile_invalid_profile_id">Kan inte ladda profilen. Vänligen kontrollera din anslutning och försök igen.</string>
