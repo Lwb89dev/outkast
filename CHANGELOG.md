@@ -7,6 +7,38 @@ LibreNostr is a fork of [Primal](https://github.com/PrimalHQ/primal-android-app)
 (MIT, Copyright (c) 2023 PRIMAL SYSTEMS INC.); this log covers changes made in
 the LibreNostr fork on top of the imported `3.5.25` baseline.
 
+## [1.1.1] - 2026-10-07
+
+### Changed
+
+- **Dark Pixel is the default theme.** It applies to anyone who never picked a theme: a fresh
+  install, or an existing one that never opened the appearance settings, no longer follows the
+  system's light/dark setting. A theme you chose stays, and so does "adjust to the system" if you
+  turned that on.
+
+### Fixed
+
+- **Older notes stopped loading while scrolling.** A page that no relay answered (a dropped
+  connection, relays still backing off after one) was read as "there is nothing older", and four of
+  those in a row ended the feed for good, which could happen within a second of a signal glitch. An
+  unanswered page now changes nothing and is asked again on the next scroll, after two quick retries.
+  The same walk had two more ways to stall or skip: a page made only of replies, which a notes feed
+  hides, looked empty even though older notes were behind it, and a busy group of followed accounts
+  could push the page past notes it had not been read to yet, losing them; and when the list was
+  hiding every note a page had just stored, the next request jumped six hours back instead of
+  continuing from where the page ended.
+- **Long reads disappeared from the Reads tab.** A refresh that no relay answered replaced the
+  cached articles with nothing, and that refresh runs whenever the cache is a few minutes old. It now
+  keeps what it had. Two quick scrolls could also end the list permanently (the guard against
+  repeating a request closed it instead of skipping the repeat), and the whole follow list went out
+  as one filter that relays with a size limit refuse; it is now split into groups of 250 authors,
+  like the note feed.
+- **Profile header said "Followed by" over the wrong list.** The people shown are the ones the
+  profile follows and you follow too, not its followers. It now reads "Following".
+- **Polls could not be published with an external signer.** Kinds 1068 (poll) and 6969 (zap poll)
+  were missing from the set of kinds sent to Amber or a NIP-46 bunker, so both were refused before
+  anything was sent and reported as a generic publish error. Voting already worked.
+
 ## [1.1.0] - 2026-10-02
 
 ### Added
