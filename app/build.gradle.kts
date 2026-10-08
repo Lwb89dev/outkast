@@ -51,8 +51,8 @@ fun extractSigningConfigProperties(storeName: String): SigningConfigProperties? 
     )
 }
 
-val appVersionCode = 46
-val appVersionName = "1.1.1"
+val appVersionCode = 47
+val appVersionName = "1.1.2"
 
 // ELF header layout, used by verifyBuiltInTorLibrary below.
 val ELF_HEADER_BYTES = 20
