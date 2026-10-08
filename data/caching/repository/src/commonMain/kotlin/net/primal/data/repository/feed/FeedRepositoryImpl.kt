@@ -317,11 +317,10 @@ internal class FeedRepositoryImpl(
         feedSpec: String,
         snapshot: FeedPageSnapshot,
     ) {
+        // FeedProcessor invalidates the PagingSource for any rows it adds, so the merged notes
+        // reach the list without a second invalidation here. Only chronological feeds poll for
+        // new notes, and those sort by timestamp, so they land on top of the cached ones.
         persistSnapshotWithStats(userId = userId, feedSpec = feedSpec, snapshot = snapshot, clearFeed = false)
-        // FeedProcessor only invalidates when it clears the feed; merged rows still have to
-        // reach the PagingSource. Only chronological feeds poll for new notes, and those sort by
-        // timestamp, so the merged notes land on top rather than after the cached ones.
-        invalidationTracker.invalidate(ownerId = userId, feedSpec = feedSpec)
     }
 
     private suspend fun persistSnapshotWithStats(

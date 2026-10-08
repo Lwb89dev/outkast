@@ -1,7 +1,9 @@
 package net.primal.data.repository.db
 
+import androidx.paging.PagingSource
 import kotlin.test.Test
-import kotlin.test.assertFalse
+import kotlin.test.assertEquals
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlinx.coroutines.runBlocking
 import net.primal.data.local.dao.profiles.ProfileData
@@ -14,16 +16,22 @@ import net.primal.domain.nostr.NostrEvent
 import net.primal.shared.data.local.db.LocalDatabaseFactory
 
 /**
- * Loading more notes while scrolling (APPEND) must not invalidate the feed's PagingSource —
- * doing so used to make even a plain page-2 load visibly flash or jump, since invalidation tears
- * down the source and (with placeholders enabled) reloads a page around the anchor. Only a real
- * refresh, which actually clears and replaces the feed, needs the source recreated.
+ * Every write that adds rows to a feed has to invalidate that feed's PagingSource, appended pages
+ * included. The feed query does not observe `FeedPostDataCrossRef`, so the invalidation tracker is
+ * the only way a live PagingSource hears about new rows; one that has already returned its last
+ * local page never loads again otherwise.
+ *
+ * An earlier version of this test asserted the opposite, to stop a flicker that came from
+ * placeholders (since turned off). The result was a feed that fetched older notes while scrolling
+ * and never displayed them.
  */
 class FeedProcessorInvalidationTest {
 
     @Test
-    fun append_doesNotInvalidateThePagingSource() =
+    fun append_invalidatesThePagingSourceSoTheNewRowsAreLoaded() =
         withDatabase { database, tracker ->
+            FeedProcessor(feedSpec = MAIN_SPEC, database = database, invalidationTracker = tracker)
+                .processAndPersistToDatabase(userId = USER_ID, response = feedResponse(noteId = "note-1"), clearFeed = true)
             val pagingSource = tracker.track(
                 ownerId = USER_ID,
                 feedSpec = MAIN_SPEC,
@@ -35,11 +43,31 @@ class FeedProcessorInvalidationTest {
                     ).feedQuery(),
                 ),
             )
+            val firstPage = pagingSource.load(
+                PagingSource.LoadParams.Refresh(key = null, loadSize = 20, placeholdersEnabled = false),
+            ) as PagingSource.LoadResult.Page
+            // The source has handed out everything it had: Paging will not ask it for more.
+            assertEquals(1, firstPage.data.size)
+            assertNull(firstPage.nextKey)
 
             FeedProcessor(feedSpec = MAIN_SPEC, database = database, invalidationTracker = tracker)
                 .processAndPersistToDatabase(userId = USER_ID, response = feedResponse(noteId = "note-2"), clearFeed = false)
 
-            assertFalse(pagingSource.invalid, "an appended page must not invalidate the existing PagingSource")
+            assertTrue(pagingSource.invalid, "an appended page must invalidate the PagingSource or it is never shown")
+        }
+
+    @Test
+    fun replacingTheFeedTellsItsMediatorToForgetItsPagingPosition() =
+        withDatabase { database, tracker ->
+            var replaced = 0
+            tracker.registerFeedReplacedHandler(ownerId = USER_ID, feedSpec = MAIN_SPEC) { replaced++ }
+
+            val processor = FeedProcessor(feedSpec = MAIN_SPEC, database = database, invalidationTracker = tracker)
+            processor.processAndPersistToDatabase(userId = USER_ID, response = feedResponse("note-1"), clearFeed = false)
+            assertEquals(0, replaced, "an append does not replace the feed")
+
+            processor.processAndPersistToDatabase(userId = USER_ID, response = feedResponse("note-2"), clearFeed = true)
+            assertEquals(1, replaced)
         }
 
     @Test

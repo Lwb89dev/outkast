@@ -7,6 +7,21 @@ LibreNostr is a fork of [Primal](https://github.com/PrimalHQ/primal-android-app)
 (MIT, Copyright (c) 2023 PRIMAL SYSTEMS INC.); this log covers changes made in
 the LibreNostr fork on top of the imported `3.5.25` baseline.
 
+## [1.1.2] - 2026-10-08
+
+### Fixed
+
+- **Older notes were fetched while scrolling but never shown.** Loading more notes stored them in
+  the database without telling the list, whose query deliberately does not watch that table, so
+  the list kept what it had and looked as if it had stopped loading. The new notes only appeared
+  when something unrelated (a like, a mute, a bookmark sync) happened to refresh it. Every page
+  added to a feed now refreshes the list.
+- **Returning to the feed could skip notes or stop paging.** The feed is replaced with its newest
+  page whenever the screen comes back into view, but the loader still remembered how far back the
+  previous scroll had gone: the next page started there, skipping everything in between, or, when
+  it repeated a request from a few seconds earlier, ended the list for good. It now starts over
+  from the new page.
+
 ## [1.1.1] - 2026-10-07
 
 ### Changed

@@ -53,13 +53,24 @@ internal class FeedProcessor(
             feedEvents.orderByPagingIfNotNull(pagingEvent = pagingEvent)
                 .processFeedConnections(userId = userId)
         }
-        // Invalidating tears down and recreates the PagingSource, which — with placeholders
-        // enabled — reloads a page around the current anchor and can flash existing items to
-        // null for a moment. That's the right price for a real refresh (the feed was actually
-        // cleared), but firing it on every APPEND too meant loading more notes while scrolling
-        // could visibly jump or blip, for no data-changing reason: appended rows don't need the
-        // PagingSource recreated to show up.
         if (shouldClearFeed) {
+            // The feed was replaced, possibly by something other than its paging mediator (the
+            // view model replaces it with the newest page when the screen comes back into view).
+            // The mediator's own idea of how far back it has paged is about rows that no longer
+            // exist, so it has to forget it before the next scroll asks for more.
+            invalidationTracker.notifyFeedReplaced(ownerId = userId, feedSpec = feedSpec)
+        }
+        // Every write that changes which rows belong to this feed has to invalidate its
+        // PagingSource, appended pages included. The feed's Room query deliberately does not
+        // observe FeedPostDataCrossRef (see FeedPagingSourceDaoReturnTypeConverter), so this call
+        // is the only way a live PagingSource learns that rows were added. Paging an APPEND used
+        // to skip it, on the belief that appended rows show up on their own: they do not. A
+        // PagingSource that has already handed out its last local page never loads again, so the
+        // notes the mediator had just fetched sat in the database unseen, and the feed looked as
+        // if it had stopped loading older notes until some unrelated write (a like, a mute, a
+        // bookmark sync) happened to invalidate it. The flicker that motivated skipping it came
+        // from placeholders, which this feed no longer uses.
+        if (shouldClearFeed || incomingFeedEvents.isNotEmpty()) {
             invalidationTracker.invalidate(ownerId = userId, feedSpec = feedSpec)
         }
     }

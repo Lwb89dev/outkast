@@ -70,9 +70,10 @@ class FeedWritePathInvalidationTest {
         }
 
     @Test
-    fun feedProcessorAppend_forSameSpec_doesNotInvalidateItsFeedSource() =
+    fun feedProcessorAppend_forSameSpec_invalidatesOnlyItsOwnFeedSource() =
         withDatabase { database, tracker ->
             val mainSource = armedTrackedSource(database, tracker, feedSpec = MAIN_SPEC)
+            val profileSource = armedTrackedSource(database, tracker, feedSpec = PROFILE_SPEC)
 
             FeedProcessor(feedSpec = MAIN_SPEC, database = database, invalidationTracker = tracker)
                 .processAndPersistToDatabase(
@@ -81,7 +82,11 @@ class FeedWritePathInvalidationTest {
                     clearFeed = false,
                 )
 
-            mainSource.assertNoInvalidation(reason = "own feed append")
+            // This used to assert no invalidation at all, and the appended notes were then never
+            // shown: the feed source does not observe the crossref table, so this is its only
+            // signal that rows were added (see FeedProcessorInvalidationTest).
+            mainSource.awaitInvalidation(reason = "own feed append")
+            profileSource.assertNoInvalidation(reason = "another feed's append")
         }
 
     @Test

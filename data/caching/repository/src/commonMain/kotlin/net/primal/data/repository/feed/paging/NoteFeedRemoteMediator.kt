@@ -150,6 +150,19 @@ internal class NoteFeedRemoteMediator(
             // attempt recompute the same stale boundary that was just exhausted, defeating the
             // whole point of a "load further back" retry.
         }
+        // The view model replaces this feed with its newest page every time the screen comes back
+        // into view, without going through load(REFRESH). Everything below described rows that
+        // replacement deleted: kept, the next APPEND started from where the user had scrolled to
+        // before (minus a six-hour step), skipping every note between the new page and that point.
+        invalidationTracker.registerFeedReplacedHandler(ownerId = userId, feedSpec = feedSpec) {
+            furthestAppendUntil.store(null)
+            consecutiveEmptyAppendBatches.store(0)
+            appendCursor.store(null)
+            // The replaced feed ends where an earlier scroll already started from, so the next
+            // APPEND legitimately asks the same question again. Remembered, that repeat was taken
+            // for a request that makes no progress and ended pagination for good.
+            lastRequests.clear()
+        }
     }
 
     private val feedProcessor: FeedProcessor = FeedProcessor(

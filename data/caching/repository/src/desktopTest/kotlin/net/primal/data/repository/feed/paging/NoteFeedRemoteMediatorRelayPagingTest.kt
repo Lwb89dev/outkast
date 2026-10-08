@@ -125,6 +125,22 @@ class NoteFeedRemoteMediatorRelayPagingTest {
             assertEquals(oldestOfFirstPage, untils[1], "the second request should start where the first page ended")
         }
 
+    @Test
+    fun `after the feed is replaced with its newest page the next scroll continues from that page`() =
+        withMediator { mediator, relay ->
+            relay.events = olderNotes(count = 60)
+            mediator.load(LoadType.APPEND, staleSeedState())
+
+            // What the view model does on returning to the screen: the feed now holds only the
+            // newest page, whose last row is the seed again. The mediator still remembered how far
+            // back the previous scroll went, and the next request started from there.
+            invalidationTracker.notifyFeedReplaced(ownerId = USER_ID, feedSpec = FEED_SPEC)
+            mediator.load(LoadType.APPEND, staleSeedState())
+
+            val untils = relay.noteQueryUntils()
+            assertEquals(listOf(SEED_UNTIL, SEED_UNTIL), untils, "the second scroll should start below the new page")
+        }
+
     // ------------------------------------------------------------------------------- harness
 
     private class SimulatedRelay : RelayEventQuerier {
@@ -154,6 +170,7 @@ class NoteFeedRemoteMediatorRelayPagingTest {
     }
 
     private lateinit var database: CachingDatabase
+    private lateinit var invalidationTracker: FeedSpecInvalidationTracker
 
     private fun olderNotes(count: Int): List<NostrEvent> =
         (1..count).map { index ->
@@ -238,6 +255,7 @@ class NoteFeedRemoteMediatorRelayPagingTest {
                 )
 
                 val relay = SimulatedRelay()
+                invalidationTracker = FeedSpecInvalidationTracker()
                 val dispatcher = UnconfinedTestDispatcher()
                 val mediator = NoteFeedRemoteMediator(
                     dispatcherProvider = mockk<DispatcherProvider> {
@@ -248,7 +266,7 @@ class NoteFeedRemoteMediatorRelayPagingTest {
                     userId = USER_ID,
                     feedApi = mockk(),
                     database = database,
-                    invalidationTracker = FeedSpecInvalidationTracker(),
+                    invalidationTracker = invalidationTracker,
                     relayEventQuerier = relay,
                     fetchCoordinator = FetchCoordinator(
                         dispatcherProvider = mockk { every { io() } returns dispatcher },

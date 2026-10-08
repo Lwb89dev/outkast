@@ -31,6 +31,10 @@ internal class FeedSpecInvalidationTracker {
      * before it, no unbounded growth or self-unregister dance needed here unlike [track]. */
     private val appendRetryHandlers = AtomicReference<Map<FeedKey, () -> Unit>>(emptyMap())
 
+    /** One per (ownerId, feedSpec), overwritten on register for the same reason as
+     * [appendRetryHandlers]. */
+    private val feedReplacedHandlers = AtomicReference<Map<FeedKey, () -> Unit>>(emptyMap())
+
     fun <Key : Any, Value : Any> track(
         ownerId: String,
         feedSpec: String,
@@ -63,6 +67,22 @@ internal class FeedSpecInvalidationTracker {
     fun registerAppendRetryHandler(ownerId: String, feedSpec: String, onRetry: () -> Unit) {
         val key = FeedKey(ownerId = ownerId, feedSpec = feedSpec)
         appendRetryHandlers.update { it + (key to onRetry) }
+    }
+
+    /** Registers what a mediator must forget when its feed is replaced (see [notifyFeedReplaced]). */
+    fun registerFeedReplacedHandler(ownerId: String, feedSpec: String, onReplaced: () -> Unit) {
+        val key = FeedKey(ownerId = ownerId, feedSpec = feedSpec)
+        feedReplacedHandlers.update { it + (key to onReplaced) }
+    }
+
+    /**
+     * The feed's rows were cleared and replaced with a fresh newest page. Called by whoever wrote
+     * them, the paging mediator's own REFRESH or the view model's refresh on returning to the
+     * screen, so the mediator's in-memory paging position (how far back it has already asked) is
+     * reset to match the rows that now exist instead of pointing into history that was deleted.
+     */
+    fun notifyFeedReplaced(ownerId: String, feedSpec: String) {
+        feedReplacedHandlers.load()[FeedKey(ownerId = ownerId, feedSpec = feedSpec)]?.invoke()
     }
 
     /**
