@@ -39,6 +39,7 @@ interface ArticleDetailsContract {
         data object DismissErrors : UiEvent()
         data class ZapArticle(val zapAmount: ULong? = null, val zapDescription: String? = null) : UiEvent()
         data object LikeArticle : UiEvent()
+        data object UnlikeArticle : UiEvent()
         data object RepostAction : UiEvent()
         data object ToggleAuthorFollows : UiEvent()
         data object ToggleHighlights : UiEvent()

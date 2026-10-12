@@ -16,6 +16,7 @@ import kotlinx.coroutines.withContext
 import net.primal.core.utils.coroutines.DispatcherProvider
 import net.primal.core.utils.getOrDefault
 import net.primal.core.utils.runCatching
+import net.primal.data.repository.feed.referencedNoteIds
 import net.primal.domain.nostr.NostrEvent
 import net.primal.domain.nostr.NostrEventKind
 import net.primal.domain.nostr.eventIdTagValues
@@ -125,7 +126,9 @@ internal class FetchCoordinator(
         coalesceByItem(
             items = eventIds,
             keyOf = { FetchKey.EventInteractions(it) },
-            belongsTo = { event, eventId -> eventId in event.tags.eventIdTagValues() },
+            belongsTo = { event, eventId ->
+                eventId in event.tags.eventIdTagValues() || eventId in listOf(event).referencedNoteIds()
+            },
             query = { ids -> queryInteractions(querier, ids) },
         )
 
@@ -294,24 +297,36 @@ internal class FetchCoordinator(
 
     private suspend fun queryInteractions(querier: RelayEventQuerier, eventIds: List<String>): List<NostrEvent> =
         coroutineScope {
+            val chunks = eventIds.chunked(EVENT_TAG_CHUNK)
             // One request per kind: a single filter would let the busiest kind eat the whole limit
             // and truncate the rest, which is how the notification page used to lose events.
-            INTERACTION_KINDS.flatMap { kind ->
-                eventIds.chunked(EVENT_TAG_CHUNK).map { chunk ->
+            val byEventTag = INTERACTION_KINDS.flatMap { kind ->
+                chunks.map { chunk ->
                     async {
-                        runCatching {
-                            querier.query(
-                                RelayFilter(
-                                    kinds = listOf(kind),
-                                    eventTags = chunk,
-                                    limit = MAX_INTERACTIONS_PER_QUERY,
-                                ),
-                            )
-                        }.getOrDefault(emptyList())
+                        querier.queryOrEmpty(
+                            RelayFilter(kinds = listOf(kind), eventTags = chunk, limit = MAX_INTERACTIONS_PER_QUERY),
+                        )
                     }
                 }
-            }.awaitAll().flatten().distinctBy { it.id }
+            }
+            // A quote carries the note it quotes in a `q` tag, not in an `e` tag, so the query above never
+            // sees it: the quotes are a request of their own.
+            val byQuoteTag = chunks.map { chunk ->
+                async {
+                    querier.queryOrEmpty(
+                        RelayFilter(
+                            kinds = listOf(NostrEventKind.ShortTextNote.value),
+                            quoteTags = chunk,
+                            limit = MAX_INTERACTIONS_PER_QUERY,
+                        ),
+                    )
+                }
+            }
+            (byEventTag + byQuoteTag).awaitAll().flatten().distinctBy { it.id }
         }
+
+    private suspend fun RelayEventQuerier.queryOrEmpty(filter: RelayFilter): List<NostrEvent> =
+        runCatching { query(filter) }.getOrDefault(emptyList())
 
     private suspend fun Operation.awaitAndRelease(): List<NostrEvent> {
         try {

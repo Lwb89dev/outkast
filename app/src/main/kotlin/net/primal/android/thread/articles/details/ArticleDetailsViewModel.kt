@@ -33,6 +33,7 @@ import net.primal.android.thread.articles.details.ArticleDetailsContract.UiEvent
 import net.primal.android.thread.articles.details.ArticleDetailsContract.UiState
 import net.primal.android.thread.articles.details.ui.mapAsArticleDetailsUi
 import net.primal.android.thread.articles.details.ui.rendering.buildArticleParts
+import net.primal.android.thread.notes.asArticleCommentsFeedPostUi
 import net.primal.android.user.accounts.active.ActiveAccountStore
 import net.primal.android.user.accounts.active.ActiveUserAccountState
 import net.primal.android.user.handler.ProfileFollowsHandler
@@ -131,6 +132,7 @@ class ArticleDetailsViewModel @Inject constructor(
                     UiEvent.DismissErrors -> dismissErrors()
                     is UiEvent.ZapArticle -> zapArticle(zapAction = it)
                     UiEvent.LikeArticle -> likeArticle()
+                    UiEvent.UnlikeArticle -> unlikeArticle()
                     UiEvent.RepostAction -> repostPost()
                     UiEvent.ToggleAuthorFollows -> followUnfollowAuthor()
                     UiEvent.ToggleHighlights -> toggleHighlightsVisibility()
@@ -236,7 +238,12 @@ class ArticleDetailsViewModel @Inject constructor(
                 userId = activeAccountStore.activeUserId(),
                 articleId = naddr.identifier,
                 articleAuthorId = naddr.userId,
-            ).map { comments -> comments.map { it.asFeedPostUi() } }
+            ).map { comments ->
+                comments.asArticleCommentsFeedPostUi(
+                    articleATag = naddr.asATagValue(),
+                    articleAuthorId = naddr.userId,
+                )
+            }
                 .flowOn(dispatcherProvider.io())
                 .collect { setState { copy(comments = it) } }
         }
@@ -322,6 +329,28 @@ class ArticleDetailsViewModel @Inject constructor(
                     setState { copy(error = UiError.NostrSignUnauthorized) }
                     Napier.w(throwable = error) { "Signing rejected for like event." }
                 }
+            }
+        }
+
+    private fun unlikeArticle() =
+        viewModelScope.launch {
+            val article = _state.value.article ?: return@launch
+            try {
+                eventInteractionRepository.unlikeEvent(
+                    userId = activeAccountStore.activeUserId(),
+                    eventId = article.eventId,
+                    eventAuthorId = article.authorId,
+                )
+            } catch (error: NostrPublishException) {
+                Napier.w(throwable = error) { "Failed to take the like back." }
+            } catch (error: MissingRelaysException) {
+                Napier.w(throwable = error) { "Missing relays for unlike event." }
+            } catch (error: SigningKeyNotFoundException) {
+                setState { copy(error = UiError.MissingPrivateKey) }
+                Napier.w(throwable = error) { "Signing key not found for unlike event." }
+            } catch (error: SigningRejectedException) {
+                setState { copy(error = UiError.NostrSignUnauthorized) }
+                Napier.w(throwable = error) { "Signing rejected for unlike event." }
             }
         }
 

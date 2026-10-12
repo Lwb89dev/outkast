@@ -10,6 +10,8 @@ import net.primal.domain.nostr.NostrEvent
 import net.primal.domain.nostr.NostrEventKind
 import net.primal.domain.nostr.cryptography.utils.hexToNoteHrp
 import net.primal.domain.nostr.eventIdTagValues
+import net.primal.domain.nostr.findCommentRootAddress
+import net.primal.domain.nostr.findCommentRootEventId
 import net.primal.domain.nostr.findRootEventId
 import net.primal.domain.nostr.relay.RelayEventQuerier
 import net.primal.domain.nostr.relay.RelayFilter
@@ -17,6 +19,7 @@ import net.primal.domain.nostr.relay.RelayFilter
 class RelayThreadFetcherTest {
 
     private val noteKind = listOf(NostrEventKind.ShortTextNote.value)
+    private val threadKinds = listOf(NostrEventKind.ShortTextNote.value, NostrEventKind.Comment.value)
 
     @Test
     fun fetch_includesRootAndDirectReplies() = runTest {
@@ -122,6 +125,55 @@ class RelayThreadFetcherTest {
     }
 
     @Test
+    fun fetch_openedNip22Comment_loadsTheWholeCommentTreeAndItsRoot() = runTest {
+        val root = note("root", "alice", 10)
+        val first = comment("c1", "bob", 20, root = "root", parent = "root")
+        val nested = comment("c2", "carol", 30, root = "root", parent = "c1")
+        val deeper = comment("c3", "dave", 40, root = "root", parent = "c2")
+        val sibling = comment("c4", "erin", 25, root = "root", parent = "root")
+        val unrelated = comment("x1", "frank", 50, root = "other", parent = "other")
+        val response = RelayThreadFetcher(FakeQuerier(listOf(root, first, nested, deeper, sibling, unrelated)))
+            .fetch(noteId = "c2", kinds = threadKinds, limit = 50)
+
+        // All of this root's comments at every depth, and the root; nothing from another conversation.
+        response.notes.map { it.id } shouldContainExactlyInAnyOrder listOf("root", "c1", "c2", "c3", "c4")
+    }
+
+    @Test
+    fun fetch_openedRoot_findsCommentsThatOnlyCarryTheRootInUppercaseE() = runTest {
+        val root = note("root", "alice", 10)
+        // Deep enough that the comment does not name the opened note as its parent at all.
+        val deep = comment("deep", "bob", 20, root = "root", parent = "somewhere-else")
+        val response = RelayThreadFetcher(FakeQuerier(listOf(root, deep)))
+            .fetch(noteId = "root", kinds = threadKinds, limit = 50)
+
+        response.notes.map { it.id } shouldContainExactlyInAnyOrder listOf("root", "deep")
+    }
+
+    @Test
+    fun fetch_commentsAreOnlyAskedForWhenTheCallerWantsThem() = runTest {
+        val root = note("root", "alice", 10)
+        val querier = RecordingQuerier(listOf(root, comment("c1", "bob", 20, root = "root", parent = "root")))
+
+        RelayThreadFetcher(querier).fetch(noteId = "root", kinds = noteKind, limit = 50)
+
+        querier.sentFilters.none { it.rootEventTags != null || it.rootAddressTags != null } shouldBe true
+    }
+
+    @Test
+    fun fetch_openedArticleComment_asksByTheArticleAddressToo() = runTest {
+        val address = "30023:alice:article"
+        val onArticle = comment("c1", "bob", 20, root = null, parent = null, rootAddress = address)
+        val nested = comment("c2", "carol", 30, root = null, parent = "c1", rootAddress = address)
+        val querier = RecordingQuerier(listOf(onArticle, nested))
+
+        val response = RelayThreadFetcher(querier).fetch(noteId = "c2", kinds = threadKinds, limit = 50)
+
+        response.notes.map { it.id } shouldContainExactlyInAnyOrder listOf("c1", "c2")
+        querier.sentFilters.any { it.rootAddressTags == listOf(address) } shouldBe true
+    }
+
+    @Test
     fun findRootEventId_prefersRootMarker() {
         val tags = listOf(
             eTag("mention", marker = "mention"),
@@ -130,6 +182,14 @@ class RelayThreadFetcherTest {
         )
         tags.findRootEventId() shouldBe "root-id"
         emptyList<kotlinx.serialization.json.JsonArray>().findRootEventId() shouldBe null
+    }
+
+    @Test
+    fun toThreadFeedResponse_keepsNip22CommentsAmongTheNotes() {
+        val comment = comment("c1", "bob", 11, root = "n1", parent = "n1")
+        val response = listOf(note("n1", "alice", 10), comment).toThreadFeedResponse(metadata = emptyList())
+
+        response.notes.map { it.id } shouldBe listOf("n1", "c1")
     }
 
     @Test
@@ -168,6 +228,30 @@ class RelayThreadFetcherTest {
         return note(id, pubkey, createdAt).copy(tags = tags)
     }
 
+    /** A NIP-22 comment: uppercase tags name the root, lowercase ones the parent. */
+    private fun comment(
+        id: String,
+        pubkey: String,
+        createdAt: Long,
+        root: String?,
+        parent: String?,
+        rootAddress: String? = null,
+    ): NostrEvent {
+        val tags = buildList {
+            if (root != null) add(simpleTag("E", root))
+            if (rootAddress != null) add(simpleTag("A", rootAddress))
+            add(simpleTag("K", "1"))
+            if (parent != null) add(simpleTag("e", parent))
+            add(simpleTag("k", "1"))
+        }
+        return note(id, pubkey, createdAt).copy(kind = NostrEventKind.Comment.value, tags = tags)
+    }
+
+    private fun simpleTag(name: String, value: String) = buildJsonArray {
+        add(JsonPrimitive(name))
+        add(JsonPrimitive(value))
+    }
+
     private fun eTag(eventId: String, marker: String) = buildJsonArray {
         add(JsonPrimitive("e"))
         add(JsonPrimitive(eventId))
@@ -195,6 +279,10 @@ class RelayThreadFetcherTest {
             if (kinds != null && event.kind !in kinds) return false
             val eventTags = filter.eventTags
             if (eventTags != null && event.tags.eventIdTagValues().none { it in eventTags }) return false
+            val rootEventTags = filter.rootEventTags
+            if (rootEventTags != null && event.tags.findCommentRootEventId() !in rootEventTags) return false
+            val rootAddressTags = filter.rootAddressTags
+            if (rootAddressTags != null && event.tags.findCommentRootAddress() !in rootAddressTags) return false
             val since = filter.since
             if (since != null && event.createdAt < since) return false
             val until = filter.until

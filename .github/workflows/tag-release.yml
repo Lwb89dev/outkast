@@ -61,10 +61,27 @@ jobs:
         env:
           CONFIG_PROPERTIES_B64: ${{ secrets.CONFIG_PROPERTIES }}
           CERT_ALTERNATIVE_B64: ${{ secrets.CERT_ALTERNATIVE }}
+          NOSTR_BUILD_GIF_API_KEY: ${{ secrets.NOSTR_BUILD_GIF_API_KEY }}
         run: |
           echo "::notice::raw env var lengths: config=${#CONFIG_PROPERTIES_B64} cert=${#CERT_ALTERNATIVE_B64}"
           openssl base64 -d -out config.properties <<< "$CONFIG_PROPERTIES_B64"
           openssl base64 -d -out app/librenostr-release.jks <<< "$CERT_ALTERNATIVE_B64"
+
+          # The nostr.build GIF API key is its own secret, so adding it never means re-encoding the
+          # whole CONFIG_PROPERTIES file (signing passwords included). A key already inside
+          # CONFIG_PROPERTIES wins and is left alone.
+          if ! grep -q '^nostrBuildGifApiKey=' config.properties && [ -n "$NOSTR_BUILD_GIF_API_KEY" ]; then
+            # The decoded file may not end in a newline, so start a fresh line before appending.
+            printf '\nnostrBuildGifApiKey=%s\n' "$NOSTR_BUILD_GIF_API_KEY" >> config.properties
+          fi
+
+          # Without the key the app still works, but its GIF picker silently falls back to GIFverse and
+          # the registered access nostr.build was paid for goes unused. That is not a release to ship
+          # unnoticed, so it stops here instead.
+          if ! grep -q '^nostrBuildGifApiKey=gnb_' config.properties; then
+            echo "::error::No nostr.build GIF API key for this release. Add the NOSTR_BUILD_GIF_API_KEY secret."
+            exit 1
+          fi
           keystore_bytes=$(wc -c < app/librenostr-release.jks)
           echo "::notice::keystore bytes=$keystore_bytes sha256=$(sha256sum app/librenostr-release.jks | cut -d' ' -f1)"
           echo "::notice::config.properties bytes=$(wc -c < config.properties)"

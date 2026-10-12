@@ -10,10 +10,13 @@ import net.primal.domain.common.PrimalEvent
 import net.primal.domain.common.util.takeContentOrNull
 import net.primal.domain.nostr.NostrEvent
 import net.primal.domain.nostr.NostrEventKind
+import net.primal.domain.nostr.findCommentParentAuthor
+import net.primal.domain.nostr.findCommentParentEventId
 import net.primal.domain.nostr.findReplyTargetId
 import net.primal.domain.nostr.getPubkeyFromReplyOrRootTag
 import net.primal.domain.nostr.hasReplyMarker
 import net.primal.domain.nostr.hasRootMarker
+import net.primal.domain.nostr.isComment
 import net.primal.domain.nostr.isIMetaTag
 import net.primal.domain.nostr.isImageTag
 import net.primal.domain.nostr.serialization.toNostrJsonObject
@@ -78,6 +81,21 @@ private fun NostrEvent.resolveReplyReference(
     referencedPostAuthorsById: Map<String, String> = emptyMap(),
     referencedArticlesMap: Map<String, ArticleData> = emptyMap(),
     referencedHighlightsMap: Map<String, HighlightData> = emptyMap(),
+): ReplyReference =
+    if (isComment()) {
+        resolveCommentReplyReference(referencedPostAuthorsById)
+    } else {
+        resolveNoteReplyReference(
+            referencedPostAuthorsById = referencedPostAuthorsById,
+            referencedArticlesMap = referencedArticlesMap,
+            referencedHighlightsMap = referencedHighlightsMap,
+        )
+    }
+
+private fun NostrEvent.resolveNoteReplyReference(
+    referencedPostAuthorsById: Map<String, String>,
+    referencedArticlesMap: Map<String, ArticleData>,
+    referencedHighlightsMap: Map<String, HighlightData>,
 ): ReplyReference {
     val referencedNoteId = this.tags.findReplyTargetId()
         ?: return ReplyReference(replyToPostId = null, replyToAuthorId = null)
@@ -89,6 +107,21 @@ private fun NostrEvent.resolveReplyReference(
         ?: referencedHighlightsMap[referencedNoteId]?.authorId
 
     return ReplyReference(replyToPostId = referencedNoteId, replyToAuthorId = referencedNoteAuthorId)
+}
+
+/**
+ * What a NIP-22 comment answers. Its lowercase `e` is the parent, the comment or note it is a direct
+ * reply to, and the lowercase `p` that parent's author. A top-level comment on an article has only
+ * an `a` (the article) and so answers no stored note: the article, not a post, is its parent, and
+ * the article's comment list is what links the two.
+ */
+private fun NostrEvent.resolveCommentReplyReference(referencedPostAuthorsById: Map<String, String>): ReplyReference {
+    val parentId = tags.findCommentParentEventId()
+        ?: return ReplyReference(replyToPostId = null, replyToAuthorId = null)
+    return ReplyReference(
+        replyToPostId = parentId,
+        replyToAuthorId = tags.findCommentParentAuthor() ?: referencedPostAuthorsById[parentId],
+    )
 }
 
 private fun NostrEvent.nostrEventAsPost(

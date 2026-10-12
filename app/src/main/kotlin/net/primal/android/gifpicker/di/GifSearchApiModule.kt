@@ -5,6 +5,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
+import net.primal.android.BuildConfig
 import net.primal.data.remote.api.gifs.GifSearchApi
 import net.primal.data.remote.api.gifs.GifSearchApiFactory
 
@@ -16,5 +17,6 @@ object GifSearchApiModule {
     // while) is shared by every picker instead of being relearned, one failed request each time.
     @Provides
     @Singleton
-    fun provideGifSearchApi(): GifSearchApi = GifSearchApiFactory.create()
+    fun provideGifSearchApi(): GifSearchApi =
+        GifSearchApiFactory.create(nostrBuildApiKey = BuildConfig.NOSTR_BUILD_GIF_API_KEY.takeIf { it.isNotBlank() })
 }

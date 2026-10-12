@@ -10,12 +10,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import net.primal.android.core.compose.ListNoContent
 import net.primal.android.core.compose.NostrUserText
 import net.primal.android.core.compose.PrimalDivider
@@ -32,6 +34,8 @@ fun GenericReactionsLazyColumn(
     reactionIcon: ImageVector,
     noContentText: String,
     onProfileClick: (profileId: String) -> Unit,
+    /** Show the reaction's own emoji instead of [reactionIcon] where there is one (the likes list). */
+    showReactionContent: Boolean = false,
 ) {
     LazyColumn(
         modifier = modifier,
@@ -41,6 +45,7 @@ fun GenericReactionsLazyColumn(
                 GenericReactionListItem(
                     item = item,
                     reactionIcon = reactionIcon,
+                    reactionEmoji = if (showReactionContent) item.action.asReactionEmojiOrNull() else null,
                     onProfileClick = onProfileClick,
                 )
                 PrimalDivider()
@@ -67,6 +72,7 @@ fun GenericReactionsLazyColumn(
 private fun GenericReactionListItem(
     item: EventActionUi,
     reactionIcon: ImageVector,
+    reactionEmoji: String?,
     onProfileClick: (profileId: String) -> Unit,
 ) {
     ListItem(
@@ -93,15 +99,34 @@ private fun GenericReactionListItem(
                 modifier = Modifier.width(38.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Image(
-                    modifier = Modifier
-                        .padding(bottom = 4.dp)
-                        .size(18.dp),
-                    imageVector = reactionIcon,
-                    contentDescription = null,
-                    colorFilter = ColorFilter.tint(color = AppTheme.extraColorScheme.onSurfaceVariantAlt2),
-                )
+                if (reactionEmoji != null) {
+                    Text(text = reactionEmoji, fontSize = 18.sp)
+                } else {
+                    Image(
+                        modifier = Modifier
+                            .padding(bottom = 4.dp)
+                            .size(18.dp),
+                        imageVector = reactionIcon,
+                        contentDescription = null,
+                        colorFilter = ColorFilter.tint(color = AppTheme.extraColorScheme.onSurfaceVariantAlt2),
+                    )
+                }
             }
         },
     )
 }
+
+/**
+ * What a reaction event's content shows as: its emoji, or nothing when it is a plain like. NIP-25 uses
+ * `+` for a like (and an empty string for old clients), `-` for a dislike, and any other short text is
+ * the reaction itself; a custom emoji (`:shortcode:`) has no glyph to show here and falls back to the
+ * heart as well.
+ */
+internal fun String.asReactionEmojiOrNull(): String? {
+    val content = trim()
+    val plain = content.isEmpty() || content == "+" || content == "-"
+    val custom = content.startsWith(":") && content.endsWith(":")
+    return content.takeUnless { plain || custom || it.length > MAX_REACTION_LENGTH }
+}
+
+private const val MAX_REACTION_LENGTH = 16

@@ -119,12 +119,21 @@ interface FeedRepository {
      */
     fun streamNewNotes(userId: String, feedSpec: String): Flow<NostrEvent>
 
+    /**
+     * The notes that quote [noteId], newest first, stored locally and ready to render.
+     *
+     * Empty when nobody quotes it or when no relay could be asked: a list behind a counter has nothing
+     * better to say in either case.
+     */
+    suspend fun fetchQuotes(userId: String, noteId: String): List<FeedPost>
+
     companion object {
         const val DEFAULT_PAGE_SIZE = 20
         const val INITIAL_PAGE_SIZE = 50
 
         val DEFAULT_THREAD_KINDS = listOf(
             NostrEventKind.ShortTextNote.value,
+            NostrEventKind.Comment.value,
             NostrEventKind.PictureNote.value,
             NostrEventKind.Poll.value,
             NostrEventKind.PollResponse.value,

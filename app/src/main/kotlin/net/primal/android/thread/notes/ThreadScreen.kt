@@ -736,7 +736,7 @@ private fun isConnectedForward(index: Int, highlightIndex: Int): Boolean {
  * to a reply is marked by an extra bar next to it rather than by connecting it to whatever
  * happens to be above it in the list. Mirrors how Amethyst marks reply depth.
  */
-private fun Modifier.drawReplyLevel(level: Int, color: Color, selected: Color, unresolved: Boolean = false): Modifier =
+internal fun Modifier.drawReplyLevel(level: Int, color: Color, selected: Color, unresolved: Boolean = false): Modifier =
     this
         .drawBehind {
             val padding = REPLY_LEVEL_PADDING_DP.dp.toPx()
@@ -767,12 +767,13 @@ private const val REPLY_LEVEL_WIDTH_DP = REPLY_LEVEL_STROKE_WIDTH_DP + 1
  * indentation instead of going further — the real depth is untouched in the data (item.replyLevel),
  * only how far this draws is capped.
  */
-private const val MAX_VISUAL_REPLY_LEVEL = 8
+internal const val MAX_VISUAL_REPLY_LEVEL = 8
 
 /** How faint an unresolved-parent reply's level bar draws relative to a normal one. */
 private const val UNRESOLVED_REPLY_LEVEL_ALPHA = 0.35f
 
-private fun EventStatsUi.hasAnyCount() = repliesCount > 0 || zapsCount > 0 || likesCount > 0 || repostsCount > 0
+private fun EventStatsUi.hasAnyCount() =
+    repliesCount > 0 || zapsCount > 0 || likesCount > 0 || repostsCount > 0 || quotesCount > 0
 
 @Composable
 private fun ReplyToBottomBar(

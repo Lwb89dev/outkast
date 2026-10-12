@@ -9,8 +9,10 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import net.primal.android.core.errors.UiError
 import net.primal.android.gifpicker.domain.GifItem
 import net.primal.core.testing.CoroutinesTestRule
+import net.primal.data.remote.api.gifs.GifProviderException
 import net.primal.data.remote.api.gifs.GifSearchApi
 import net.primal.data.remote.api.gifs.model.GifCursor
 import net.primal.data.remote.api.gifs.model.GifResult
@@ -125,6 +127,56 @@ class GifPickerViewModelTest {
 
             viewModel.state.value.gifItems.map { it.id } shouldBe listOf("trending")
             viewModel.state.value.topics shouldBe GifPickerContract.DEFAULT_TOPICS
+        }
+
+    @Test
+    fun aRateLimit_isShownAsOneAndTheOpeningListStaysEmpty() =
+        runTest {
+            val api = mockk<GifSearchApi> {
+                coEvery { trending(cursor = null) } throws
+                    GifProviderException.RateLimited(provider = GifSource.NostrBuild, retryAfterSeconds = 60)
+            }
+            val viewModel = GifPickerViewModel(gifSearchApi = api)
+
+            viewModel.setEvent(GifPickerContract.UiEvent.PickerShown)
+            advanceUntilIdle()
+
+            viewModel.state.value.error shouldBe UiError.GifSearchRateLimited
+            viewModel.state.value.searching shouldBe false
+        }
+
+    @Test
+    fun aSingleLatinLetter_isNotSearched() =
+        runTest {
+            // One "a" matches nearly everything and costs a request from the per-minute budget.
+            val api = mockk<GifSearchApi> {
+                coEvery { trending(cursor = null) } returns page("trending")
+                coEvery { suggest(query = any()) } returns emptyList()
+            }
+            val viewModel = GifPickerViewModel(gifSearchApi = api)
+            advanceUntilIdle()
+
+            viewModel.setEvent(GifPickerContract.UiEvent.UpdateSearchQuery(query = "a"))
+            advanceUntilIdle()
+
+            coVerify(exactly = 0) { api.search(query = any(), cursor = any()) }
+            viewModel.state.value.gifItems.map { it.id } shouldBe listOf("trending")
+        }
+
+    @Test
+    fun aSingleEmoji_isSearched() =
+        runTest {
+            val api = mockk<GifSearchApi> {
+                coEvery { search(query = "\uD83D\uDE02", cursor = null) } returns page("laugh")
+                coEvery { suggest(query = any()) } returns emptyList()
+            }
+            val viewModel = GifPickerViewModel(gifSearchApi = api)
+            advanceUntilIdle()
+
+            viewModel.setEvent(GifPickerContract.UiEvent.UpdateSearchQuery(query = "\uD83D\uDE02"))
+            advanceUntilIdle()
+
+            viewModel.state.value.gifItems.map { it.id } shouldBe listOf("laugh")
         }
 
     @Test

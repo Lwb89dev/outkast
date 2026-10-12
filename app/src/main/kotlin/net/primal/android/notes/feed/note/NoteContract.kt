@@ -2,6 +2,7 @@ package net.primal.android.notes.feed.note
 
 import net.primal.android.core.errors.UiError
 import net.primal.android.notes.feed.model.PollUi
+import net.primal.domain.events.EventInteractionRepository
 import net.primal.domain.nostr.ReportType
 
 interface NoteContract {
@@ -18,7 +19,20 @@ interface NoteContract {
     }
 
     sealed class UiEvent {
+        /**
+         * Reacts to a note: a plain like by default, or with [reaction] (an emoji) when the user picked
+         * one. [replacePrevious] is for a note that already carries the user's reaction: the old one is
+         * taken back first, since a reaction cannot be edited and two would count twice.
+         */
         data class PostLikeAction(
+            val postId: String,
+            val postAuthorId: String,
+            val reaction: String = EventInteractionRepository.DEFAULT_REACTION,
+            val replacePrevious: Boolean = false,
+        ) : UiEvent()
+
+        /** Takes the user's reaction back. */
+        data class PostUnlikeAction(
             val postId: String,
             val postAuthorId: String,
         ) : UiEvent()

@@ -17,6 +17,11 @@ internal class EventStatsUpdater(
 
     private val timestamp: Long = Clock.System.now().epochSeconds
 
+    // What the stats were before this updater first touched them, so a failed publish can put exactly
+    // that back. Reading them again at revert time would find the values this updater had already written.
+    private var statsBefore: EventStats? = null
+    private var userStatsBefore: EventUserStats? = null
+
     private suspend fun resolveEventStats(): EventStats {
         return database.eventStats().find(eventId = eventId)
             ?: EventStats(eventId = eventId)
@@ -28,17 +33,27 @@ internal class EventStatsUpdater(
     }
 
     suspend fun increaseLikeStats() {
-        val eventStats = resolveEventStats()
-        val eventUserStats = resolveEventUserStats()
+        val eventStats = resolveEventStats().rememberAsBefore()
+        val eventUserStats = resolveEventUserStats().rememberAsBefore()
         database.withTransaction {
             database.eventStats().upsert(data = eventStats.copy(likes = eventStats.likes + 1))
             database.eventUserStats().upsert(data = eventUserStats.copy(liked = true))
         }
     }
 
+    /** Takes the user's reaction back: one like fewer (never below zero) and the heart empty again. */
+    suspend fun decreaseLikeStats() {
+        val eventStats = resolveEventStats().rememberAsBefore()
+        val eventUserStats = resolveEventUserStats().rememberAsBefore()
+        database.withTransaction {
+            database.eventStats().upsert(data = eventStats.copy(likes = (eventStats.likes - 1).coerceAtLeast(0)))
+            database.eventUserStats().upsert(data = eventUserStats.copy(liked = false))
+        }
+    }
+
     suspend fun increaseRepostStats() {
-        val eventStats = resolveEventStats()
-        val eventUserStats = resolveEventUserStats()
+        val eventStats = resolveEventStats().rememberAsBefore()
+        val eventUserStats = resolveEventUserStats().rememberAsBefore()
         database.withTransaction {
             database.eventStats().upsert(data = eventStats.copy(reposts = eventStats.reposts + 1))
             database.eventUserStats().upsert(data = eventUserStats.copy(reposted = true))
@@ -46,8 +61,8 @@ internal class EventStatsUpdater(
     }
 
     suspend fun increaseZapStats(amountInSats: Int, zapComment: String) {
-        val eventStats = resolveEventStats()
-        val eventUserStats = resolveEventUserStats()
+        val eventStats = resolveEventStats().rememberAsBefore()
+        val eventUserStats = resolveEventUserStats().rememberAsBefore()
         database.withTransaction {
             val zapSender = database.profiles().findProfileData(profileId = userId)
             database.eventStats().upsert(
@@ -78,9 +93,14 @@ internal class EventStatsUpdater(
         }
     }
 
+    private fun EventStats.rememberAsBefore(): EventStats = also { if (statsBefore == null) statsBefore = it }
+
+    private fun EventUserStats.rememberAsBefore(): EventUserStats =
+        also { if (userStatsBefore == null) userStatsBefore = it }
+
     suspend fun revertStats() {
-        val eventStats = resolveEventStats()
-        val eventUserStats = resolveEventUserStats()
+        val eventStats = statsBefore ?: resolveEventStats()
+        val eventUserStats = userStatsBefore ?: resolveEventUserStats()
         database.withTransaction {
             database.eventStats().upsert(data = eventStats)
             database.eventUserStats().upsert(data = eventUserStats)

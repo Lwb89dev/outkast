@@ -5,4 +5,5 @@ enum class ReactionType {
     LIKES,
     REPOSTS,
     REPLIES,
+    QUOTES,
 }

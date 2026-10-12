@@ -51,5 +51,8 @@ sealed class UiError {
     data class NetworkError(val cause: Throwable) : UiError()
 
     data class FailedToUploadAttachment(val cause: Throwable) : UiError()
+
+    /** The GIF provider said this client has used up its searches for the moment. */
+    data object GifSearchRateLimited : UiError()
     data class PublishError(val cause: Throwable?) : UiError()
 }

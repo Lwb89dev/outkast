@@ -244,6 +244,7 @@ internal class RelayNotificationsFetcher(
         when (this) {
             NotificationGroup.ALL -> listOf(
                 NostrEventKind.ShortTextNote.value,
+                NostrEventKind.Comment.value,
                 NostrEventKind.FollowList.value,
                 NostrEventKind.ShortTextNoteRepost.value,
                 NostrEventKind.Reaction.value,
@@ -251,7 +252,7 @@ internal class RelayNotificationsFetcher(
             )
             NotificationGroup.ZAPS -> listOf(NostrEventKind.Zap.value)
             NotificationGroup.REPLIES, NotificationGroup.MENTIONS ->
-                listOf(NostrEventKind.ShortTextNote.value)
+                listOf(NostrEventKind.ShortTextNote.value, NostrEventKind.Comment.value)
             NotificationGroup.REPOSTS -> listOf(NostrEventKind.ShortTextNoteRepost.value)
         }
 
@@ -268,7 +269,9 @@ internal class RelayNotificationsFetcher(
             NostrEventKind.ShortTextNoteRepost.value ->
                 if (target != null) NotificationType.YOUR_POST_WAS_REPOSTED else null
             NostrEventKind.Zap.value -> if (target != null) NotificationType.YOUR_POST_WAS_ZAPPED else null
-            NostrEventKind.ShortTextNote.value -> when {
+            // A NIP-22 comment answers through its lowercase `e` just as a reply does through its
+            // `e`, and the first `e` tag is the one that names the parent in both.
+            NostrEventKind.ShortTextNote.value, NostrEventKind.Comment.value -> when {
                 target != null -> NotificationType.YOUR_POST_WAS_REPLIED_TO
                 tags.pubkeyTagValues().contains(userId) -> NotificationType.YOU_WERE_MENTIONED_IN_POST
                 else -> null
@@ -386,6 +389,7 @@ internal class RelayNotificationsFetcher(
 
         val CONTENT_KINDS = listOf(
             NostrEventKind.ShortTextNote.value,
+            NostrEventKind.Comment.value,
             NostrEventKind.ShortTextNoteRepost.value,
             NostrEventKind.PictureNote.value,
             NostrEventKind.LongFormContent.value,

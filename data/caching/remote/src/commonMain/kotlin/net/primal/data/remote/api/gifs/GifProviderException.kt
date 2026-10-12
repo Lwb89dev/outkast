@@ -11,8 +11,11 @@ sealed class GifProviderException(message: String) : Exception(message) {
     class NotRegistered(override val provider: GifSource) :
         GifProviderException("$provider does not serve this client: it is not registered")
 
-    /** Too many requests; worth retrying later, not right away. */
-    class RateLimited(override val provider: GifSource) :
+    /**
+     * Too many requests: the client's budget is spent for now, and asking again only spends the
+     * next one. [retryAfterSeconds] is the provider's own `Retry-After`, when it sent one.
+     */
+    class RateLimited(override val provider: GifSource, val retryAfterSeconds: Int? = null) :
         GifProviderException("$provider is rate limiting this client")
 
     /** Any other non-success answer (5xx, an unexpected 4xx). */

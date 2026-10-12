@@ -2,6 +2,26 @@ package net.primal.android.core.errors
 
 import android.content.Context
 import net.primal.android.R
+import net.primal.core.networking.blossom.BlossomException
+
+private const val MAX_UPLOAD_FAILURE_DETAIL_LENGTH = 220
+
+/**
+ * "Unable to upload file" says nothing about whether to check the connection or to pick another
+ * server. When the media servers answered, what they said (a refusal for a Tor address, a missing
+ * upload permission) is shown after it, shortened so it stays a one-glance message.
+ */
+private fun resolveUploadFailureMessage(context: Context, cause: Throwable): String {
+    val generic = context.getString(R.string.app_error_upload_failed)
+    val detail = (cause as? BlossomException)?.message?.trim().orEmpty()
+    if (detail.isEmpty()) return generic
+    val shortened = if (detail.length > MAX_UPLOAD_FAILURE_DETAIL_LENGTH) {
+        detail.take(MAX_UPLOAD_FAILURE_DETAIL_LENGTH).trimEnd() + "…"
+    } else {
+        detail
+    }
+    return context.getString(R.string.app_error_upload_failed_with_detail, generic, shortened)
+}
 
 @Suppress("CyclomaticComplexMethod")
 fun UiError.resolveUiErrorMessage(context: Context): String {
@@ -92,7 +112,9 @@ fun UiError.resolveUiErrorMessage(context: Context): String {
 
         is UiError.FailedToFetchMuteList -> context.getString(R.string.app_error_fetching_mute_list)
 
-        is UiError.FailedToUploadAttachment -> context.getString(R.string.app_error_upload_failed)
+        is UiError.FailedToUploadAttachment -> resolveUploadFailureMessage(context = context, cause = cause)
+
+        UiError.GifSearchRateLimited -> context.getString(R.string.gif_picker_rate_limited)
 
         is UiError.PublishError -> context.getString(R.string.note_editor_nostr_publish_error)
 

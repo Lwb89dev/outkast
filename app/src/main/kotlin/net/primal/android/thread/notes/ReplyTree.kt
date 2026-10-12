@@ -27,6 +27,22 @@ internal fun List<FeedPost>.asDisplayOrderedFeedPostUi(highlightPostId: String):
     return ancestorsAndHighlighted + replies
 }
 
+/**
+ * The comments under an article as a tree, the way [asDisplayOrderedFeedPostUi] does it for the
+ * replies under a note.
+ *
+ * A comment's parent is another comment (NIP-22 `e`, or NIP-10 `reply`) or, for a top-level one,
+ * the article's own address, which is what [articleATag] stands for here. Top-level comments come
+ * out at level 1, a reply to one at level 2, and so on; the article's author goes first among
+ * siblings, as the author of an opened note does in a thread.
+ */
+internal fun List<FeedPost>.asArticleCommentsFeedPostUi(
+    articleATag: String,
+    articleAuthorId: String,
+): List<FeedPostUi> =
+    buildReplyTree(rootAuthorId = articleAuthorId, rootId = articleATag)
+        .map { it.post.asFeedPostUi().copy(replyLevel = it.level, hasUnresolvedParent = !it.hasKnownParent) }
+
 /** One reply's place in the tree: how deep it sits, and whether that depth is trustworthy. */
 internal data class ReplyPlacement(
     val post: FeedPost,

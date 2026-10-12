@@ -10,9 +10,10 @@ import net.primal.core.networking.factory.HttpClientFactory
 object GifSearchApiFactory {
     private val defaultHttpClient = HttpClientFactory.createHttpClientWithDefaultConfig()
 
-    fun create(): GifSearchApi =
+    /** @param nostrBuildApiKey the key nostr.build issued to this app, if the build has one. */
+    fun create(nostrBuildApiKey: String? = null): GifSearchApi =
         FallbackGifSearchApi(
-            nostrBuild = NostrBuildGifApi(httpClient = defaultHttpClient),
+            nostrBuild = NostrBuildGifApi(httpClient = defaultHttpClient, apiKey = nostrBuildApiKey),
             gifverse = GifverseGifApi(httpClient = defaultHttpClient),
         )
 }

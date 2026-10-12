@@ -2,6 +2,7 @@ package net.primal.core.networking.blossom
 
 import io.github.aakira.napier.Napier
 import io.github.anvell.filetype.FileType
+import io.ktor.http.Url
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.hours
 import kotlinx.coroutines.CoroutineScope
@@ -33,6 +34,8 @@ internal class PrimalUploadService(
     private val dispatchers: DispatcherProvider,
     private val blossomResolver: BlossomServerListProvider,
     private val signatureHandler: NostrEventSignatureHandler? = null,
+    /** How a server URL becomes a client. Only a test replaces it. */
+    private val createBlossomApi: (String) -> BlossomApi = { BlossomApiFactory.create(baseBlossomUrl = it) },
 ) {
 
     private val mirroringScope = CoroutineScope(SupervisorJob() + dispatchers.io())
@@ -45,8 +48,7 @@ internal class PrimalUploadService(
     ): UploadResult {
         val result = withContext(dispatchers.io()) {
             runCatching {
-                val blossomApis = resolveBlossomApisOrThrow(userId = userId)
-                val mirrorApis = blossomApis.drop(1)
+                val servers = resolveBlossomApisOrThrow(userId = userId)
 
                 val fileMetadata = openBufferedSource().use { it.getMetadata() }
 
@@ -56,30 +58,14 @@ internal class PrimalUploadService(
                     onSignRequested = onSignRequested,
                 )
 
-                var descriptor: BlobDescriptor? = null
-                var lastUploadError: Throwable? = null
-                blossomApis.forEach { blossomApi ->
-                    if (descriptor != null) return@forEach
-                    val uploadResult = runCatching {
-                        uploadToServer(
-                            blossomApi = blossomApi,
-                            authorization = uploadAuthorizationHeader,
-                            fileMetadata = fileMetadata,
-                            openBufferedSource = openBufferedSource,
-                            onProgress = onProgress,
-                        )
-                    }
-                    descriptor = uploadResult.getOrNull()
-                    uploadResult.exceptionOrNull()?.let { error ->
-                        lastUploadError = error
-                        Napier.w(error) { "Blossom upload failed; trying the next configured server." }
-                    }
-                }
-                val uploadedDescriptor = descriptor
-                    ?: throw BlossomUploadException(
-                        message = "All configured Blossom servers rejected the upload.",
-                        cause = lastUploadError,
-                    )
+                val accepted = uploadToFirstAcceptingServer(
+                    blossomApis = servers.primary + servers.fallbacks,
+                    authorization = uploadAuthorizationHeader,
+                    fileMetadata = fileMetadata,
+                    openBufferedSource = openBufferedSource,
+                    onProgress = onProgress,
+                )
+                val uploadedDescriptor = accepted.descriptor
 
                 val mirrorAuthorizationHeader = signAuthorizationOrThrow(
                     userId = userId,
@@ -88,7 +74,10 @@ internal class PrimalUploadService(
                     onSignRequested = onSignRequested,
                 )
 
-                mirrorApis.forEach { blossomApi ->
+                // Every configured server except the one that already has the file. (The first
+                // server is not always that one: when it refused, a later server took the upload.)
+                // Fallback servers are only ever a last resort for the upload, never a mirror.
+                servers.primary.filter { it !== accepted.server }.forEach { blossomApi ->
                     mirroringScope.launch {
                         runCatching {
                             blossomApi.putMirror(
@@ -119,6 +108,49 @@ internal class PrimalUploadService(
         }
     }
 
+    private class AcceptedUpload(val server: BlossomApi, val descriptor: BlobDescriptor)
+
+    /**
+     * Tries the servers in order and stops at the first that takes the file.
+     *
+     * When none does, the error says what each of them answered. That is the one thing that tells a
+     * user "this server refuses connections from Tor" from "the connection is down", and a single
+     * generic message used to hide it.
+     */
+    @Suppress("TooGenericExceptionCaught")
+    private suspend fun uploadToFirstAcceptingServer(
+        blossomApis: List<BlossomApi>,
+        authorization: String,
+        fileMetadata: FileMetadata,
+        openBufferedSource: () -> BufferedSource,
+        onProgress: ((uploadedBytes: Int, totalBytes: Int) -> Unit)?,
+    ): AcceptedUpload {
+        val refusals = mutableListOf<String>()
+        var lastError: Throwable? = null
+        for (blossomApi in blossomApis) {
+            try {
+                val descriptor = uploadToServer(
+                    blossomApi = blossomApi,
+                    authorization = authorization,
+                    fileMetadata = fileMetadata,
+                    openBufferedSource = openBufferedSource,
+                    onProgress = onProgress,
+                )
+                return AcceptedUpload(server = blossomApi, descriptor = descriptor)
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                lastError = error
+                refusals += "${blossomApi.serverUrl.hostOrSelf()}: ${error.describeForUser()}"
+                Napier.w(error) { "Blossom upload failed; trying the next configured server." }
+            }
+        }
+        throw BlossomUploadException(
+            message = "No media server accepted the upload. ${refusals.joinToString(separator = "; ")}",
+            cause = lastError,
+        )
+    }
+
     @Suppress("TooGenericExceptionCaught")
     private suspend fun uploadToServer(
         blossomApi: BlossomApi,
@@ -127,6 +159,9 @@ internal class PrimalUploadService(
         openBufferedSource: () -> BufferedSource,
         onProgress: ((uploadedBytes: Int, totalBytes: Int) -> Unit)?,
     ): BlobDescriptor {
+        if (fileMetadata.sizeInBytes >= PREFLIGHT_MIN_BYTES) {
+            blossomApi.failIfPreflightRefuses(authorization = authorization, fileMetadata = fileMetadata)
+        }
         return try {
             blossomApi.putUpload(
                 authorization = authorization,
@@ -138,28 +173,99 @@ internal class PrimalUploadService(
             throw error
         } catch (error: Exception) {
             Napier.w(error) { "Blossom /upload failed; trying legacy /media endpoint." }
+            putMediaAfterFailedUpload(
+                blossomApi = blossomApi,
+                uploadError = error,
+                authorization = authorization,
+                fileMetadata = fileMetadata,
+                openBufferedSource = openBufferedSource,
+                onProgress = onProgress,
+            )
+        }
+    }
+
+    /**
+     * Asks a server whether it would take a large file before the file is sent (BUD-06).
+     *
+     * A server's size limit is only learned from its answer, and answered after the whole body has
+     * gone out unless asked first: a 150 MB video offered to a server that takes 20 would cost the
+     * upload before the refusal, and then again for the legacy `/media` retry. A server that does
+     * not know the pre-flight (404, 405) is simply tried.
+     */
+    @Suppress("TooGenericExceptionCaught")
+    private suspend fun BlossomApi.failIfPreflightRefuses(authorization: String, fileMetadata: FileMetadata) {
+        try {
+            headUpload(authorization = authorization, fileMetadata = fileMetadata)
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: UploadRequirementException) {
+            if (error.isMissingEndpoint()) return
+            Napier.w(error) { "Blossom server refused the pre-flight for ${fileMetadata.sizeInBytes} bytes." }
+            throw BlossomUploadException(message = error.message, cause = error, statusCode = error.statusCode)
+        }
+    }
+
+    /**
+     * The legacy `/media` endpoint, tried after `/upload` failed.
+     *
+     * If that fails too, the error worth reporting is usually the first one: a server that has
+     * `/upload` and refuses the file says why there, while its missing `/media` only answers
+     * "not found". The second error wins only when it is a real answer.
+     */
+    @Suppress("TooGenericExceptionCaught", "LongParameterList")
+    private suspend fun putMediaAfterFailedUpload(
+        blossomApi: BlossomApi,
+        uploadError: Exception,
+        authorization: String,
+        fileMetadata: FileMetadata,
+        openBufferedSource: () -> BufferedSource,
+        onProgress: ((uploadedBytes: Int, totalBytes: Int) -> Unit)?,
+    ): BlobDescriptor {
+        return try {
             blossomApi.putMedia(
                 authorization = authorization,
                 fileMetadata = fileMetadata,
                 bufferedSource = openBufferedSource(),
                 onProgress = onProgress,
             )
+        } catch (error: CancellationException) {
+            throw error
+        } catch (mediaError: Exception) {
+            throw if (mediaError.isMissingEndpoint()) uploadError else mediaError
         }
     }
 
-    private suspend fun resolveBlossomApisOrThrow(userId: String): List<BlossomApi> {
-        return blossomResolver.provideBlossomServerList(userId)
-            .asSequence()
+    private fun Throwable.isMissingEndpoint(): Boolean {
+        val status = (this as? BlossomUploadException)?.statusCode ?: (this as? UploadRequirementException)?.statusCode
+        return status == HTTP_NOT_FOUND || status == HTTP_METHOD_NOT_ALLOWED
+    }
+
+    /** What a server said, in a few words, or what went wrong before it could say anything. */
+    private fun Throwable.describeForUser(): String =
+        message?.takeIf { it.isNotBlank() } ?: this::class.simpleName ?: "unknown error"
+
+    private fun String.hostOrSelf(): String = runCatching { Url(this).host }.getOrNull()?.ifBlank { null } ?: this
+
+    private class ResolvedServers(val primary: List<BlossomApi>, val fallbacks: List<BlossomApi>)
+
+    private suspend fun resolveBlossomApisOrThrow(userId: String): ResolvedServers {
+        val primary = blossomResolver.provideBlossomServerList(userId).asSecureApis().take(MAX_BLOSSOM_SERVERS)
+        if (primary.isEmpty()) {
+            throw BlossomUploadException(cause = IllegalStateException("Invalid blossom server list."))
+        }
+        val fallbacks = blossomResolver.provideFallbackServerList(userId).asSecureApis()
+            .filter { fallback -> primary.none { it.serverUrl == fallback.serverUrl } }
+            .take(MAX_FALLBACK_SERVERS)
+        return ResolvedServers(primary = primary, fallbacks = fallbacks)
+    }
+
+    private fun List<String>.asSecureApis(): List<BlossomApi> =
+        asSequence()
             .map { it.trimTrailingSlashes() }
             .filter { it.isSecureBlossomUrl() }
             .distinct()
-            .take(MAX_BLOSSOM_SERVERS)
-            .mapNotNull { runCatching { BlossomApiFactory.create(baseBlossomUrl = it) }.getOrNull() }
+            .mapNotNull { runCatching { createBlossomApi(it) }.getOrNull() }
             .toList()
-            .ifEmpty {
-                throw BlossomUploadException(cause = IllegalStateException("Invalid blossom server list."))
-            }
-    }
 
     private suspend fun signAuthorizationOrThrow(
         userId: String,
@@ -238,6 +344,12 @@ internal class PrimalUploadService(
         private const val DEFAULT_BUFFER_SIZE = 8 * 1024L
         private const val FILE_HEAD_PEEK_BYTES = 512L
         private const val MAX_BLOSSOM_SERVERS = 6
+        private const val MAX_FALLBACK_SERVERS = 3
+
+        /** Below this the pre-flight costs more time than a refused upload would waste. */
+        private const val PREFLIGHT_MIN_BYTES = 8L * 1024 * 1024
+        private const val HTTP_NOT_FOUND = 404
+        private const val HTTP_METHOD_NOT_ALLOWED = 405
     }
 
     private fun String.trimTrailingSlashes(): String = this.trimEnd('/')

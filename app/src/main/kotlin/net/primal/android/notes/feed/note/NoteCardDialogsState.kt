@@ -18,6 +18,7 @@ import net.primal.android.notes.feed.model.FeedPostUi
 import net.primal.android.notes.feed.model.asNeventString
 import net.primal.android.notes.feed.note.NoteContract.UiEvent
 import net.primal.android.notes.feed.note.ui.events.NoteCallbacks
+import net.primal.android.notes.feed.reactions.ReactionPickerSheet
 import net.primal.android.notes.feed.zaps.ZapBottomSheet
 import net.primal.android.profile.report.ReportUserDialog
 
@@ -27,6 +28,7 @@ class NoteCardDialogsState {
     var showDeleteDialog by mutableStateOf(false)
     var showReportDialog by mutableStateOf(false)
     var showRepostConfirmation by mutableStateOf(false)
+    var showReactionPicker by mutableStateOf(false)
 }
 
 @Composable
@@ -56,6 +58,24 @@ fun NoteCardDialogs(
                         postAuthorId = data.authorId,
                         zapAmount = zapAmount.toULong(),
                         zapDescription = zapDescription,
+                    ),
+                )
+            },
+        )
+    }
+
+    if (dialogsState.showReactionPicker) {
+        ReactionPickerSheet(
+            onDismissRequest = { dialogsState.showReactionPicker = false },
+            onEmojiSelected = { emoji ->
+                dialogsState.showReactionPicker = false
+                eventPublisher(
+                    UiEvent.PostLikeAction(
+                        postId = data.postId,
+                        postAuthorId = data.authorId,
+                        reaction = emoji,
+                        // A second reaction would count twice: the first is taken back, then this goes out.
+                        replacePrevious = data.stats.userLiked,
                     ),
                 )
             },

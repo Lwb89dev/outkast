@@ -201,6 +201,9 @@ class MediaUploadsSettingsViewModel @Inject constructor(
         private val DEFAULT_BLOSSOM_SERVERS = listOf(
             DEFAULT_BLOSSOM_URL,
             "https://cdn.satellite.earth",
+            // These two also take uploads that arrive through Tor, which the first two do not.
+            "https://cdn.nostrcheck.me",
+            "https://cdn.hzrd149.com",
         )
     }
 }

@@ -7,6 +7,7 @@ import net.primal.domain.feeds.isAudioSpec
 import net.primal.domain.feeds.isImageSpec
 import net.primal.domain.feeds.isNotesBookmarkFeedSpec
 import net.primal.domain.feeds.isNotesFeedSpec
+import net.primal.domain.feeds.isProfileAuthoredMediaFeedSpec
 import net.primal.domain.feeds.isProfileAuthoredNoteRepliesFeedSpec
 import net.primal.domain.feeds.isProfileAuthoredNotesFeedSpec
 import net.primal.domain.feeds.isProfileNotesFeedSpec
@@ -78,6 +79,26 @@ class FeedExtensionsKtTest {
         val spec = "{\"id\":\"feed\",\"include_replies\":true,\"kind\":\"notes\"," +
             "\"notes\":\"authored\",\"pubkey\":\"abc\"}"
         spec.isProfileAuthoredNoteRepliesFeedSpec() shouldBe false
+    }
+
+    @Test
+    fun isProfileAuthoredMediaFeedSpec_forProperFeedSpec_returnsTrue() {
+        val spec = "{\"id\":\"feed\",\"kind\":\"notes\",\"notes\":\"user_media_thumbnails\"," +
+            "\"pubkey\":\"$profileId\"}"
+        spec.isProfileAuthoredMediaFeedSpec() shouldBe true
+    }
+
+    @Test
+    fun isProfileAuthoredMediaFeedSpec_forInvalidProfileId_returnsFalse() {
+        val spec = "{\"id\":\"feed\",\"kind\":\"notes\",\"notes\":\"user_media_thumbnails\"," +
+            "\"pubkey\":\"abc\"}"
+        spec.isProfileAuthoredMediaFeedSpec() shouldBe false
+    }
+
+    @Test
+    fun isProfileAuthoredMediaFeedSpec_isNotTheNotesTab() {
+        val notesSpec = "{\"id\":\"feed\",\"kind\":\"notes\",\"notes\":\"authored\",\"pubkey\":\"$profileId\"}"
+        notesSpec.isProfileAuthoredMediaFeedSpec() shouldBe false
     }
 
     @Test

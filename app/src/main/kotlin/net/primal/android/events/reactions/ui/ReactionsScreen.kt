@@ -30,10 +30,11 @@ import net.primal.android.events.reactions.ReactionsViewModel
 import net.primal.android.theme.AppTheme
 import net.primal.domain.nostr.ReactionType
 
-private const val REACTION_TABS_COUNT = 3
+private const val REACTION_TABS_COUNT = 4
 private const val ZAPS_TAB_INDEX = 0
 private const val LIKES_TAB_INDEX = 1
 private const val REPOSTS_TAB_INDEX = 2
+private const val QUOTES_TAB_INDEX = 3
 
 @Composable
 fun ReactionsScreen(viewModel: ReactionsViewModel, callbacks: ReactionsContract.ScreenCallbacks) {
@@ -54,6 +55,7 @@ private fun ReactionsScreen(state: ReactionsContract.UiState, callbacks: Reactio
             ReactionType.ZAPS -> ZAPS_TAB_INDEX
             ReactionType.LIKES -> LIKES_TAB_INDEX
             ReactionType.REPOSTS -> REPOSTS_TAB_INDEX
+            ReactionType.QUOTES -> QUOTES_TAB_INDEX
             ReactionType.REPLIES -> ZAPS_TAB_INDEX
         },
         pageCount = { REACTION_TABS_COUNT },
@@ -90,6 +92,13 @@ private fun ReactionsScreen(state: ReactionsContract.UiState, callbacks: Reactio
                                 )
                             }
                         },
+                        onQuotesClick = {
+                            uiScope.launch {
+                                pagerState.animateScrollToPage(
+                                    QUOTES_TAB_INDEX,
+                                )
+                            }
+                        },
                     )
                 },
             )
@@ -120,6 +129,7 @@ private fun ReactionsScreen(state: ReactionsContract.UiState, callbacks: Reactio
                             loading = state.likesLoading,
                             noContentText = stringResource(R.string.reactions_likes_no_content),
                             onProfileClick = callbacks.onProfileClick,
+                            showReactionContent = true,
                         )
                     }
 
@@ -132,6 +142,19 @@ private fun ReactionsScreen(state: ReactionsContract.UiState, callbacks: Reactio
                             reactionIcon = PrimalIcons.FeedReposts,
                             loading = state.repostsLoading,
                             noContentText = stringResource(R.string.reactions_reposts_no_content),
+                            onProfileClick = callbacks.onProfileClick,
+                        )
+                    }
+
+                    QUOTES_TAB_INDEX -> {
+                        QuotesLazyColumn(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(paddingValues),
+                            quotes = state.quotes,
+                            loading = state.quotesLoading,
+                            noContentText = stringResource(R.string.reactions_quotes_no_content),
+                            onNoteClick = callbacks.onNoteClick,
                             onProfileClick = callbacks.onProfileClick,
                         )
                     }
@@ -148,6 +171,7 @@ private fun ReactionsTabs(
     onZapsClick: () -> Unit,
     onLikesClick: () -> Unit,
     onRepostsClick: () -> Unit,
+    onQuotesClick: () -> Unit,
 ) {
     SecondaryTabRow(
         modifier = modifier,
@@ -181,6 +205,12 @@ private fun ReactionsTabs(
             selected = selectedTabIndex == REPOSTS_TAB_INDEX,
             text = stringResource(id = R.string.reactions_reposts_tab).uppercase(),
             onClick = onRepostsClick,
+            textStyle = AppTheme.typography.bodyMedium,
+        )
+        PrimalSingleTab(
+            selected = selectedTabIndex == QUOTES_TAB_INDEX,
+            text = stringResource(id = R.string.reactions_quotes_tab).uppercase(),
+            onClick = onQuotesClick,
             textStyle = AppTheme.typography.bodyMedium,
         )
     }

@@ -123,8 +123,14 @@ object CachingRepositoriesModule {
         PrimalRepositoryFactory.createEventUriRepository()
 
     @Provides
-    fun provideEventInteractionRepository(primalPublisher: PrimalPublisher): EventInteractionRepository =
-        PrimalRepositoryFactory.createEventInteractionRepository(primalPublisher = primalPublisher)
+    fun provideEventInteractionRepository(
+        primalPublisher: PrimalPublisher,
+        relayEventQuerier: RelayEventQuerier,
+    ): EventInteractionRepository =
+        PrimalRepositoryFactory.createEventInteractionRepository(
+            primalPublisher = primalPublisher,
+            relayEventQuerier = relayEventQuerier,
+        )
 
     @Provides
     fun provideExploreRepository(

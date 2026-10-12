@@ -5,6 +5,8 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonArray
 import net.primal.core.utils.coroutines.DispatcherProvider
 import net.primal.core.utils.createAppBuildHelper
+import net.primal.core.utils.getOrDefault
+import net.primal.core.utils.runCatching
 import net.primal.data.local.db.CachingDatabase
 import net.primal.domain.events.EventInteractionRepository
 import net.primal.domain.nostr.NostrEventKind
@@ -16,12 +18,15 @@ import net.primal.domain.nostr.asPubkeyTag
 import net.primal.domain.nostr.asReplaceableEventTag
 import net.primal.domain.nostr.cryptography.SignatureException
 import net.primal.domain.nostr.publisher.NostrPublishException
+import net.primal.domain.nostr.relay.RelayEventQuerier
+import net.primal.domain.nostr.relay.RelayFilter
 import net.primal.domain.publisher.PrimalPublisher
 
 class EventInteractionRepositoryImpl(
     private val dispatcherProvider: DispatcherProvider,
     private val primalPublisher: PrimalPublisher,
     private val database: CachingDatabase,
+    private val relayEventQuerier: RelayEventQuerier,
 ) : EventInteractionRepository {
 
     private val appBuildHelper = createAppBuildHelper()
@@ -31,6 +36,7 @@ class EventInteractionRepositoryImpl(
         eventId: String,
         eventAuthorId: String,
         optionalTags: List<JsonArray>,
+        reaction: String,
     ) = withContext(dispatcherProvider.io()) {
         val statsUpdater = EventStatsUpdater(
             eventId = eventId,
@@ -50,7 +56,7 @@ class EventInteractionRepositoryImpl(
                         eventAuthorId.asPubkeyTag(),
                         appBuildHelper.getClientName().asClientTag(),
                     ) + optionalTags,
-                    content = "+",
+                    content = reaction,
                 ),
             )
         } catch (error: NostrPublishException) {
@@ -63,6 +69,58 @@ class EventInteractionRepositoryImpl(
             throw error
         }
     }
+
+    override suspend fun unlikeEvent(
+        userId: String,
+        eventId: String,
+        eventAuthorId: String,
+    ) = withContext(dispatcherProvider.io()) {
+        val statsUpdater = EventStatsUpdater(
+            eventId = eventId,
+            userId = userId,
+            eventAuthorId = eventAuthorId,
+            database = database,
+        )
+
+        try {
+            // The heart empties at once, like it fills at once; it is put back if the deletion fails.
+            statsUpdater.decreaseLikeStats()
+            val reactionIds = findOwnReactionIds(userId = userId, eventId = eventId)
+            if (reactionIds.isEmpty()) throw NostrPublishException("No reaction by $userId on $eventId was found.")
+            reactionIds.forEach { reactionId ->
+                deleteEvent(userId = userId, eventIdentifier = reactionId, eventKind = NostrEventKind.Reaction)
+            }
+        } catch (error: NostrPublishException) {
+            Napier.w(error) { "Failed to take the reaction back." }
+            statsUpdater.revertStats()
+            throw error
+        } catch (error: SignatureException) {
+            Napier.w(error) { "Unable to sign the deletion of a reaction." }
+            statsUpdater.revertStats()
+            throw error
+        }
+    }
+
+    /**
+     * The ids of the reactions [userId] has on [eventId], newest first. More than one is normal: a
+     * second tap or another client adds a reaction instead of replacing the first, and taking the like
+     * back has to remove all of them or the heart comes back on the next refresh.
+     */
+    private suspend fun findOwnReactionIds(userId: String, eventId: String): List<String> =
+        runCatching {
+            relayEventQuerier.query(
+                RelayFilter(
+                    kinds = listOf(NostrEventKind.Reaction.value),
+                    authors = listOf(userId),
+                    eventTags = listOf(eventId),
+                    limit = MAX_OWN_REACTIONS,
+                ),
+            )
+        }.getOrDefault(emptyList())
+            .filter { it.pubKey == userId }
+            .sortedByDescending { it.createdAt }
+            .map { it.id }
+            .distinct()
 
     override suspend fun repostEvent(
         userId: String,
@@ -136,5 +194,9 @@ class EventInteractionRepositoryImpl(
         withContext(dispatcherProvider.io()) {
             database.eventZaps().deleteAll(eventId = eventId)
         }
+    }
+
+    private companion object {
+        const val MAX_OWN_REACTIONS = 20
     }
 }

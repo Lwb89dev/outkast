@@ -100,6 +100,7 @@ class NoteViewModel @AssistedInject constructor(
             events.collect {
                 when (it) {
                     is UiEvent.PostLikeAction -> likePost(it)
+                    is UiEvent.PostUnlikeAction -> unlikePost(it)
                     is UiEvent.ReportAbuse -> reportAbuse(it)
                     is UiEvent.RepostAction -> repostPost(it)
                     is UiEvent.ZapAction -> zapPost(it)
@@ -126,10 +127,19 @@ class NoteViewModel @AssistedInject constructor(
     private fun likePost(postLikeAction: UiEvent.PostLikeAction) =
         viewModelScope.launch {
             try {
+                val userId = activeAccountStore.activeUserId()
+                if (postLikeAction.replacePrevious) {
+                    eventInteractionRepository.unlikeEvent(
+                        userId = userId,
+                        eventId = postLikeAction.postId,
+                        eventAuthorId = postLikeAction.postAuthorId,
+                    )
+                }
                 eventInteractionRepository.likeEvent(
-                    userId = activeAccountStore.activeUserId(),
+                    userId = userId,
                     eventId = postLikeAction.postId,
                     eventAuthorId = postLikeAction.postAuthorId,
+                    reaction = postLikeAction.reaction,
                 )
             } catch (error: NostrPublishException) {
                 Napier.w(throwable = error) { "Failed to publish like event." }
@@ -143,6 +153,29 @@ class NoteViewModel @AssistedInject constructor(
             } catch (error: SigningRejectedException) {
                 setState { copy(error = UiError.NostrSignUnauthorized) }
                 Napier.w(throwable = error) { "Signing rejected for like action." }
+            }
+        }
+
+    private fun unlikePost(action: UiEvent.PostUnlikeAction) =
+        viewModelScope.launch {
+            try {
+                eventInteractionRepository.unlikeEvent(
+                    userId = activeAccountStore.activeUserId(),
+                    eventId = action.postId,
+                    eventAuthorId = action.postAuthorId,
+                )
+            } catch (error: NostrPublishException) {
+                Napier.w(throwable = error) { "Failed to take the reaction back." }
+                setState { copy(error = UiError.FailedToPublishDeleteEvent(error)) }
+            } catch (error: MissingRelaysException) {
+                Napier.w(throwable = error) { "Missing relays for unlike action." }
+                setState { copy(error = UiError.MissingRelaysConfiguration(error)) }
+            } catch (error: SigningKeyNotFoundException) {
+                setState { copy(error = UiError.MissingPrivateKey) }
+                Napier.w(throwable = error) { "Signing key not found for unlike action." }
+            } catch (error: SigningRejectedException) {
+                setState { copy(error = UiError.NostrSignUnauthorized) }
+                Napier.w(throwable = error) { "Signing rejected for unlike action." }
             }
         }
 

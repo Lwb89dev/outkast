@@ -133,6 +133,15 @@ android {
             name = "LOCAL_STORAGE_KEY_ALIAS",
             value = "\"${configProperties?.getProperty("localStorage.keyAlias", "")}\"",
         )
+
+        // Issued by nostr.build to this app; config.properties is not in git and reaches the release
+        // build as the CONFIG_PROPERTIES secret. A build without it still works: GIF search then
+        // identifies itself by User-Agent only, and falls back to GIFverse if that is refused.
+        buildConfigField(
+            type = "String",
+            name = "NOSTR_BUILD_GIF_API_KEY",
+            value = "\"${configProperties?.getProperty("nostrBuildGifApiKey", "")?.trim()}\"",
+        )
     }
 
     splits {

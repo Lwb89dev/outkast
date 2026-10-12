@@ -96,18 +96,31 @@ fun String.isProfileAuthoredNoteRepliesFeedSpec(): Boolean {
 }
 
 /**
+ * The media tab of a profile: the notes one person wrote that carry an image or a video.
+ *
+ * It is the author's own notes with a filter on top (is there media in it?), which a relay
+ * cannot apply but the client can, so it is served the same way as the other profile tabs. What
+ * the centralized index added here was a prebuilt list of thumbnails, not anything a relay lacks.
+ */
+fun String.isProfileAuthoredMediaFeedSpec(): Boolean {
+    return isPubkeyFeedSpec(
+        prefix = "{\"id\":\"feed\",\"kind\":\"notes\",\"notes\":\"user_media_thumbnails\"",
+        suffix = "}",
+    )
+}
+
+/**
  * Feeds a relay can serve directly, because their author scope is known without asking anyone.
  *
  * A following feed resolves to the user's kind 3, a follow set to its list, and a profile tab to
  * the one person it is about. A bookmarks feed is the user's own NIP-51 list, whose entries are
- * event ids a relay resolves by id. Anything else — trending, discovery, media thumbnails —
- * depends on ranking that only a centralized index can do, and has no relay equivalent to fall
- * back to.
+ * event ids a relay resolves by id. Anything else — trending, discovery — depends on ranking
+ * that only a centralized index can do, and has no relay equivalent to fall back to.
  */
 fun String.isRelayServableNotesFeedSpec(): Boolean {
     return isFollowingNotesFeedSpec() || isFollowSetFeedSpec() ||
         isProfileAuthoredNotesFeedSpec() || isProfileAuthoredNoteRepliesFeedSpec() ||
-        isNotesBookmarkFeedSpec()
+        isProfileAuthoredMediaFeedSpec() || isNotesBookmarkFeedSpec()
 }
 
 fun String.supportsUpwardsNotesPagination(): Boolean {

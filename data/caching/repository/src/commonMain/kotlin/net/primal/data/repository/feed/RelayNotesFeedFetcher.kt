@@ -20,6 +20,7 @@ import net.primal.domain.feeds.extractFollowSetPubkey
 import net.primal.domain.feeds.extractPubkeyFromFeedSpec
 import net.primal.domain.feeds.isFollowSetFeedSpec
 import net.primal.domain.feeds.isNotesBookmarkFeedSpec
+import net.primal.domain.feeds.isProfileAuthoredMediaFeedSpec
 import net.primal.domain.feeds.isProfileAuthoredNoteRepliesFeedSpec
 import net.primal.domain.feeds.isProfileAuthoredNotesFeedSpec
 import net.primal.domain.nostr.NostrEvent
@@ -27,6 +28,7 @@ import net.primal.domain.nostr.NostrEventKind
 import net.primal.domain.nostr.eventIdTagValues
 import net.primal.domain.nostr.findFirstIdentifier
 import net.primal.domain.nostr.hasEventIdTag
+import net.primal.domain.nostr.isComment
 import net.primal.domain.nostr.pubkeyTagValues
 import net.primal.domain.nostr.relay.RelayEventQuerier
 import net.primal.domain.nostr.relay.RelayFilter
@@ -141,20 +143,28 @@ internal class RelayNotesFeedFetcher(
         val authors = loadAuthors(userId, feedSpec)
         if (authors.isEmpty()) return NotesFeedPage(page = emptyList(), referencedNotes = emptyList())
 
+        // A media grid keeps only the notes that carry an image or a video, which is a small share of
+        // anyone's notes: the windows below are what turns "20 notes" into "20 notes worth a tile".
+        val isMediaFeed = feedSpec.isProfileAuthoredMediaFeedSpec()
+        val kinds = if (isMediaFeed) MEDIA_NOTE_KINDS else FEED_NOTE_KINDS
+        val isShown = { event: NostrEvent ->
+            if (isMediaFeed) event.isShownInMediaGrid() else event.isShownInFeed(includeReplies)
+        }
+
         val shown = LinkedHashMap<String, NostrEvent>()
         var cursor = until
         var resumeUntil: Long? = null
         var answered = false
         var windows = 1
-        var window = queryWindow(authors = authors, limit = limit, until = cursor, since = since)
+        var window = queryWindow(authors = authors, kinds = kinds, limit = limit, until = cursor, since = since)
         while (window.answered) {
             answered = true
-            window.events.filter { it.isShownInFeed(includeReplies) }.forEach { shown[it.id] = it }
+            window.events.filter(isShown).forEach { shown[it.id] = it }
             val next = window.nextCursor(after = cursor)?.takeIf { since == null || it >= since }
             resumeUntil = next
             if (shown.size >= limit || next == null || windows >= MAX_WINDOWS_PER_PAGE) break
             cursor = next
-            window = queryWindow(authors = authors, limit = limit, until = cursor, since = since)
+            window = queryWindow(authors = authors, kinds = kinds, limit = limit, until = cursor, since = since)
             windows++
         }
 
@@ -172,9 +182,17 @@ internal class RelayNotesFeedFetcher(
             else -> false
         }
 
-    /** One window of history: every author chunk asked for its newest [limit] events. */
+    /**
+     * A media grid draws plain notes only: a repost is somebody else's picture, and counting it
+     * would also spend part of each window's [limit] on events that are then thrown away.
+     */
+    private fun NostrEvent.isShownInMediaGrid(): Boolean =
+        kind == NostrEventKind.ShortTextNote.value && carriesMedia()
+
+    /** One window of history: every author chunk asked for its newest [limit] events of [kinds]. */
     private suspend fun queryWindow(
         authors: List<String>,
+        kinds: List<Int>,
         limit: Int,
         until: Long?,
         since: Long?,
@@ -187,7 +205,7 @@ internal class RelayNotesFeedFetcher(
                     semaphore.withPermit {
                         queryChunkWithOutcome(
                             authors = chunk,
-                            kinds = FEED_NOTE_KINDS,
+                            kinds = kinds,
                             limit = limit,
                             until = until,
                             since = since,
@@ -372,6 +390,9 @@ internal class RelayNotesFeedFetcher(
             isProfileAuthoredNoteRepliesFeedSpec() ->
                 extractPubkeyFromFeedSpec(prefix = AUTHORED_REPLIES_PREFIX, suffix = "}")
 
+            isProfileAuthoredMediaFeedSpec() ->
+                extractPubkeyFromFeedSpec(prefix = AUTHORED_MEDIA_PREFIX, suffix = "}")
+
             else -> null
         }
 
@@ -507,6 +528,7 @@ internal class RelayNotesFeedFetcher(
             NostrEventKind.ShortTextNote.value,
             NostrEventKind.ShortTextNoteRepost.value,
         )
+        private val MEDIA_NOTE_KINDS = listOf(NostrEventKind.ShortTextNote.value)
 
         /** Every page resolves the whole list, so the list a feed will ever look at is bounded. */
         private const val MAX_BOOKMARKED_NOTES = 300
@@ -515,6 +537,7 @@ internal class RelayNotesFeedFetcher(
         private const val AUTHORED_NOTES_PREFIX = """{"id":"feed","kind":"notes","notes":"authored""""
         private const val AUTHORED_REPLIES_PREFIX =
             """{"id":"feed","include_replies":true,"kind":"notes","notes":"authored""""
+        private const val AUTHORED_MEDIA_PREFIX = """{"id":"feed","kind":"notes","notes":"user_media_thumbnails""""
     }
 }
 
@@ -568,7 +591,7 @@ internal fun List<NostrEvent>.toFeedResponse(
     /** See [NotesFeedPage.resumeUntil]; only read when this list is empty. */
     emptyPageCursor: Long? = null,
 ): FeedResponse {
-    val notes = filter { it.kind == NostrEventKind.ShortTextNote.value }
+    val notes = filter { it.kind == NostrEventKind.ShortTextNote.value || it.isComment() }
     val reposts = filter { it.kind == NostrEventKind.ShortTextNoteRepost.value }
     val created = map { it.createdAt }
     val paging = if (created.isEmpty()) {

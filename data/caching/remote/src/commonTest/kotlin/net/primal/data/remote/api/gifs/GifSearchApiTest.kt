@@ -1,5 +1,6 @@
 package net.primal.data.remote.api.gifs
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
@@ -11,6 +12,7 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import kotlin.test.Test
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TestTimeSource
 import kotlinx.coroutines.test.runTest
 import net.primal.data.remote.api.gifs.model.GifCursor
@@ -65,11 +67,17 @@ class GifSearchApiTest {
         )
 
     @Test
-    fun nostrBuild_mapsItemsAndPagesWithinTheListCount() =
+    fun nostrBuild_mapsItemsAndAsksForTheWholeListInOneRequest() =
         runTest {
-            val api = NostrBuildGifApi(client { json(nostrBuildPage) })
+            var request: HttpRequestData? = null
+            val api = NostrBuildGifApi(
+                client {
+                    request = it
+                    json(nostrBuildPage)
+                },
+            )
 
-            val page = api.search(query = "gm", offset = 0)
+            val page = api.search(query = "gm")
 
             page.source shouldBe GifSource.NostrBuild
             page.results.map { it.id } shouldBe listOf("aa.gif", "bb.gif")
@@ -78,7 +86,55 @@ class GifSearchApiTest {
             page.results[0].mimeType shouldBe "image/gif"
             // No animated rendition: the grid falls back to the first frame.
             page.results[1].previewUrl shouldBe "https://p/bb-still.png"
-            page.nextCursor shouldBe GifCursor(source = GifSource.NostrBuild, offset = 2)
+            // The API's guide for grids: one request for up to 200 GIFs, never a second page.
+            page.nextCursor shouldBe null
+            request!!.url.parameters["limit"] shouldBe "200"
+            request!!.url.parameters["offset"] shouldBe null
+        }
+
+    @Test
+    fun nostrBuild_identifiesTheAppWithItsKeyAsABearerToken() =
+        runTest {
+            var authorization: String? = null
+            val api = NostrBuildGifApi(
+                httpClient = client {
+                    authorization = it.headers[HttpHeaders.Authorization]
+                    json(nostrBuildPage)
+                },
+                apiKey = "gnb_example",
+            )
+
+            api.search(query = "gm")
+            authorization shouldBe "Bearer gnb_example"
+
+            val withoutKey = NostrBuildGifApi(
+                httpClient = client {
+                    authorization = it.headers[HttpHeaders.Authorization]
+                    json(nostrBuildPage)
+                },
+                apiKey = " ",
+            )
+            withoutKey.search(query = "gm")
+            authorization shouldBe null
+        }
+
+    @Test
+    fun nostrBuild_asksTheWayTheApiWantsAQuery() =
+        runTest {
+            val asked = mutableListOf<String?>()
+            val api = NostrBuildGifApi(
+                client {
+                    asked += it.url.parameters["q"]
+                    json(nostrBuildPage)
+                },
+            )
+
+            api.search(query = "  Good   MORNING \n")
+            // 499 ordinary characters, then one emoji (two UTF-16 units) that would straddle the 500 limit.
+            api.search(query = "a".repeat(499) + "\uD83D\uDE00")
+
+            asked[0] shouldBe "good morning"
+            asked[1] shouldBe "a".repeat(499)
         }
 
     @Test
@@ -120,6 +176,39 @@ class GifSearchApiTest {
             timeSource += FallbackGifSearchApi.NOT_REGISTERED_PAUSE
             api.search(query = "gm")
             requestedHosts.count { it == "gifs.nostr.build" } shouldBe 2
+        }
+
+    @Test
+    fun fallback_aRateLimitIsReportedNotWorkedAroundAndHonoursRetryAfter() =
+        runTest {
+            val requestedHosts = mutableListOf<String>()
+            val http = client { request ->
+                requestedHosts += request.url.host
+                when (request.url.host) {
+                    "gifs.nostr.build" -> respond(
+                        content = "{}",
+                        status = HttpStatusCode.TooManyRequests,
+                        headers = headersOf(HttpHeaders.RetryAfter, "60"),
+                    )
+                    else -> json(gifversePage)
+                }
+            }
+            val timeSource = TestTimeSource()
+            val api = FallbackGifSearchApi(
+                nostrBuild = NostrBuildGifApi(http),
+                gifverse = GifverseGifApi(http),
+                timeSource = timeSource,
+            )
+
+            shouldThrow<GifProviderException.RateLimited> { api.search(query = "gm") }
+            // Still inside Retry-After: told so again without a single request, and no GIFverse detour.
+            shouldThrow<GifProviderException.RateLimited> { api.search(query = "gn") }
+            api.suggest(query = "gm") shouldBe emptyList()
+            requestedHosts shouldBe listOf("gifs.nostr.build")
+
+            timeSource += 61.seconds
+            shouldThrow<GifProviderException.RateLimited> { api.search(query = "gm") }
+            requestedHosts shouldBe listOf("gifs.nostr.build", "gifs.nostr.build")
         }
 
     @Test

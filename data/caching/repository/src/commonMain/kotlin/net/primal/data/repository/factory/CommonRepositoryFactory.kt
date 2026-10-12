@@ -191,11 +191,15 @@ abstract class CommonRepositoryFactory {
         )
     }
 
-    fun createEventInteractionRepository(primalPublisher: PrimalPublisher): EventInteractionRepository {
+    fun createEventInteractionRepository(
+        primalPublisher: PrimalPublisher,
+        relayEventQuerier: RelayEventQuerier,
+    ): EventInteractionRepository {
         return EventInteractionRepositoryImpl(
             dispatcherProvider = dispatcherProvider,
             primalPublisher = primalPublisher,
             database = resolveCachingDatabase(),
+            relayEventQuerier = relayEventQuerier,
         )
     }
 

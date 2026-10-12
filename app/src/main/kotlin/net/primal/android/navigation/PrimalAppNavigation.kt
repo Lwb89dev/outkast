@@ -1678,6 +1678,7 @@ private fun NavGraphBuilder.reactions(
         callbacks = ReactionsContract.ScreenCallbacks(
             onClose = { navController.navigateUp() },
             onProfileClick = { profileId -> navController.navigateToProfile(profileId) },
+            onNoteClick = { noteId -> navController.navigateToThread(noteId) },
         ),
     )
 }

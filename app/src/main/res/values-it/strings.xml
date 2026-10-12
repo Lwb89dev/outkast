@@ -346,6 +346,8 @@
     <string name="accessibility_poll_add_choice">Aggiungere la scelta del sondaggio</string>
     <string name="gif_picker_search_placeholder">Cerca GIF</string>
     <string name="gif_picker_cancel">Annulla</string>
+    <string name="gif_picker_rate_limited">Troppe ricerche per ora: riprova tra un minuto.</string>
+    <string name="reaction_picker_title">Reagisci con</string>
     <string name="gif_picker_powered_by">Alimentato da</string>
     <string name="post_action_missing_lightning_address">Impossibile zappare questo utente: non ha un indirizzo Lightning impostato.</string>
     <string name="post_action_invalid_zap_request">Impossibile zap. Controlla la connessione del portafoglio e riprova.</string>
@@ -366,14 +368,17 @@
     <string name="thread_stats_replies">Risposte</string>
     <string name="thread_stats_zaps">Zaps</string>
     <string name="thread_stats_likes">Mi piace</string>
+    <string name="thread_stats_quotes">Citazioni</string>
     <string name="thread_stats_reposts">Reposts</string>
     <string name="thread_invalid_thread_id">ID discussione non valido.</string>
     <string name="reactions_title">Reazioni</string>
     <string name="reactions_zaps_tab">Zaps</string>
     <string name="reactions_likes_tab">Mi piace</string>
+    <string name="reactions_quotes_tab">Citazioni</string>
     <string name="reactions_reposts_tab">Reposts</string>
     <string name="reactions_zaps_no_content">Non ci sono zaps.</string>
     <string name="reactions_likes_no_content">Non ci sono mi piace.</string>
+    <string name="reactions_quotes_no_content">Nessuno ha citato questa nota.</string>
     <string name="reactions_reposts_no_content">Non ci sono repost.</string>
     <string name="explore_search_nostr">Cerca Nostr</string>
     <string name="explore_search_notes">Cerca tra le note</string>

@@ -109,6 +109,8 @@ import net.primal.android.thread.articles.details.ui.HighlightActivityBottomShee
 import net.primal.android.thread.articles.details.ui.rendering.MarkdownRenderer
 import net.primal.android.thread.articles.details.ui.rendering.handleArticleLinkClick
 import net.primal.android.thread.articles.details.ui.rendering.rememberPrimalMarkwon
+import net.primal.android.thread.notes.MAX_VISUAL_REPLY_LEVEL
+import net.primal.android.thread.notes.drawReplyLevel
 import net.primal.domain.links.EventUriType
 import net.primal.domain.nostr.Naddr
 import net.primal.domain.nostr.Nip19TLV.toNaddrString
@@ -366,7 +368,13 @@ private fun ArticleDetailsScreen(
 
                             FeedPostAction.Zap -> detailsEventPublisher(UiEvent.ZapArticle())
 
-                            FeedPostAction.Like -> detailsEventPublisher(UiEvent.LikeArticle)
+                            FeedPostAction.Like -> detailsEventPublisher(
+                                if (detailsState.article.eventStatsUi.userLiked) {
+                                    UiEvent.UnlikeArticle
+                                } else {
+                                    UiEvent.LikeArticle
+                                },
+                            )
 
                             FeedPostAction.Repost -> {
                                 showRepostOrQuoteConfirmation = true
@@ -850,7 +858,22 @@ private fun ArticleContentWithComments(
             Column(
                 modifier = Modifier
                     .background(color = AppTheme.colorScheme.surfaceVariant)
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .let { column ->
+                        // Level 1 is a comment on the article itself and sits flush; each further
+                        // level is a reply to a comment and gets one more bar, as in a thread.
+                        val nesting = (it.replyLevel - 1).coerceIn(0, MAX_VISUAL_REPLY_LEVEL)
+                        if (nesting == 0) {
+                            column
+                        } else {
+                            column.drawReplyLevel(
+                                level = nesting,
+                                color = AppTheme.colorScheme.outline,
+                                selected = AppTheme.colorScheme.primary,
+                                unresolved = it.hasUnresolvedParent,
+                            )
+                        }
+                    },
             ) {
                 FeedNoteCard(
                     data = it,
@@ -881,7 +904,8 @@ private fun ArticleDetailsContract.UiState.calculateCommentsHeaderIndex(partsSiz
     return count
 }
 
-private fun EventStatsUi.hasAnyCount() = repliesCount > 0 || zapsCount > 0 || likesCount > 0 || repostsCount > 0
+private fun EventStatsUi.hasAnyCount() =
+    repliesCount > 0 || zapsCount > 0 || likesCount > 0 || repostsCount > 0 || quotesCount > 0
 
 @Composable
 private fun CommentsHeaderSection(modifier: Modifier, onPostCommentClick: () -> Unit) {

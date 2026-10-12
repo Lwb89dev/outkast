@@ -128,16 +128,17 @@ fun FeedNoteActionsRow(
             iconVectorHighlight = PrimalIcons.FeedNewLikeFilled,
             colorHighlight = AppTheme.extraColorScheme.liked,
             unhighlightedColor = unhighlightedColor,
-            onClick = if (!eventStats.userLiked && onPostAction != null) {
+            // A tap on a heart that is already filled takes the reaction back, so it must stay tappable;
+            // the callers tell the two apart by the note's own state.
+            onClick = onPostAction?.let {
                 { onPostAction(FeedPostAction.Like) }
-            } else {
-                null
             },
             onLongClick = onPostLongPressAction?.let {
                 { onPostLongPressAction(FeedPostAction.Like) }
             },
-            celebrateOnClick = true,
-            onActivated = likeFeedback,
+            // Haptic, chime and flourish are for a reaction being given, not for taking one back.
+            celebrateOnClick = !eventStats.userLiked,
+            onActivated = if (eventStats.userLiked) null else likeFeedback,
             iconContentDescription = stringResource(id = R.string.accessibility_likes_count),
         )
 

@@ -5,6 +5,9 @@ import okio.BufferedSource
 
 interface BlossomApi {
 
+    /** The server this talks to, as configured (scheme and host, no trailing slash). */
+    val serverUrl: String
+
     @Throws(
         UploadRequirementException::class,
         CancellationException::class,

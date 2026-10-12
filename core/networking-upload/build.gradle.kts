@@ -34,6 +34,7 @@ kotlin {
             dependencies {
                 implementation(kotlin("test"))
                 implementation(libs.okio)
+                implementation(libs.kotlinx.coroutines.test)
             }
         }
 

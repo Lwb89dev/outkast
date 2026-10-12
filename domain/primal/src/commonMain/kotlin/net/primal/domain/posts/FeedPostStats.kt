@@ -10,6 +10,8 @@ data class FeedPostStats(
     val userLiked: Boolean = false,
     val repostsCount: Long = 0,
     val userReposted: Boolean = false,
+    /** How many notes quote this one. */
+    val quotesCount: Long = 0,
     val userBookmarked: Boolean = false,
     val userVotedForOption: String? = null,
 )

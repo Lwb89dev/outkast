@@ -261,10 +261,11 @@ private fun MediaFeedCardBody(
                     FeedPostAction.Zap -> dialogsState.showZapOptions = true
 
                     FeedPostAction.Like -> eventPublisher(
-                        UiEvent.PostLikeAction(
-                            postId = data.postId,
-                            postAuthorId = data.authorId,
-                        ),
+                        if (data.stats.userLiked) {
+                            UiEvent.PostUnlikeAction(postId = data.postId, postAuthorId = data.authorId)
+                        } else {
+                            UiEvent.PostLikeAction(postId = data.postId, postAuthorId = data.authorId)
+                        },
                     )
 
                     FeedPostAction.Repost -> dialogsState.showRepostConfirmation = true
@@ -275,7 +276,7 @@ private fun MediaFeedCardBody(
             },
             onPostLongPressAction = { postAction ->
                 when (postAction) {
-                    FeedPostAction.Zap -> Unit
+                    FeedPostAction.Like -> dialogsState.showReactionPicker = true
 
                     else -> Unit
                 }
@@ -762,7 +763,6 @@ private fun ActionStat(
         modifier = modifier
             .animateContentSize()
             .combinedClickable(
-                enabled = action != FeedPostAction.Like || !highlighted,
                 onClick = { onPostAction(action) },
                 onLongClick = { onPostLongPressAction(action) },
             ),

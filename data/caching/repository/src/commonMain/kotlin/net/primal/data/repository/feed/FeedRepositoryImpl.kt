@@ -50,6 +50,7 @@ import net.primal.data.repository.utils.performTopologicalSortOrThis
 import net.primal.domain.common.exception.NetworkException
 import net.primal.domain.feeds.isAdvancedSearchFeedSpec
 import net.primal.domain.feeds.isNotesBookmarkFeedSpec
+import net.primal.domain.feeds.isProfileAuthoredMediaFeedSpec
 import net.primal.domain.feeds.isRelayServableNotesFeedSpec
 import net.primal.domain.feeds.isUserNotesLwrFeedSpec
 import net.primal.domain.feeds.supportsNoteReposts
@@ -57,6 +58,7 @@ import net.primal.domain.links.EventUriNostrReference
 import net.primal.domain.links.EventUriNostrType
 import net.primal.domain.nostr.NostrEvent
 import net.primal.domain.nostr.NostrEventKind
+import net.primal.domain.nostr.isComment
 import net.primal.domain.nostr.relay.RelayEventQuerier
 import net.primal.domain.nostr.relay.RelayEventSubscriber
 import net.primal.domain.nostr.relay.RelayFilter
@@ -251,7 +253,11 @@ internal class FeedRepositoryImpl(
             // articles are never part of a thread response (see toThreadFeedResponse). Neither of
             // these depends on the other, so both are fetched together.
             val eventIds = events.all
-                .filter { it.kind == NostrEventKind.ShortTextNote.value || it.kind == NostrEventKind.ShortTextNoteRepost.value }
+                .filter {
+                    it.kind == NostrEventKind.ShortTextNote.value ||
+                        it.kind == NostrEventKind.ShortTextNoteRepost.value ||
+                        it.isComment()
+                }
                 .map { it.id }
                 .distinct()
 
@@ -292,6 +298,30 @@ internal class FeedRepositoryImpl(
             }
         }
     }
+
+    override suspend fun fetchQuotes(userId: String, noteId: String): List<FeedPostDO> =
+        withContext(dispatcherProvider.io()) {
+            val querier = relayEventQuerier ?: return@withContext emptyList()
+            val found = RelayQuotesFetcher(querier).fetch(noteId = noteId, limit = QUOTES_LIMIT)
+            if (found.quotes.isEmpty()) return@withContext emptyList()
+
+            found.quotes.toFeedResponse(
+                metadata = found.metadata,
+                referencedEvents = listOfNotNull(found.quotedNote).map { it.asReferencedPrimalEvent() },
+            ).persistToDatabaseAsTransaction(userId = userId, database = database)
+
+            // The counters under each quote (its own likes and replies), fetched the way a thread's are.
+            val stats = RelayEventStatsFetcher(querier = querier, coordinator = fetchCoordinator)
+                .fetch(eventIds = found.quotes.map { it.id }, userId = userId)
+            database.withTransaction {
+                database.eventStats().upsertAll(stats.eventStats)
+                if (stats.userStats.isNotEmpty()) database.eventUserStats().upsertAll(stats.userStats)
+            }
+
+            database.feedPosts().findAllPostsByIds(found.quotes.map { it.id })
+                .map { it.mapAsFeedPostDO() }
+                .sortedByDescending { it.timestamp }
+        }
 
     override suspend fun removeFeedSpec(userId: String, feedSpec: String) {
         withContext(dispatcherProvider.io()) {
@@ -572,6 +602,17 @@ internal class FeedRepositoryImpl(
                 wotFilterActive = wotFilterActive,
             )
 
+            // A profile's media grid is listed with the same builder, for a different reason: the
+            // explore builder below inner-joins event stats, and a page fetched by scrolling has none
+            // yet (stats are fetched for a refresh and for notes that come into view, and a grid has
+            // no viewport trigger), so those rows would be stored and then never selected. A profile
+            // is looked at on purpose, so web-of-trust filtering does not apply either.
+            feedSpec.isProfileAuthoredMediaFeedSpec() -> ChronologicalFeedWithRepostsQueryBuilder(
+                feedSpec = feedSpec,
+                userPubkey = userId,
+                allowMutedThreads = allowMutedThreads,
+            )
+
             // Explore/hashtag/trending feeds exist to surface strangers, so WoT never applies here
             // — no filter (like above) and no boost either, since a boost would put a stale WoT
             // post above a fresh one and desync the remote mediator's append cursor.
@@ -583,6 +624,9 @@ internal class FeedRepositoryImpl(
         }
 
     private companion object {
+        /** More quotes than this is a list nobody scrolls, and a query some relays would refuse. */
+        const val QUOTES_LIMIT = 100
+
         /** One REQ per chunk; a handful is well within the pool's subscription budget. */
         const val STREAM_AUTHOR_CHUNK = 250
 

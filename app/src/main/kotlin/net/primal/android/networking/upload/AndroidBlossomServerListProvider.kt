@@ -9,6 +9,10 @@ class AndroidBlossomServerListProvider @Inject constructor(
 ) : BlossomServerListProvider {
 
     override suspend fun provideBlossomServerList(userId: String): List<String> {
-        return blossomRepository.ensureBlossomServerList(userId)
+        return blossomRepository.provideUploadServerList(userId)
+    }
+
+    override suspend fun provideFallbackServerList(userId: String): List<String> {
+        return blossomRepository.provideFallbackServerList()
     }
 }

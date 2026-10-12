@@ -39,6 +39,7 @@ import net.primal.data.repository.utils.cacheAvatarUrls
 import net.primal.domain.common.exception.NetworkException
 import net.primal.domain.feeds.isAdvancedSearchFeedSpec
 import net.primal.domain.feeds.isNotesBookmarkFeedSpec
+import net.primal.domain.feeds.isProfileAuthoredMediaFeedSpec
 import net.primal.domain.feeds.isProfileAuthoredNoteRepliesFeedSpec
 import net.primal.domain.feeds.isProfileAuthoredNotesFeedSpec
 import net.primal.domain.feeds.isRelayServableNotesFeedSpec
@@ -189,6 +190,7 @@ internal class NoteFeedRemoteMediator(
             feedSpec.isNotesBookmarkFeedSpec() -> true
             feedSpec.isProfileAuthoredNotesFeedSpec() -> true
             feedSpec.isProfileAuthoredNoteRepliesFeedSpec() -> true
+            feedSpec.isProfileAuthoredMediaFeedSpec() -> true
             feedSpec.supportsUpwardsNotesPagination() -> feedSpec.isLastCacheTimestampOlderThan(duration = 24.hours)
             else -> feedSpec.isLastCacheTimestampOlderThan(duration = 3.minutes)
         }

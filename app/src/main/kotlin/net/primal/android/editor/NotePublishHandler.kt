@@ -4,6 +4,8 @@ import javax.inject.Inject
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.add
+import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.jsonPrimitive
 import net.primal.android.editor.domain.NoteAttachment
 import net.primal.android.editor.domain.PollOption
@@ -18,6 +20,7 @@ import net.primal.android.user.domain.mapToRelayDO
 import net.primal.android.user.repository.RelayRepository
 import net.primal.core.utils.coroutines.DispatcherProvider
 import net.primal.domain.events.EventRelayHintsRepository
+import net.primal.domain.nostr.CommentTarget
 import net.primal.domain.nostr.Naddr
 import net.primal.domain.nostr.Nevent
 import net.primal.domain.nostr.NostrEventKind
@@ -34,10 +37,15 @@ import net.primal.domain.nostr.asRelayTag
 import net.primal.domain.nostr.asReplaceableEventTag
 import net.primal.domain.nostr.asValueMaximumTag
 import net.primal.domain.nostr.asValueMinimumTag
+import net.primal.domain.nostr.buildCommentTags
+import net.primal.domain.nostr.getTagValueOrNull
+import net.primal.domain.nostr.isEventIdTag
 import net.primal.domain.nostr.isPubKeyTag
+import net.primal.domain.nostr.isUppercasePubkeyTag
 import net.primal.domain.nostr.parseEventTags
 import net.primal.domain.nostr.parseHashtagTags
 import net.primal.domain.nostr.parsePubkeyTags
+import net.primal.domain.nostr.removeTrailingEmptyStrings
 import net.primal.domain.nostr.parseReplaceableEventTags
 import net.primal.domain.posts.FeedRepository
 import net.primal.domain.publisher.PrimalPublishResult
@@ -96,7 +104,11 @@ class NotePublishHandler @Inject constructor(
         val iMetaTags = attachments.filter { it.isMediaAttachment }.map { it.asIMetaTag() }
 
         /* Relay Hints */
-        val allReferenceTags = (allMentionedEventTags + allPubkeyTags + replyEventTag + rootTag).filterNotNull().toSet()
+        // The notes this one embeds are also named in `q` tags (NIP-18), which is where modern clients look
+        // for who quotes whom; the NIP-10 `e` mention stays for the clients that still read that.
+        val quoteTags = allMentionedEventTags.mapNotNull { it.asQuoteTag() }
+        val allReferenceTags = (allMentionedEventTags + quoteTags + allPubkeyTags + replyEventTag + rootTag)
+            .filterNotNull().toSet()
         val relayHintsMap = withContext(dispatcherProvider.io()) {
             val tagNoteIds = allReferenceTags.map { it.get(index = 1).jsonPrimitive.content }
             val hints = eventRelayHintsRepository.findRelaysByIds(eventIds = tagNoteIds)
@@ -132,6 +144,21 @@ class NotePublishHandler @Inject constructor(
         replyToNoteNevent: Nevent? = null,
         customEmojis: Map<String, String> = emptyMap(),
     ): PrimalPublishResult {
+        val commentContext = findCommentContext(
+            rootArticleNaddr = rootArticleNaddr,
+            rootHighlightNevent = rootHighlightNevent,
+            replyToNoteNevent = replyToNoteNevent,
+        )
+        if (commentContext != null) {
+            return publishComment(
+                userId = userId,
+                content = content,
+                attachments = attachments,
+                context = commentContext,
+                customEmojis = customEmojis,
+            )
+        }
+
         val prepared = prepareNote(
             content = content,
             attachments = attachments,
@@ -154,6 +181,116 @@ class NotePublishHandler @Inject constructor(
                 outboxRelays = prepared.outboxRelays,
             )
         }
+    }
+
+    /**
+     * A NIP-22 comment (kind 1111), see [resolveCommentContext] for when a reply is one.
+     *
+     * The conversation's root and the comment's parent are named by [CommentContext], and nothing
+     * else says "reply": a comment carries no NIP-10 `e` markers, and a note or article it
+     * mentions is a `q` tag, because a second `e` would be read as another parent.
+     */
+    @Throws(NostrPublishException::class)
+    private suspend fun publishComment(
+        userId: String,
+        content: String,
+        attachments: List<NoteAttachment>,
+        context: CommentContext,
+        customEmojis: Map<String, String>,
+    ): PrimalPublishResult {
+        val withHints = context.withRelayHints()
+        val prepared = prepareComment(content = content, attachments = attachments, context = withHints)
+
+        return withContext(dispatcherProvider.io()) {
+            nostrPublisher.signPublishImportNostrEvent(
+                unsignedNostrEvent = NostrUnsignedEvent(
+                    pubKey = userId,
+                    kind = NostrEventKind.Comment.value,
+                    tags = (prepared.referenceTags + prepared.hashtagTags + prepared.iMetaTags).toList() +
+                        Nip30.emojiTagsForContent(content = prepared.refinedContent, available = customEmojis) +
+                        listOf(UserAgentProvider.CLIENT_NAME.asClientTag()),
+                    content = prepared.refinedContent,
+                ),
+                outboxRelays = prepared.outboxRelays,
+            )
+        }
+    }
+
+    private suspend fun findCommentContext(
+        rootArticleNaddr: Naddr?,
+        rootHighlightNevent: Nevent?,
+        replyToNoteNevent: Nevent?,
+    ): CommentContext? {
+        // A highlight's thread is a kind 1 conversation, and it stays one.
+        if (rootHighlightNevent != null) return null
+        val replyToPost = replyToNoteNevent?.let { feedRepository.findPostsById(postId = it.eventId) }
+        return resolveCommentContext(
+            replyToPost = replyToPost,
+            replyToRelayHint = replyToNoteNevent?.relays?.firstOrNull(),
+            article = rootArticleNaddr,
+            answersSomething = replyToNoteNevent != null,
+        )
+    }
+
+    /** Fills in where each event of the comment's scope can be found, so a reader can fetch it. */
+    private suspend fun CommentContext.withRelayHints(): CommentContext {
+        val unhinted = listOf(root, parent)
+            .filterIsInstance<CommentTarget.Event>()
+            .filter { it.relayHint.isNullOrEmpty() }
+            .map { it.eventId }
+            .distinct()
+        if (unhinted.isEmpty()) return this
+
+        val hints = withContext(dispatcherProvider.io()) {
+            eventRelayHintsRepository.findRelaysByIds(eventIds = unhinted)
+        }.associate { it.eventId to it.relays.firstOrNull() }
+
+        fun CommentTarget.hinted(): CommentTarget =
+            when {
+                this is CommentTarget.Event && relayHint.isNullOrEmpty() -> copy(relayHint = hints[eventId])
+                else -> this
+            }
+        return copy(root = root.hinted(), parent = parent.hinted())
+    }
+
+    private fun prepareComment(
+        content: String,
+        attachments: List<NoteAttachment>,
+        context: CommentContext,
+    ): PreparedNote {
+        val noteContent = content.ensureWhitespaceBeforeUserTag()
+        val scopeTags = buildCommentTags(root = context.root, parent = context.parent)
+
+        // The author of the root and of the parent are already named by the scope, as P and p.
+        val namedPubkeys = scopeTags.filter { it.isPubKeyTag() || it.isUppercasePubkeyTag() }
+            .mapNotNull { it.getTagValueOrNull() }
+            .toSet()
+        val mentionedPubkeyTags = noteContent.parsePubkeyTags(marker = "mention")
+            .filterNot { it.getTagValueOrNull() in namedPubkeys }
+        val mentionedEventTags = noteContent.parseEventTags(marker = "mention") +
+            noteContent.parseReplaceableEventTags(marker = "mention")
+        val quoteTags = mentionedEventTags.mapNotNull { it.asQuoteTag() }
+
+        return PreparedNote(
+            refinedContent = noteContent.appendAttachmentUrls(attachments),
+            referenceTags = scopeTags + quoteTags + mentionedPubkeyTags,
+            hashtagTags = noteContent.parseHashtagTags().toSet(),
+            iMetaTags = attachments.filter { it.isMediaAttachment }.map { it.asIMetaTag() },
+            outboxRelays = listOfNotNull(context.parent.relayHint?.takeIf { it.isNotEmpty() }),
+        )
+    }
+
+    /** `["e", id, relay, "mention", pubkey]` or `["a", address, relay, "mention"]` as the `q` tag NIP-22 wants. */
+    private fun JsonArray.asQuoteTag(): JsonArray? {
+        val target = getTagValueOrNull() ?: return null
+        val relay = getOrNull(RELAY_HINT_INDEX)?.jsonPrimitive?.content.orEmpty()
+        val author = if (isEventIdTag()) getOrNull(MENTION_AUTHOR_INDEX)?.jsonPrimitive?.content.orEmpty() else ""
+        return buildJsonArray {
+            add("q")
+            add(target)
+            add(relay)
+            add(author)
+        }.removeTrailingEmptyStrings()
     }
 
     @Throws(NostrPublishException::class)
@@ -363,6 +500,14 @@ class NotePublishHandler @Inject constructor(
         }
 
     private fun String.ensureWhitespaceBeforeUserTag(): String = this.replace(Regex("([^-\\s])(nostr:npub)"), "$1 $2")
+
+    private companion object {
+        /** In `["e", id, relay, "mention", pubkey]` the relay hint is the third element... */
+        const val RELAY_HINT_INDEX = 2
+
+        /** ...and the author's pubkey the fifth. */
+        const val MENTION_AUTHOR_INDEX = 4
+    }
 
     private data class PreparedNote(
         val refinedContent: String,

@@ -79,6 +79,12 @@ fun JsonArray.isEventIdTag() = getOrNull(0)?.jsonPrimitive?.content == "e"
 /** NIP-22's root-scope counterpart to [isEventIdTag]: an uppercase `E` tag, root event id. */
 fun JsonArray.isUppercaseEventIdTag() = getOrNull(0)?.jsonPrimitive?.content == "E"
 
+/** NIP-22's root-scope counterpart to [isKindTag]: an uppercase `K` tag, the root's kind. */
+fun JsonArray.isUppercaseKindTag() = getOrNull(0)?.jsonPrimitive?.content == "K"
+
+/** NIP-22's root-scope counterpart to [isPubKeyTag]: an uppercase `P` tag, the root's author. */
+fun JsonArray.isUppercasePubkeyTag() = getOrNull(0)?.jsonPrimitive?.content == "P"
+
 fun JsonArray.isPubKeyTag() = getOrNull(0)?.jsonPrimitive?.content == "p"
 
 fun List<JsonArray>.pubkeyTagValues(): List<String> =

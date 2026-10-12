@@ -63,6 +63,18 @@ fun ThreadNoteStatsRow(
                 onClick = { onReactionTypeClick(ReactionType.REPOSTS) },
             )
         }
+
+        if (eventStats.quotesCount > 0) {
+            val hasPreviousStats = eventStats.repliesCount > 0 || eventStats.zapsCount > 0 ||
+                eventStats.likesCount > 0 || eventStats.repostsCount > 0
+            val startPadding = if (hasPreviousStats) 8.dp else 0.dp
+            SingleNoteStat(
+                modifier = Modifier.padding(start = startPadding),
+                count = eventStats.quotesCount,
+                text = stringResource(R.string.thread_stats_quotes),
+                onClick = { onReactionTypeClick(ReactionType.QUOTES) },
+            )
+        }
     }
 }
 

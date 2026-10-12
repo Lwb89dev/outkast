@@ -395,10 +395,17 @@ private fun FeedNoteCard(
                                 FeedPostAction.Like -> {
                                     if (!data.isPrivate) {
                                         eventPublisher(
-                                            UiEvent.PostLikeAction(
-                                                postId = data.postId,
-                                                postAuthorId = data.authorId,
-                                            ),
+                                            if (data.stats.userLiked) {
+                                                UiEvent.PostUnlikeAction(
+                                                    postId = data.postId,
+                                                    postAuthorId = data.authorId,
+                                                )
+                                            } else {
+                                                UiEvent.PostLikeAction(
+                                                    postId = data.postId,
+                                                    postAuthorId = data.authorId,
+                                                )
+                                            },
                                         )
                                     }
                                 }
@@ -415,7 +422,7 @@ private fun FeedNoteCard(
                         repostAnchor = repostAnchor,
                         onPostLongClickAction = { postAction ->
                             when (postAction) {
-                                FeedPostAction.Zap -> Unit
+                                FeedPostAction.Like -> if (!data.isPrivate) dialogsState.showReactionPicker = true
 
                                 else -> Unit
                             }

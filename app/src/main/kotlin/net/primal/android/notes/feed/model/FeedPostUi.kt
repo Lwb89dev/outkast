@@ -96,6 +96,7 @@ fun FeedPost.asFeedPostUi(): FeedPostUi {
                 userLiked = stats.userLiked,
                 repostsCount = stats.repostsCount,
                 userReposted = stats.userReposted,
+                quotesCount = stats.quotesCount,
             )
         } ?: EventStatsUi(),
         hashtags = this.hashtags,

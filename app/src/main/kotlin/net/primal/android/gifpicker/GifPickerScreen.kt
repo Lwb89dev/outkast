@@ -47,10 +47,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import net.primal.android.R
@@ -136,6 +141,7 @@ fun GifPickerInlineContent(
                 )
             }
         }
+        GifSourceAttribution(source = state.source)
         GifTopicChips(
             topics = state.topics,
             onTopicClick = { viewModel.setEvent(UiEvent.UpdateSearchQuery(it)) },
@@ -145,7 +151,6 @@ fun GifPickerInlineContent(
             eventPublisher = viewModel::setEvent,
             modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp, max = 290.dp),
         )
-        GifSourceAttribution(source = state.source)
     }
 }
 
@@ -198,6 +203,11 @@ fun GifPickerScreen(
                     }
                 }
 
+                GifSourceAttribution(
+                    modifier = Modifier.padding(top = 4.dp, bottom = 4.dp),
+                    source = state.source,
+                )
+
                 GifTopicChips(
                     modifier = Modifier.padding(horizontal = 8.dp),
                     topics = state.topics,
@@ -210,11 +220,6 @@ fun GifPickerScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f),
-                )
-
-                GifSourceAttribution(
-                    modifier = Modifier.padding(vertical = 8.dp),
-                    source = state.source,
                 )
             }
         },
@@ -254,22 +259,22 @@ private fun GifTopicChips(
     }
 }
 
-/** "Powered by nostr.build" — or by GIFverse while nostr.build is not answering us. */
+/**
+ * Says where the GIFs come from, at the top of the picker.
+ *
+ * nostr.build's terms require "GIFs from nostr.build", linked to https://nostr.build, wherever its
+ * GIFs are offered; the link opens in the system browser. The fallback provider keeps the plain
+ * "Powered by GIFverse" line it always had.
+ */
 @Composable
 private fun GifSourceAttribution(source: GifSource?, modifier: Modifier = Modifier) {
-    val sourceName = when (source) {
-        GifSource.NostrBuild -> stringResource(id = R.string.gif_picker_source_nostr_build)
-        GifSource.Gifverse -> stringResource(id = R.string.gif_picker_source_gifverse)
+    val text = when (source) {
+        GifSource.NostrBuild -> nostrBuildAttribution()
+        GifSource.Gifverse -> gifverseAttribution()
         null -> return
     }
     Text(
-        text = buildAnnotatedString {
-            append(stringResource(id = R.string.gif_picker_powered_by))
-            append(" ")
-            withStyle(SpanStyle(color = AppTheme.extraColorScheme.onSurfaceVariantAlt2)) {
-                append(sourceName)
-            }
-        },
+        text = text,
         modifier = modifier
             .fillMaxWidth()
             .padding(top = 4.dp),
@@ -278,6 +283,38 @@ private fun GifSourceAttribution(source: GifSource?, modifier: Modifier = Modifi
         color = AppTheme.extraColorScheme.onSurfaceVariantAlt3,
     )
 }
+
+@Composable
+private fun nostrBuildAttribution(): AnnotatedString {
+    val sentence = stringResource(id = R.string.gif_picker_attribution_nostr_build)
+    val name = stringResource(id = R.string.gif_picker_attribution_nostr_build_name)
+    val linkStyle = TextLinkStyles(
+        style = SpanStyle(
+            color = AppTheme.extraColorScheme.onSurfaceVariantAlt2,
+            textDecoration = TextDecoration.Underline,
+        ),
+    )
+    return buildAnnotatedString {
+        val nameStart = sentence.lastIndexOf(name)
+        append(sentence.substring(startIndex = 0, endIndex = nameStart))
+        withLink(LinkAnnotation.Url(url = NOSTR_BUILD_URL, styles = linkStyle)) { append(name) }
+        append(sentence.substring(startIndex = nameStart + name.length))
+    }
+}
+
+@Composable
+private fun gifverseAttribution(): AnnotatedString {
+    val poweredBy = stringResource(id = R.string.gif_picker_powered_by)
+    val name = stringResource(id = R.string.gif_picker_source_gifverse)
+    val nameColor = AppTheme.extraColorScheme.onSurfaceVariantAlt2
+    return buildAnnotatedString {
+        append(poweredBy)
+        append(" ")
+        withStyle(SpanStyle(color = nameColor)) { append(name) }
+    }
+}
+
+private const val NOSTR_BUILD_URL = "https://nostr.build"
 
 @Composable
 internal fun GifSearchBar(

@@ -1,14 +1,16 @@
 package net.primal.data.remote.api.gifs
 
 import io.ktor.client.HttpClient
+import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.get
+import io.ktor.client.request.header
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.isSuccess
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import net.primal.data.remote.api.gifs.model.GifCursor
 import net.primal.data.remote.api.gifs.model.GifResult
 import net.primal.data.remote.api.gifs.model.GifSearchPage
 import net.primal.data.remote.api.gifs.model.GifSource
@@ -18,12 +20,15 @@ import net.primal.data.remote.api.gifs.model.GifSource
  * 2026-09-26): over 110k GIFs taken from nostr.build's free public upload pool, so every result is
  * media that already lives on a Nostr media host and can be posted by URL as is.
  *
- * The API only answers registered clients — web clients by `Origin`, native apps by API key or
- * `User-Agent` (from its OpenAPI description at `/api/v1/openapi.json`). Every request here goes
- * through the app's shared Ktor client, which already identifies as `LibreNostr/<version>`, so
- * registering that User-Agent with nostr.build is all it takes to switch this on; until then the
- * API answers 403 `client_not_registered`, which surfaces as [GifProviderException.NotRegistered]
- * and makes [FallbackGifSearchApi] use GIFverse instead.
+ * The API only answers registered clients — web clients by `Origin`, native apps by API key
+ * (`Authorization: Bearer gnb_…`, created in the dashboard at gifs.nostr.build/developers once the
+ * client is registered) or by a `User-Agent` an admin has reviewed. LibreNostr has a key, supplied
+ * at build time; without one the request still goes out under the app's `LibreNostr/<version>`
+ * User-Agent, and an unregistered answer (403 `client_not_registered`) surfaces as
+ * [GifProviderException.NotRegistered], which makes [FallbackGifSearchApi] use GIFverse instead.
+ *
+ * Terms of use: the picker must say "GIFs from nostr.build" linked to https://nostr.build, and a
+ * GIF is only ever linked where nostr.build hosts it, never uploaded again.
  *
  * There is no trending endpoint. What it does have, and what zap.observer (the first client to use
  * it) builds its picker from, is plain search plus autocomplete; [trending] is a search for a
@@ -31,35 +36,42 @@ import net.primal.data.remote.api.gifs.model.GifSource
  */
 internal class NostrBuildGifApi(
     private val httpClient: HttpClient,
+    /**
+     * The key nostr.build issued for this app (`gnb_…`), sent as a bearer token. Native apps send no
+     * `Origin`, so the key is how the API knows who is asking. Null or blank means none was
+     * configured at build time, and the request goes out without it (identified by User-Agent only).
+     */
+    private val apiKey: String? = null,
 ) {
 
-    suspend fun search(query: String, offset: Int): GifSearchPage {
+    /**
+     * Everything one query has, in one request: the API's guide for grids asks for up to 200 GIFs at
+     * once and not to page, since every extra request spends from a per-minute budget shared with
+     * every other search and suggestion.
+     */
+    suspend fun search(query: String): GifSearchPage {
         val response = httpClient.get("$BASE_URL/search") {
-            url.parameters.append("q", query.take(MAX_QUERY_LENGTH))
-            url.parameters.append("limit", PAGE_SIZE.toString())
-            url.parameters.append("offset", offset.toString())
+            authorize()
+            url.parameters.append("q", query.normalizedForSearch())
+            url.parameters.append("limit", RESULT_LIMIT.toString())
             // The default, but spelled out: adult GIFs stay out of a picker anyone can open.
             url.parameters.append("safe", "1")
         }
         val body = response.bodyOrThrow()
         val page = json.decodeFromString<SearchResponse>(body)
-        val results = page.items.mapNotNull { it.toGifResult() }
-        // `count` is the length of this query's whole list (capped at 200 by the API), and an
-        // offset past 199 is rejected outright, so paging stops at whichever comes first.
-        val next = page.offset + page.items.size
-        val hasMore = page.items.isNotEmpty() && next < page.count && next <= MAX_OFFSET
         return GifSearchPage(
-            results = results,
+            results = page.items.mapNotNull { it.toGifResult() },
             source = GifSource.NostrBuild,
-            nextCursor = if (hasMore) GifCursor(source = GifSource.NostrBuild, offset = next) else null,
+            nextCursor = null,
         )
     }
 
-    suspend fun trending(offset: Int): GifSearchPage = search(query = TRENDING_QUERY, offset = offset)
+    suspend fun trending(): GifSearchPage = search(query = TRENDING_QUERY)
 
     suspend fun suggest(query: String): List<String> {
         val response = httpClient.get("$BASE_URL/suggest") {
-            url.parameters.append("q", query.take(MAX_QUERY_LENGTH))
+            authorize()
+            url.parameters.append("q", query.normalizedForSearch())
             url.parameters.append("limit", SUGGESTION_LIMIT.toString())
             url.parameters.append("safe", "1")
         }
@@ -69,6 +81,10 @@ internal class NostrBuildGifApi(
             .distinct()
     }
 
+    private fun HttpRequestBuilder.authorize() {
+        apiKey?.takeIf { it.isNotBlank() }?.let { header(HttpHeaders.Authorization, "Bearer $it") }
+    }
+
     private suspend fun HttpResponse.bodyOrThrow(): String {
         val body = bodyAsText()
         if (status.isSuccess()) return body
@@ -76,9 +92,23 @@ internal class NostrBuildGifApi(
             status == HttpStatusCode.Forbidden && NOT_REGISTERED_CODE in body ->
                 GifProviderException.NotRegistered(provider = GifSource.NostrBuild)
             status == HttpStatusCode.TooManyRequests ->
-                GifProviderException.RateLimited(provider = GifSource.NostrBuild)
+                GifProviderException.RateLimited(
+                    provider = GifSource.NostrBuild,
+                    retryAfterSeconds = headers[HttpHeaders.RetryAfter]?.trim()?.toIntOrNull(),
+                )
             else -> GifProviderException.Unavailable(provider = GifSource.NostrBuild, status = status.value)
         }
+    }
+
+    /**
+     * How the API wants a query: trimmed, runs of spaces collapsed, lower case, and at most 500
+     * characters (longer is a 400), cut between code points so an emoji is never split in half.
+     */
+    private fun String.normalizedForSearch(): String {
+        val collapsed = trim().replace(WHITESPACE_RUN, " ").lowercase()
+        if (collapsed.length <= MAX_QUERY_LENGTH) return collapsed
+        val cut = if (collapsed[MAX_QUERY_LENGTH - 1].isHighSurrogate()) MAX_QUERY_LENGTH - 1 else MAX_QUERY_LENGTH
+        return collapsed.take(cut)
     }
 
     /**
@@ -149,9 +179,9 @@ internal class NostrBuildGifApi(
         const val BASE_URL = "https://gifs.nostr.build/api/v1"
         const val NOT_REGISTERED_CODE = "client_not_registered"
         const val TRENDING_QUERY = "gm"
-        const val PAGE_SIZE = 36
-        const val MAX_OFFSET = 199
+        const val RESULT_LIMIT = 200
         const val MAX_QUERY_LENGTH = 500
+        val WHITESPACE_RUN = Regex("\\s+")
         const val SUGGESTION_LIMIT = 8
 
         /** The two formats the index serves; anything else is skipped rather than guessed at. */

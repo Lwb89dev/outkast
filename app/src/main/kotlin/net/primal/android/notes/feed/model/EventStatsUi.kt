@@ -14,6 +14,7 @@ data class EventStatsUi(
     val userLiked: Boolean = false,
     val repostsCount: Long = 0,
     val userReposted: Boolean = false,
+    val quotesCount: Long = 0,
 ) {
     companion object {
         fun from(eventStats: NostrEventStats?, userStats: NostrEventUserStats?) =
@@ -27,6 +28,7 @@ data class EventStatsUi(
                 userLiked = userStats?.liked ?: false,
                 repostsCount = eventStats?.reposts ?: 0,
                 userReposted = userStats?.reposted ?: false,
+                quotesCount = eventStats?.mentions ?: 0,
             )
 
         fun from(stats: FeedPostStats?) =
@@ -40,6 +42,7 @@ data class EventStatsUi(
                 userLiked = stats?.userLiked == true,
                 repostsCount = stats?.repostsCount ?: 0,
                 userReposted = stats?.userReposted == true,
+                quotesCount = stats?.quotesCount ?: 0,
             )
     }
 }

@@ -383,6 +383,63 @@ class ReplyTreeTest {
         comment.threadRootId() shouldBe "30023:pubkey:d-tag"
     }
 
+    @Test
+    fun `article comments of both dialects come out as one tree under the article`() {
+        val address = "30023:alice:article"
+        val modern = commentOnArticle(id = "modern", address = address)
+        val legacy = legacyCommentOnArticle(id = "legacy", address = address)
+        val replyToModern = commentOn(id = "reply-modern", parent = "modern", root = address, rootIsATag = true)
+        val replyToLegacy = reply(id = "reply-legacy", to = "legacy")
+
+        val result = listOf(replyToLegacy, replyToModern, legacy, modern)
+            .asArticleCommentsFeedPostUi(articleATag = address, articleAuthorId = "alice")
+
+        result.associate { it.postId to it.replyLevel } shouldBe mapOf(
+            "modern" to 1,
+            "legacy" to 1,
+            "reply-modern" to 2,
+            "reply-legacy" to 2,
+        )
+        // Every reply is shown right after the comment it answers.
+        val order = result.map { it.postId }
+        order.indexOf("reply-modern") shouldBe order.indexOf("modern") + 1
+        order.indexOf("reply-legacy") shouldBe order.indexOf("legacy") + 1
+    }
+
+    /** A top-level NIP-22 comment on an article: root and parent are both the article's address. */
+    private fun commentOnArticle(id: String, address: String) =
+        FeedPost(
+            eventId = id,
+            author = FeedPostAuthor(authorId = "author-$id", handle = "author-$id", displayName = "author-$id"),
+            kind = 1111,
+            content = "",
+            tags = listOf(uppercaseATag(address), lowercaseATag(address)),
+            timestamp = Instant.fromEpochSeconds(1),
+            rawNostrEvent = "",
+        )
+
+    /** The kind 1 shape older clients write: the article's address as the `root` `a` tag. */
+    private fun legacyCommentOnArticle(id: String, address: String) =
+        FeedPost(
+            eventId = id,
+            author = FeedPostAuthor(authorId = "author-$id", handle = "author-$id", displayName = "author-$id"),
+            kind = 1,
+            content = "",
+            tags = listOf(lowercaseATag(address, marker = "root")),
+            timestamp = Instant.fromEpochSeconds(1),
+            rawNostrEvent = "",
+        )
+
+    private fun lowercaseATag(coordinate: String, marker: String? = null): JsonArray =
+        buildJsonArray {
+            add(JsonPrimitive("a"))
+            add(JsonPrimitive(coordinate))
+            if (marker != null) {
+                add(JsonPrimitive(""))
+                add(JsonPrimitive(marker))
+            }
+        }
+
     /** A NIP-22 (kind 1111) comment: lowercase e = parent item, uppercase E = root scope. */
     private fun commentOn(id: String, parent: String, root: String, rootIsATag: Boolean = false) =
         FeedPost(

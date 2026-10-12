@@ -16,7 +16,14 @@ import net.primal.domain.nostr.findFirstIdentifier
 import net.primal.domain.nostr.relay.RelayEventQuerier
 import net.primal.domain.nostr.relay.RelayFilter
 
-/** Fetches a long-form event and its NIP-22 replies without the Primal cache API. */
+/**
+ * Fetches a long-form event and its comments without the Primal cache API.
+ *
+ * Comments exist in both dialects. NIP-22 (kind 1111) is the proper one: every comment of the tree,
+ * however deep, carries the article's address in an uppercase `A`. Kind 1 replies tagging the
+ * article's address or event id are what several older clients still publish, and stay in the
+ * list.
+ */
 internal class RelayArticleDetailsFetcher(private val querier: RelayEventQuerier) {
 
     suspend fun fetch(articleId: String, articleAuthorId: String, commentLimit: Int): ArticleResponse {
@@ -26,7 +33,10 @@ internal class RelayArticleDetailsFetcher(private val querier: RelayEventQuerier
                 RelayFilter(
                     kinds = listOf(NostrEventKind.LongFormContent.value),
                     authors = listOf(articleAuthorId),
-                    addressTags = listOf(address),
+                    // `#d`, not `#a`: an article is found by its identifier. A relay matches `#a`
+                    // against events that refer to an address, and the article does not refer to itself,
+                    // so asking for it that way came back empty and took the comments down with it.
+                    identifierTags = listOf(articleId),
                     limit = 1,
                 ),
             )
@@ -39,23 +49,7 @@ internal class RelayArticleDetailsFetcher(private val querier: RelayEventQuerier
             return emptyResponse()
         }
 
-        val comments = (runCatching {
-            querier.query(
-                RelayFilter(
-                    kinds = listOf(NostrEventKind.ShortTextNote.value),
-                    addressTags = listOf(address),
-                    limit = commentLimit,
-                ),
-            )
-        }.getOrDefault(emptyList()) + runCatching {
-            querier.query(
-                RelayFilter(
-                    kinds = listOf(NostrEventKind.ShortTextNote.value),
-                    eventTags = listOf(article.id),
-                    limit = commentLimit,
-                ),
-            )
-        }.getOrDefault(emptyList()))
+        val comments = queryComments(address = address, article = article, limit = commentLimit)
             .filter { it.id != article.id }
             .distinctBy { it.id }
             .sortedByDescending { it.createdAt }
@@ -99,6 +93,27 @@ internal class RelayArticleDetailsFetcher(private val querier: RelayEventQuerier
             primalPremiumInfo = null,
             blossomServers = emptyList(),
         )
+    }
+
+    /** The four ways a comment can point at the article, asked together rather than one after another. */
+    private suspend fun queryComments(
+        address: String,
+        article: NostrEvent,
+        limit: Int,
+    ): List<NostrEvent> {
+        val comment = listOf(NostrEventKind.Comment.value)
+        val note = listOf(NostrEventKind.ShortTextNote.value)
+        val filters = listOf(
+            RelayFilter(kinds = comment, rootAddressTags = listOf(address), limit = limit),
+            RelayFilter(kinds = comment, rootEventTags = listOf(article.id), limit = limit),
+            RelayFilter(kinds = note, addressTags = listOf(address), limit = limit),
+            RelayFilter(kinds = note, eventTags = listOf(article.id), limit = limit),
+        )
+        return coroutineScope {
+            filters.map { filter -> async { runCatching { querier.query(filter) }.getOrDefault(emptyList()) } }
+                .awaitAll()
+                .flatten()
+        }
     }
 
     private suspend fun queryByIds(ids: List<String>): List<NostrEvent> {

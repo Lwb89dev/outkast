@@ -27,6 +27,7 @@ import net.primal.android.gifpicker.domain.asGifItem
 import net.primal.core.utils.onFailure
 import net.primal.core.utils.onSuccess
 import net.primal.core.utils.runCatching
+import net.primal.data.remote.api.gifs.GifProviderException
 import net.primal.data.remote.api.gifs.GifSearchApi
 import net.primal.data.remote.api.gifs.model.GifCursor
 import net.primal.data.remote.api.gifs.model.GifSearchPage
@@ -48,8 +49,11 @@ class GifPickerViewModel @Inject constructor(
     private fun setEffect(effect: SideEffect) = viewModelScope.launch { _effect.send(effect) }
 
     companion object {
-        private val SEARCH_DEBOUNCE_DURATION = 0.42.seconds
+        // The API's guide asks for 250-350 ms between the last keystroke and the request: every search
+        // spends from a per-minute budget, and a longer wait only makes typing feel slow.
+        private val SEARCH_DEBOUNCE_DURATION = 0.3.seconds
         private const val MIN_SUGGESTION_QUERY_LENGTH = 2
+        private const val ASCII_LIMIT = 128
     }
 
     /** Where the visible listing continues, or null when it is complete. */
@@ -118,7 +122,11 @@ class GifPickerViewModel @Inject constructor(
             .onSuccess { page -> applyPage(query = query, page = page, append = false) }
             .onFailure { error ->
                 Napier.w(throwable = error) { "Failed to load GIFs for '$query'" }
-                setState { copy(searching = false, error = UiError.GenericError()) }
+                val uiError = when (error) {
+                    is GifProviderException.RateLimited -> UiError.GifSearchRateLimited
+                    else -> UiError.GenericError()
+                }
+                setState { copy(searching = false, error = uiError) }
             }
     }
 
@@ -140,11 +148,25 @@ class GifPickerViewModel @Inject constructor(
     }
 
     private suspend fun fetchPage(query: String, cursor: GifCursor?): GifSearchPage =
-        if (query.isBlank()) {
-            gifSearchApi.trending(cursor = cursor)
-        } else {
+        if (query.isWorthSearching()) {
             gifSearchApi.search(query = query.trim(), cursor = cursor)
+        } else {
+            gifSearchApi.trending(cursor = cursor)
         }
+
+    /**
+     * Two characters, or one that is not a plain Latin letter or digit (an emoji, an ideograph).
+     * A single "a" matches nearly everything, and costs a request from the per-minute budget for a
+     * list nobody wants; until the text is longer the picker keeps showing what it opens with.
+     */
+    private fun String.isWorthSearching(): Boolean {
+        val trimmed = trim()
+        return when (trimmed.codePointCount(0, trimmed.length)) {
+            0 -> false
+            1 -> !(trimmed[0].isLetterOrDigit() && trimmed[0].code < ASCII_LIMIT)
+            else -> true
+        }
+    }
 
     private fun applyPage(
         query: String,

@@ -6,6 +6,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import kotlin.time.Instant
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.emptyFlow
@@ -14,9 +15,13 @@ import kotlinx.coroutines.test.runTest
 import net.primal.android.navigation.EVENT_ID
 import net.primal.android.navigation.INITIAL_REACTION_TYPE
 import net.primal.core.testing.CoroutinesTestRule
+import net.primal.domain.common.exception.NetworkException
 import net.primal.domain.events.EventRepository
 import net.primal.domain.nostr.NostrEventKind
 import net.primal.domain.nostr.ReactionType
+import net.primal.domain.posts.FeedPost
+import net.primal.domain.posts.FeedPostAuthor
+import net.primal.domain.posts.FeedRepository
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -64,6 +69,7 @@ class ReactionsViewModelTest {
                 activeAccountStore = mockk(relaxed = true),
                 dispatcherProvider = coroutineTestRule.dispatcherProvider,
                 eventRepository = eventRepository,
+                feedRepository = mockk(relaxed = true),
             )
             runCurrent()
 
@@ -76,4 +82,59 @@ class ReactionsViewModelTest {
 
             viewModel.state.value.likesLoading shouldBe false
         }
+
+    @Test
+    fun quotes_areLoadedAsNotesAndTheirLoadingFlagClears() =
+        runTest {
+            val quote = FeedPost(
+                eventId = "q".repeat(64),
+                author = FeedPostAuthor(authorId = "b".repeat(64), handle = "bob", displayName = "Bob"),
+                kind = NostrEventKind.ShortTextNote.value,
+                content = "worth reading nostr:note1…",
+                tags = emptyList(),
+                timestamp = Instant.fromEpochSeconds(10),
+                rawNostrEvent = "{}",
+            )
+            val feedRepository = mockk<FeedRepository> {
+                coEvery { fetchQuotes(userId = any(), noteId = "a".repeat(64)) } returns listOf(quote)
+            }
+
+            val viewModel = ReactionsViewModel(
+                savedStateHandle = savedStateHandle(),
+                activeAccountStore = mockk(relaxed = true),
+                dispatcherProvider = coroutineTestRule.dispatcherProvider,
+                eventRepository = quietEventRepository(),
+                feedRepository = feedRepository,
+            )
+            runCurrent()
+
+            viewModel.state.value.quotes.map { it.postId } shouldBe listOf("q".repeat(64))
+            viewModel.state.value.quotesLoading shouldBe false
+        }
+
+    @Test
+    fun quotes_aFailedFetchEndsLoadingWithNothingToShow() =
+        runTest {
+            val feedRepository = mockk<FeedRepository> {
+                coEvery { fetchQuotes(userId = any(), noteId = any()) } throws NetworkException("offline")
+            }
+
+            val viewModel = ReactionsViewModel(
+                savedStateHandle = savedStateHandle(),
+                activeAccountStore = mockk(relaxed = true),
+                dispatcherProvider = coroutineTestRule.dispatcherProvider,
+                eventRepository = quietEventRepository(),
+                feedRepository = feedRepository,
+            )
+            runCurrent()
+
+            viewModel.state.value.quotes shouldBe emptyList()
+            viewModel.state.value.quotesLoading shouldBe false
+        }
+
+    private fun quietEventRepository() = mockk<EventRepository> {
+        every { pagedEventZaps(userId = any(), eventId = any(), articleATag = any(), zapKind = any()) } returns
+            emptyFlow()
+        coEvery { fetchEventActions(eventId = any(), kind = any()) } returns emptyList()
+    }
 }

@@ -17,12 +17,16 @@ import net.primal.core.utils.coroutines.DispatcherProvider
 import okio.BufferedSource
 import okio.use
 
-private const val DEFAULT_BUFFER_SIZE = 8 * 1024
+// Each chunk is also a progress report that redraws the attachment, and a phone video is tens or hundreds
+// of megabytes: eight kilobytes at a time was tens of thousands of redraws for one upload.
+private const val UPLOAD_CHUNK_SIZE = 64 * 1024
 
 internal class BlossomApiImpl(
     private val baseBlossomUrl: String,
     private val dispatcherProvider: DispatcherProvider,
 ) : BlossomApi {
+
+    override val serverUrl: String get() = baseBlossomUrl
 
     private val httpClient by lazy { createBlossomHttpClient() }
 
@@ -113,7 +117,10 @@ internal class BlossomApiImpl(
         if (!response.status.isSuccess()) {
             val reason = response.headers["X-Reason"] ?: "Unknown"
             Napier.w { "$errorPrefix failed (${response.status.value}) at $baseBlossomUrl/$endpoint: $reason" }
-            throw UploadRequirementException(message = "$reason ($errorPrefix)")
+            throw UploadRequirementException(
+                message = "$reason (${response.status.value})",
+                statusCode = response.status.value,
+            )
         }
     }
 
@@ -150,7 +157,7 @@ internal class BlossomApiImpl(
                                 get() = ContentType.parse(contentType)
 
                             override suspend fun writeTo(channel: ByteWriteChannel) {
-                                val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+                                val buffer = ByteArray(UPLOAD_CHUNK_SIZE)
                                 while (!source.exhausted()) {
                                     val read = source.read(buffer)
                                     if (read == -1) break
@@ -169,7 +176,10 @@ internal class BlossomApiImpl(
         if (!response.status.isSuccess()) {
             val reason = response.headers["X-Reason"] ?: "Unknown"
             Napier.w { "$errorPrefix failed (${response.status.value}) at $baseBlossomUrl/$endpoint: $reason" }
-            throw BlossomUploadException(message = "$reason ($errorPrefix)")
+            throw BlossomUploadException(
+                message = "$reason (${response.status.value})",
+                statusCode = response.status.value,
+            )
         }
 
         val descriptor = response.body<BlobDescriptor>()

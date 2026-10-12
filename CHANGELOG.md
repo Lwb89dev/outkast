@@ -7,6 +7,60 @@ LibreNostr is a fork of [Primal](https://github.com/PrimalHQ/primal-android-app)
 (MIT, Copyright (c) 2023 PRIMAL SYSTEMS INC.); this log covers changes made in
 the LibreNostr fork on top of the imported `3.5.25` baseline.
 
+## [1.1.3] - 2026-10-12
+
+### Added
+
+- **Quotes: a counter and a list.** A note's stats line now shows how many notes quote it, and tapping
+  it opens a new Quotes tab next to Zaps, Likes and Reposts. The tab lists the quoting notes
+  themselves, as full cards, and a tap on one opens that note's thread. Quotes are found the two
+  ways clients write them (a `q` tag, or an `e` mention with the note's link in the text), and a
+  reply that happens to embed the note it answers is still counted as a reply. Notes you quote now
+  carry a `q` tag as well, which is what other clients look for.
+- **React with any emoji.** A long press on the heart opens a picker with six common reactions and
+  the whole emoji list. A reaction on a note you already reacted to replaces the old one. The Likes
+  list shows each person's emoji instead of a heart where they sent one.
+- **Comments the NIP-22 way (kind 1111).** Comments on an article, and replies to those comments, are
+  now published as kind 1111 with the article as the root and the comment as the parent, and read
+  back as a tree: replies under an article are drawn nested, the way thread replies are. Replies to
+  ordinary notes stay NIP-10 kind 1, as the NIP says. Comments of both kinds, including the kind 1111
+  ones other clients write under plain notes, appear in threads and in notifications.
+
+### Changed
+
+- **A tap on a filled heart takes the reaction back.** It used to do nothing, so a mistaken reaction
+  could not be undone. The reaction is withdrawn with a deletion request and the heart empties at
+  once; if the request cannot be published, the heart is filled again.
+- **GIF search uses LibreNostr's nostr.build access.** Results come from nostr.build with the
+  app's registered key instead of falling back to GIFverse, in one request of up to 200 GIFs (no more
+  paging), searched the way the service asks (trimmed, lower case, no single letters). The picker says
+  "GIFs from nostr.build" with a link to the site, as the service's terms require. When the service
+  limits the app, the picker says so and stops asking until the limit lifts instead of switching
+  provider. Release builds get the key from a repository secret and fail loudly without it.
+- **Upload errors say what the servers answered.** "Unable to upload file" now carries each server's
+  own words (for instance "Access denied (403)" or "File size exceeds the maximum allowed size of
+  20 MiB"), so a refusal is no longer indistinguishable from a bad connection.
+
+### Fixed
+
+- **Uploads failed over Tor.** blossom.band and blossom.nostr.build refuse uploads that arrive
+  through a Tor exit, and cdn.satellite.earth wants an upload permission nobody has by default, so with
+  the default servers every upload failed. While every connection goes through Tor, servers that accept
+  anonymous uploads (cdn.nostrcheck.me, cdn.hzrd149.com) now come right after your own.
+- **Videos could not be uploaded.** The default server takes at most 20 MiB and a phone video is
+  usually far larger, so every default server refused it. Large files are now offered to each server
+  first and skipped by the ones that say no, without sending the file, and two more servers that take
+  large files are tried when none of the configured ones will. Progress is also reported in larger
+  steps, which spared a long upload tens of thousands of redraws.
+- **The media tab of a profile never loaded.** It asked a centralized service that this build does not
+  have. It now reads the author's notes from the relays and shows the ones with a picture or a video.
+- **Article comments never loaded.** The article itself was looked up with a filter that relays do not
+  match, so the page found no article and, with it, no comments.
+- **A like that could not be published stayed counted.** The failed reaction left the counter raised
+  and the heart filled until the next refresh. The same went for reposts and zaps.
+- **Files mirrored onto the server that already had them.** When the first server refused an upload
+  and a later one took it, the mirroring still included the one that took it.
+
 ## [1.1.2] - 2026-10-08
 
 ### Fixed

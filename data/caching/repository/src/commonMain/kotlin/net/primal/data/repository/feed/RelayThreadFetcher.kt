@@ -15,8 +15,12 @@ import net.primal.domain.common.PrimalEvent
 import net.primal.domain.nostr.NostrEvent
 import net.primal.domain.nostr.NostrEventKind
 import net.primal.domain.nostr.eventIdTagValues
+import net.primal.domain.nostr.findCommentParentEventId
+import net.primal.domain.nostr.findCommentRootAddress
+import net.primal.domain.nostr.findCommentRootEventId
 import net.primal.domain.nostr.findReplyTargetId
 import net.primal.domain.nostr.findRootEventId
+import net.primal.domain.nostr.isComment
 import net.primal.domain.nostr.pubkeyTagValues
 import net.primal.domain.nostr.relay.RelayEventQuerier
 import net.primal.domain.nostr.relay.RelayFilter
@@ -37,6 +41,12 @@ import net.primal.domain.nostr.relay.RelayFilter
  *     looking at, so it is never queued behind anything else;
  *  2. the ancestors named by its tags, and the replies of the whole thread;
  *  3. profile metadata for everyone involved.
+ *
+ * Replies come in two dialects. A kind 1 reply (NIP-10) carries the root's id in an `e` tag, so one
+ * query on the root returns every reply however deep. A kind 1111 comment (NIP-22) names only its
+ * direct parent in `e`, and carries the root in an uppercase `E` (or `A` for an addressable root such
+ * as an article) instead; the comments of the whole tree are one query on that tag, asked alongside
+ * the NIP-10 ones.
  */
 
 /** The flat event set [RelayThreadFetcher.fetchEvents] resolves for one thread. */
@@ -80,11 +90,10 @@ internal class RelayThreadFetcher(
                 opened?.tags?.findRootEventId()?.let { add(it) }
                 opened?.tags?.findReplyTargetId()?.let { add(it) }
                 opened?.tags?.eventIdTagValues()?.let { addAll(it) }
+                opened?.tags?.findCommentRootEventId()?.let { add(it) }
             }.filterNot { it == noteId }
 
-            val rootId = opened?.tags?.findRootEventId()
-                ?: opened?.tags?.findReplyTargetId()
-                ?: noteId
+            val rootId = opened.threadRootId() ?: noteId
 
             // Round two starts the moment `opened` is known, running alongside round one's still
             // in-flight directRepliesAsync rather than behind it.
@@ -92,12 +101,21 @@ internal class RelayThreadFetcher(
             val threadAsync = async {
                 if (rootId == noteId) emptyList() else queryEventTags(listOf(rootId), kinds, limit)
             }
+            val commentsAsync = async {
+                queryComments(
+                    rootEventId = opened?.tags?.findCommentRootEventId() ?: noteId,
+                    rootAddress = opened?.tags?.findCommentRootAddress(),
+                    kinds = kinds,
+                    limit = limit,
+                )
+            }
 
             val directReplies = directRepliesAsync.await()
             val ancestors = ancestorsAsync.await()
             val threadReplies = threadAsync.await()
+            val comments = commentsAsync.await()
 
-            val known = (listOfNotNull(opened) + ancestors + directReplies + threadReplies)
+            val known = (listOfNotNull(opened) + ancestors + directReplies + threadReplies + comments)
                 .distinctBy { it.id }
 
             // A single top-up pass for parents that were referenced but never arrived. Bounded, and
@@ -176,9 +194,54 @@ internal class RelayThreadFetcher(
         }
     }
 
+    /**
+     * The root of the conversation [this] belongs to: the NIP-22 root scope for a comment, the
+     * NIP-10 root (or, failing that, the note it replies to) for anything else. Null for a note that
+     * names neither, which is then its own root.
+     */
+    private fun NostrEvent?.threadRootId(): String? =
+        when {
+            this == null -> null
+            isComment() -> tags.findCommentRootEventId() ?: tags.findCommentParentEventId()
+            else -> tags.findRootEventId() ?: tags.findReplyTargetId()
+        }
+
+    /**
+     * Every NIP-22 comment under a root, at any depth: all of them carry the root in `E`, or in `A`
+     * when the root is an addressable event. Skipped when the caller did not ask for comments.
+     */
+    private suspend fun queryComments(
+        rootEventId: String,
+        rootAddress: String?,
+        kinds: List<Int>,
+        limit: Int,
+    ): List<NostrEvent> {
+        if (NostrEventKind.Comment.value !in kinds) return emptyList()
+        val commentKind = listOf(NostrEventKind.Comment.value)
+        return coroutineScope {
+            val byEvent = async {
+                runCatching {
+                    querier.query(RelayFilter(kinds = commentKind, rootEventTags = listOf(rootEventId), limit = limit))
+                }.getOrDefault(emptyList())
+            }
+            val byAddress = async {
+                if (rootAddress == null) {
+                    emptyList()
+                } else {
+                    runCatching {
+                        querier.query(
+                            RelayFilter(kinds = commentKind, rootAddressTags = listOf(rootAddress), limit = limit),
+                        )
+                    }.getOrDefault(emptyList())
+                }
+            }
+            byEvent.await() + byAddress.await()
+        }
+    }
+
     private fun missingParentIds(events: List<NostrEvent>): List<String> {
         val known = events.map { it.id }.toSet()
-        return events.flatMap { it.tags.eventIdTagValues() }
+        return events.flatMap { it.tags.eventIdTagValues() + listOfNotNull(it.tags.findCommentRootEventId()) }
             .filter { it !in known }
             .distinct()
             .take(MISSING_CAP)
@@ -232,7 +295,7 @@ internal fun List<NostrEvent>.toThreadFeedResponse(
     return FeedResponse(
         paging = null,
         metadata = metadata,
-        notes = filter { it.kind == NostrEventKind.ShortTextNote.value },
+        notes = filter { it.kind == NostrEventKind.ShortTextNote.value || it.isComment() },
         articles = emptyList(),
         reposts = filter { it.kind == NostrEventKind.ShortTextNoteRepost.value },
         zaps = filter { it.kind == NostrEventKind.Zap.value },

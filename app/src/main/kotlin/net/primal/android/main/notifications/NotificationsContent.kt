@@ -191,7 +191,11 @@ private fun NotificationPage(
         onMarkAllRead = onMarkAllRead,
         onPostLikeClick = {
             noteEventPublisher(
-                NoteContract.UiEvent.PostLikeAction(postId = it.postId, postAuthorId = it.authorId),
+                if (it.stats.userLiked) {
+                    NoteContract.UiEvent.PostUnlikeAction(postId = it.postId, postAuthorId = it.authorId)
+                } else {
+                    NoteContract.UiEvent.PostLikeAction(postId = it.postId, postAuthorId = it.authorId)
+                },
             )
         },
         onRepostClick = {

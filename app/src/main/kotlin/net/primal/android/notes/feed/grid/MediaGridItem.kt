@@ -34,8 +34,11 @@ fun MediaGridItem(
     item: FeedPostUi,
     maxWidthPx: Int,
 ) {
-    val firstAttachment = item.uris.firstOrNull()
-    val hasMultipleMediaAttachments = item.uris.filter { it.isMediaUri() }.size > 1
+    // A note's first link is not always its picture (a web page can be linked before the photo), and
+    // a relay-served media grid keeps any note that has a picture or a video somewhere in it.
+    val mediaAttachments = item.uris.filter { it.isMediaUri() }
+    val firstAttachment = mediaAttachments.firstOrNull() ?: item.uris.firstOrNull()
+    val hasMultipleMediaAttachments = mediaAttachments.size > 1
     val cdnResource = firstAttachment?.variants.findNearestOrNull(maxWidthPx = maxWidthPx)
     val animationRawResId = when (LocalPrimalTheme.current.isDarkTheme) {
         true -> R.raw.primal_loader_generic_square_dark

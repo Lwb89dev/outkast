@@ -17,6 +17,8 @@ import java.util.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.add
+import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.jsonPrimitive
 import net.primal.android.editor.domain.NoteAttachment
 import net.primal.android.editor.domain.PollOption
@@ -40,9 +42,11 @@ import net.primal.domain.nostr.asEventIdTag
 import net.primal.domain.nostr.asEventTag
 import net.primal.domain.nostr.asPubkeyTag
 import net.primal.domain.nostr.asReplaceableEventTag
+import net.primal.domain.nostr.buildCommentTags
 import net.primal.domain.nostr.isATag
 import net.primal.domain.nostr.isEventIdTag
 import net.primal.domain.nostr.isPubKeyTag
+import net.primal.domain.nostr.removeTrailingEmptyStrings
 import net.primal.domain.posts.FeedPost
 import net.primal.domain.posts.FeedPostAuthor
 import net.primal.domain.posts.FeedRepository
@@ -84,15 +88,25 @@ class NotePublishHandlerTest {
         authorId: String = UUID.randomUUID().toString(),
         tags: List<JsonArray> = emptyList(),
         content: String = "",
+        kind: Int = NostrEventKind.ShortTextNote.value,
     ) = FeedPost(
         eventId = postId,
         author = FeedPostAuthor(authorId = authorId, handle = "", displayName = ""),
-        kind = NostrEventKind.ShortTextNote.value,
+        kind = kind,
         content = content,
         tags = tags,
         timestamp = kotlinx.datetime.Instant.fromEpochSeconds(0),
         rawNostrEvent = "",
     )
+
+    /** `["q", target, relay, author]` as NIP-18 writes a quote, trailing blanks dropped. */
+    private fun quoteTag(target: String, relay: String = "", author: String = ""): JsonArray =
+        buildJsonArray {
+            add("q")
+            add(target)
+            add(relay)
+            add(author)
+        }.removeTrailingEmptyStrings()
 
     private fun buildHighlightNevent() =
         Nevent(
@@ -598,6 +612,8 @@ class NotePublishHandlerTest {
             val expectedContent = "some simple content $quotedNoteUri $quotedNoteUri"
             val expectedTags = listOf<JsonArray>(
                 quotedNoteId.asEventIdTag(marker = "mention"),
+                // Modern clients look for who quotes whom in the `q` tag, so the quote carries one too.
+                quoteTag(quotedNoteId),
                 UserAgentProvider.CLIENT_NAME.asClientTag(),
             )
 
@@ -713,6 +729,7 @@ class NotePublishHandlerTest {
             val expectedContent = "some simple content ${naddr.toNaddrString()} ${naddr.toNaddrString()}"
             val expectedTags = listOf<JsonArray>(
                 naddr.asReplaceableEventTag(marker = "mention"),
+                quoteTag(naddr.asATagValue()),
                 UserAgentProvider.CLIENT_NAME.asClientTag(),
             )
 
@@ -776,33 +793,146 @@ class NotePublishHandlerTest {
         }
 
     @Test
-    fun publishShortTextNote_createsRootTagForArticle_evenIfRootNoteIsPresent() =
+    fun publishShortTextNote_commentOnArticle_isANip22CommentRootedAtTheArticle() =
         runTest {
             val nostrPublisher = mockk<NostrPublisher>(relaxed = true)
             val notePublishHandler = buildNotePublishHandler(nostrPublisher = nostrPublisher)
-
             val articleNaddr = buildArticleNaddr()
-            val noteNevent = buildNoteNevent()
 
             notePublishHandler.publishShortTextNote(
                 userId = expectedUserId,
-                content = "I'm replying to a comment on article.",
-                rootHighlightNevent = null,
+                content = "A comment on the article itself.",
                 rootArticleNaddr = articleNaddr,
-                rootNoteNevent = noteNevent,
+                // The editor hands over the article's own event as the root note too; a comment
+                // on an article is rooted at the article's address, not at that event.
+                rootNoteNevent = buildNoteNevent(),
             )
 
             coVerify {
                 nostrPublisher.signPublishImportNostrEvent(
                     withArg { event ->
-                        val replaceableEventsTags = event.tags.filter { tag -> tag.isATag() }
-                        val rootTagCount = replaceableEventsTags.count { tag -> tag[3].jsonPrimitive.content == "root" }
-                        rootTagCount shouldBe 1
+                        event.kind shouldBe NostrEventKind.Comment.value
+                        val address = articleNaddr.asATagValue()
+                        event.tags.first { it[0].jsonPrimitive.content == "A" }[1].jsonPrimitive.content shouldBe address
+                        event.tags.first { it[0].jsonPrimitive.content == "a" }[1].jsonPrimitive.content shouldBe address
+                        event.tags.first { it[0].jsonPrimitive.content == "K" }[1].jsonPrimitive.content shouldBe "30023"
+                        event.tags.first { it[0].jsonPrimitive.content == "k" }[1].jsonPrimitive.content shouldBe "30023"
+                        event.tags.first { it[0].jsonPrimitive.content == "P" }[1].jsonPrimitive.content shouldBe
+                            articleNaddr.userId
+                        event.tags.first { it[0].jsonPrimitive.content == "p" }[1].jsonPrimitive.content shouldBe
+                            articleNaddr.userId
+                        // No NIP-10 vocabulary on a comment: no e tag, and no root/reply markers.
+                        event.tags.none { it.isEventIdTag() } shouldBe true
+                        event.tags.none { tag -> tag.any { it.jsonPrimitive.content == "root" } } shouldBe true
+                    },
+                    any(),
+                )
+            }
+        }
 
-                        val rootTag = replaceableEventsTags.find { tag -> tag[3].jsonPrimitive.content == "root" }
-                        rootTag.shouldNotBeNull()
-                        rootTag[0].jsonPrimitive.content shouldBe "a"
-                        rootTag[1].jsonPrimitive.content shouldBe articleNaddr.asATagValue()
+    @Test
+    fun publishShortTextNote_replyToAComment_keepsTheArticleAsRootAndNamesTheCommentAsParent() =
+        runTest {
+            val nostrPublisher = mockk<NostrPublisher>(relaxed = true)
+            val articleNaddr = buildArticleNaddr()
+            val commentId = "c".repeat(64)
+            val commenterId = "d".repeat(64)
+            val comment = buildFeedPost(
+                postId = commentId,
+                authorId = commenterId,
+                kind = NostrEventKind.Comment.value,
+                tags = buildCommentTags(
+                    root = articleNaddr.asTopLevelCommentContext().root,
+                    parent = articleNaddr.asTopLevelCommentContext().parent,
+                ),
+            )
+            val notePublishHandler = buildNotePublishHandler(
+                nostrPublisher = nostrPublisher,
+                feedRepository = mockk { coEvery { findPostsById(commentId) } returns comment },
+            )
+
+            notePublishHandler.publishShortTextNote(
+                userId = expectedUserId,
+                content = "Answering a comment.",
+                rootArticleNaddr = articleNaddr,
+                rootNoteNevent = buildNoteNevent(commentId),
+                replyToNoteNevent = buildNoteNevent(commentId),
+            )
+
+            coVerify {
+                nostrPublisher.signPublishImportNostrEvent(
+                    withArg { event ->
+                        event.kind shouldBe NostrEventKind.Comment.value
+                        event.tags.first { it[0].jsonPrimitive.content == "A" }[1].jsonPrimitive.content shouldBe
+                            articleNaddr.asATagValue()
+                        val parent = event.tags.first { it[0].jsonPrimitive.content == "e" }
+                        parent[1].jsonPrimitive.content shouldBe commentId
+                        event.tags.first { it[0].jsonPrimitive.content == "k" }[1].jsonPrimitive.content shouldBe "1111"
+                        event.tags.first { it[0].jsonPrimitive.content == "p" }[1].jsonPrimitive.content shouldBe commenterId
+                        // The article is not the parent any more, so there is no lowercase `a`.
+                        event.tags.none { it[0].jsonPrimitive.content == "a" } shouldBe true
+                    },
+                    any(),
+                )
+            }
+        }
+
+    @Test
+    fun publishShortTextNote_replyToALegacyKind1CommentOnAnArticle_staysAKind1Reply() =
+        runTest {
+            val nostrPublisher = mockk<NostrPublisher>(relaxed = true)
+            val articleNaddr = buildArticleNaddr()
+            val legacyComment = buildFeedPost(postId = "legacyComment", authorId = "legacyAuthor")
+            val notePublishHandler = buildNotePublishHandler(
+                nostrPublisher = nostrPublisher,
+                feedRepository = mockk { coEvery { findPostsById("legacyComment") } returns legacyComment },
+            )
+
+            notePublishHandler.publishShortTextNote(
+                userId = expectedUserId,
+                content = "Answering an older client's comment.",
+                rootArticleNaddr = articleNaddr,
+                rootNoteNevent = buildNoteNevent("legacyComment"),
+                replyToNoteNevent = buildNoteNevent("legacyComment"),
+            )
+
+            coVerify {
+                nostrPublisher.signPublishImportNostrEvent(
+                    withArg { event ->
+                        // NIP-22 is not for answering kind 1 notes: a chain begun in NIP-10 continues in it.
+                        event.kind shouldBe NostrEventKind.ShortTextNote.value
+                        event.tags.any { it.isATag() && it.size > 3 && it[3].jsonPrimitive.content == "root" } shouldBe
+                            true
+                    },
+                    any(),
+                )
+            }
+        }
+
+    @Test
+    fun publishShortTextNote_aNoteMentionedInAComment_isAQuoteTagNotASecondParent() =
+        runTest {
+            val nostrPublisher = mockk<NostrPublisher>(relaxed = true)
+            val notePublishHandler = buildNotePublishHandler(nostrPublisher = nostrPublisher)
+            val mentioned = Nevent(
+                kind = NostrEventKind.ShortTextNote.value,
+                userId = "cd".repeat(32),
+                eventId = "ab".repeat(32),
+            )
+
+            notePublishHandler.publishShortTextNote(
+                userId = expectedUserId,
+                content = "See also nostr:${mentioned.toNeventString()}",
+                rootArticleNaddr = buildArticleNaddr(),
+            )
+
+            coVerify {
+                nostrPublisher.signPublishImportNostrEvent(
+                    withArg { event ->
+                        event.kind shouldBe NostrEventKind.Comment.value
+                        event.tags.none { it.isEventIdTag() } shouldBe true
+                        event.tags.first { it[0].jsonPrimitive.content == "q" }[1].jsonPrimitive.content shouldBe
+                            mentioned.eventId
                     },
                     any(),
                 )
@@ -1288,6 +1418,8 @@ class NotePublishHandlerTest {
             val expectedTags = listOf<JsonArray>(
                 highlightNevent.asEventTag(marker = "mention"),
                 naddr.asReplaceableEventTag(marker = "mention"),
+                quoteTag(highlightNevent.eventId, author = highlightNevent.userId.orEmpty()),
+                quoteTag(naddr.asATagValue()),
                 UserAgentProvider.CLIENT_NAME.asClientTag(),
             )
 

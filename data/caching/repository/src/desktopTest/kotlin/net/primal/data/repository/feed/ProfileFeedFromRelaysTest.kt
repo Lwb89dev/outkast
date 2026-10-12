@@ -82,12 +82,20 @@ class ProfileFeedFromRelaysTest {
     @Test
     fun `feeds with no relay equivalent are not claimed`() =
         runTest {
-            // Media thumbnails and discovery rank things a relay cannot rank. Claiming them would
-            // trade an error message for a silently wrong feed, which is worse.
-            val mediaSpec = """{"id":"feed","kind":"notes","notes":"user_media_thumbnails","pubkey":"$SOMEONE"}"""
+            // Trending and discovery rank things a relay cannot rank. Claiming them would trade an
+            // error message for a silently wrong feed, which is worse.
+            val trendingSpec = """{"id":"feed","kind":"notes","notes":"trending"}"""
 
             assertTrue(authoredNotesSpec(SOMEONE).isRelayServableNotesFeedSpec())
-            assertTrue(!mediaSpec.isRelayServableNotesFeedSpec())
+            assertTrue(!trendingSpec.isRelayServableNotesFeedSpec())
+        }
+
+    @Test
+    fun `a profile media feed is a relay feed, since it is that person's notes with a filter on top`() =
+        runTest {
+            val mediaSpec = """{"id":"feed","kind":"notes","notes":"user_media_thumbnails","pubkey":"$SOMEONE"}"""
+
+            assertTrue(mediaSpec.isRelayServableNotesFeedSpec())
         }
 
     // ------------------------------------------------------------------------------- harness

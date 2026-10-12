@@ -307,6 +307,9 @@ private fun MediaGalleryBottomBar(
                     noteEventPublisher = noteEventPublisher,
                 )
             },
+            onPostLongPressAction = { postAction ->
+                if (postAction == FeedPostAction.Like) dialogsState.showReactionPicker = true
+            },
         )
     }
 }
@@ -322,7 +325,11 @@ private fun handleGalleryPostAction(
         FeedPostAction.Reply -> noteCallbacks.onNoteReplyClick?.invoke(note.asNeventString())
         FeedPostAction.Zap -> dialogsState.showZapOptions = true
         FeedPostAction.Like -> noteEventPublisher(
-            NoteContract.UiEvent.PostLikeAction(postId = note.postId, postAuthorId = note.authorId),
+            if (note.stats.userLiked) {
+                NoteContract.UiEvent.PostUnlikeAction(postId = note.postId, postAuthorId = note.authorId)
+            } else {
+                NoteContract.UiEvent.PostLikeAction(postId = note.postId, postAuthorId = note.authorId)
+            },
         )
         FeedPostAction.Repost -> dialogsState.showRepostConfirmation = true
         FeedPostAction.Bookmark -> noteEventPublisher(NoteContract.UiEvent.BookmarkAction(noteId = note.postId))
@@ -335,6 +342,7 @@ private fun MediaGalleryActionsBar(
     containerColor: Color,
     repostAnchor: AnchorHandle,
     onPostAction: (FeedPostAction) -> Unit,
+    onPostLongPressAction: (FeedPostAction) -> Unit,
 ) {
     Box(
         modifier = Modifier
@@ -349,6 +357,7 @@ private fun MediaGalleryActionsBar(
             showBookmark = !note.isPrivate,
             isBookmarked = note.isBookmarked,
             onPostAction = onPostAction,
+            onPostLongPressAction = onPostLongPressAction,
             repostAnchor = repostAnchor,
             // The row's default tint is a muted theme gray meant for a normal surface — over a
             // photo or video it needs to read against arbitrary content instead, same treatment

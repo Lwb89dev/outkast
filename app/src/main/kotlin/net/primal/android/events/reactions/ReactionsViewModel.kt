@@ -20,19 +20,22 @@ import net.primal.android.events.ui.asEventZapUiModel
 import net.primal.android.navigation.articleATag
 import net.primal.android.navigation.eventIdOrThrow
 import net.primal.android.navigation.reactionTypeOrThrow
+import net.primal.android.notes.feed.model.asFeedPostUi
 import net.primal.android.user.accounts.active.ActiveAccountStore
 import net.primal.core.utils.coroutines.DispatcherProvider
 import net.primal.domain.common.exception.NetworkException
 import net.primal.domain.events.EventRepository
 import net.primal.domain.events.NostrEventAction
 import net.primal.domain.nostr.NostrEventKind
+import net.primal.domain.posts.FeedRepository
 
 @HiltViewModel
 class ReactionsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    activeAccountStore: ActiveAccountStore,
+    private val activeAccountStore: ActiveAccountStore,
     dispatcherProvider: DispatcherProvider,
     private val eventRepository: EventRepository,
+    private val feedRepository: FeedRepository,
 ) : ViewModel() {
 
     private val eventId = savedStateHandle.eventIdOrThrow
@@ -56,7 +59,21 @@ class ReactionsViewModel @Inject constructor(
     init {
         fetchLikes()
         fetchReposts()
+        fetchQuotes()
     }
+
+    private fun fetchQuotes() =
+        viewModelScope.launch {
+            try {
+                setState { copy(quotesLoading = true) }
+                val quotes = feedRepository.fetchQuotes(userId = activeAccountStore.activeUserId(), noteId = eventId)
+                setState { copy(quotes = quotes.map { it.asFeedPostUi() }) }
+            } catch (error: NetworkException) {
+                Napier.e(throwable = error) { "Failed to fetch quotes for eventId=$eventId" }
+            } finally {
+                setState { copy(quotesLoading = false) }
+            }
+        }
 
     private fun fetchLikes() =
         viewModelScope.launch {
