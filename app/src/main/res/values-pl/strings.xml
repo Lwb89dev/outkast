@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">LibreNostr</string>
+    <string name="app_name">OUTKAST</string>
     <string name="nsec_or_npub">nsec / npub</string>
     <string name="nsec">nsec</string>
     <string name="npub">npub</string>
@@ -36,7 +36,7 @@
     <string name="app_error_unable_to_update_follow_list">Nie można zaktualizować listy follow. Proszę spróbować jeszcze raz.</string>
     <string name="app_error_unable_to_set_nostr_address">Nie można ustawić adresu nostr. Proszę spróbować jeszcze raz.</string>
     <string name="app_error_unable_to_set_lightning_address">Nie można ustawić adresu pioruna. Proszę spróbować jeszcze raz.</string>
-    <string name="app_npub_login_error">LibreNostr jest w trybie tylko do odczytu, ponieważ jesteś zalogowany za pomocą klucza publicznego. Aby włączyć wszystkie opcje, zaloguj się prywatnym kluczem.</string>
+    <string name="app_npub_login_error">OUTKAST jest w trybie tylko do odczytu, ponieważ jesteś zalogowany za pomocą klucza publicznego. Aby włączyć wszystkie opcje, zaloguj się prywatnym kluczem.</string>
     <string name="app_error_restore_default_blossom_server">Nie można przywrócić domyślnego serwera kwiat. Proszę spróbować jeszcze raz.</string>
     <string name="app_error_unable_to_update_blossom_server_list">Nie można zaktualizować listy serwerów flowsom. Proszę spróbować jeszcze raz.</string>
     <string name="app_error_fetching_mute_list">Nie udało się załadować listy niemych. Proszę sprawdzić połączenie i spróbować ponownie.</string>
@@ -53,7 +53,7 @@
     <string name="welcome_sign_in_button_title">Zaloguj</string>
     <string name="welcome_create_account_button_title">Utwórz konto</string>
     <string name="welcome_tos_prefix">Poprzez postępowanie akceptujesz nasze</string>
-    <string name="onboarding_welcome_title">LibreNostr</string>
+    <string name="onboarding_welcome_title">OUTKAST</string>
     <string name="onboarding_welcome_description">Klient Nostr, który mówi do przekaźników bezpośrednio. Żadna firma nie siedzi w środku: Twoje notatki, wiadomości i następujące pochodzą prosto z wybranych przekaźników, Twój klucz nigdy nie opuszcza tego urządzenia, i nie ma konta do rejestracji.</string>
     <string name="login_security_notice">Amber jest zalecana do bezpieczniejszego zarządzania kluczami. Nie wpychaj swojego Nsec w aplikację, której nie znasz. Nie ufaj, weryfikuj: jeśli nie rozumiesz kodu, przed wprowadzeniem wrażliwych klawiszy należy dokonać przeglądu AI repozytorium.</string>
     <string name="legal_tos_hint_highlighted_word">Warunki świadczenia usług</string>
@@ -92,7 +92,7 @@
     <string name="login_bunker_url_hint">bunkier: / /…</string>
     <string name="login_bunker_button_connect">Połącz</string>
     <string name="login_enter_bunker_url">Wklej łańcuch łączący bunkier, który dał ci twój signer:</string>
-    <string name="login_amber_required">LibreNostr z Amber. Zainstaluj Amber.</string>
+    <string name="login_amber_required">OUTKAST z Amber. Zainstaluj Amber.</string>
     <string name="login_description">Wpisz swój klucz Nostr, aby się zalogować:</string>
     <string name="login_button_sign_in">Zaloguj się</string>
     <string name="login_button_paste_your_key">Wklej swój klucz</string>
@@ -106,7 +106,7 @@
     <string name="scan_code_apply_button">Zastosuj</string>
     <string name="scan_code_error_invalid_login_string">Nieprawidłowy łańcuch zdalnego logowania. Proszę spróbować jeszcze raz.</string>
     <string name="scan_code_redeem_button">Zmień kod</string>
-    <string name="scan_code_onboard_button">Na pokładzie LibreNostr</string>
+    <string name="scan_code_onboard_button">Na pokładzie OUTKAST</string>
     <string name="scan_code_use_keyboard_button">Użyj klawiatury zamiast</string>
     <string name="scan_code_enter_placeholder">Wprowadź kod…</string>
     <string name="scan_code_remote_login_manual_entry_placeholder">nostrconnect: / /</string>
@@ -114,7 +114,7 @@
     <string name="scan_code_loaded_with">Ten kod jest załadowany:</string>
     <string name="scan_code_get_zapping">Zap!</string>
     <string name="scan_code_sats">sat</string>
-    <string name="scan_code_primal_premium">LibreNostr Premium</string>
+    <string name="scan_code_primal_premium">Custom address</string>
     <plurals name="scan_code_premium_months">
         <item quantity="one">%1$s miesiąc</item>
         <item quantity="other">%1$s miesięcy</item>
@@ -133,8 +133,8 @@
     <string name="scan_code_scan_anything_title">Skanuj cokolwiek:</string>
     <string name="scan_code_scan_anything_subtitle">Kod zaproszenia, faktura płatnicza, ciąg logowania, link użytkownika, link treści, karta podarunkowa</string>
     <string name="scan_code_remote_login_camera_title">Zaloguj się do dowolnej aplikacji Nostr</string>
-    <string name="scan_code_remote_login_camera_subtitle">Użyj konta LibreNostr, aby zalogować się do dowolnej aplikacji \n Nostr, która obsługuje zdalne logowanie.</string>
-    <string name="scan_code_remote_login_manual_entry_subtitle">Użyj konta LibreNostr, aby zalogować się do dowolnej aplikacji Nostr, która obsługuje zdalne logowanie. Wklej łańcuch połączeń poniżej:</string>
+    <string name="scan_code_remote_login_camera_subtitle">Użyj konta OUTKAST, aby zalogować się do dowolnej aplikacji \n Nostr, która obsługuje zdalne logowanie.</string>
+    <string name="scan_code_remote_login_manual_entry_subtitle">Użyj konta OUTKAST, aby zalogować się do dowolnej aplikacji Nostr, która obsługuje zdalne logowanie. Wklej łańcuch połączeń poniżej:</string>
     <string name="logout_title">Wyloguj się</string>
     <string name="logout_description">Jeśli nie ocaliłeś prywatnego klucza, będzie nieodwracalnie stracony. Naprawdę chcesz się wypisać?</string>
     <string name="logout_cancel_button">Anuluj</string>
@@ -165,11 +165,11 @@
     <string name="account_switcher_edit">Edycja</string>
     <string name="account_switcher_create_new_account">Utwórz nowe konto</string>
     <string name="account_switcher_add_existing_account">Dodaj istniejące konto</string>
-    <string name="subscription_primal_title_primary">LibreNostr</string>
+    <string name="subscription_primal_title_primary">OUTKAST</string>
     <string name="subscription_primal_title_secondary">Premia i Pro</string>
-    <string name="subscription_primal_subtitle">Uaktualnij swoje dzisiejsze doświadczenie LibreNostr.</string>
+    <string name="subscription_primal_subtitle">Uaktualnij swoje dzisiejsze doświadczenie OUTKAST.</string>
     <string name="subscription_primal_buy_pro">Kup Pro</string>
-    <string name="subscription_learn_about_pro">Dowiedz się o LibreNostr Pro</string>
+    <string name="subscription_learn_about_pro">Dowiedz się o OUTKAST Pro</string>
     <string name="subscription_price_per_month">/ miesiąc</string>
     <string name="subscription_billed_annually">%1$s rozliczane rocznie</string>
     <string name="subscription_save_percent">Zapisz %1$d %%</string>
@@ -296,9 +296,9 @@
     <string name="feed_lightning_invoice_expired">Niniejsza faktura wygasła</string>
     <string name="feed_missing_event_alt_description_note">Nie znaleziono notki.</string>
     <string name="feed_missing_event_alt_description_event">Wspomniane zdarzenie nie znaleziono.</string>
-    <string name="feed_paywall_title">To jest kanał LibreNostr Premium.</string>
+    <string name="feed_paywall_title">To jest kanał OUTKAST Premium.</string>
     <string name="feed_paywall_description">Kup Subskrypcję, aby stać się użytkownikiem energii Nostr i wspierać naszą pracę:</string>
-    <string name="feed_paywall_get_premium_button">Pobierz LibreNostr Premium</string>
+    <string name="feed_paywall_get_premium_button">Pobierz OUTKAST Premium</string>
     <string name="post_delete_repost_button_confirmation">Usuń repost</string>
     <string name="post_repost_button_confirmation">Repost</string>
     <string name="post_quote_button_confirmation">Cytat</string>
@@ -417,7 +417,7 @@
     <string name="explore_feed_topic_reads_feed_description">Wszystkie odczyty oznaczone tagiem %1$s</string>
     <string name="explore_feed_advanced_search_feed_title">Wyniki wyszukiwania</string>
     <string name="explore_feed_simple_search_feed_title">Wyszukiwanie: %1$s</string>
-    <string name="explore_feed_search_feed_description">Wyniki wyszukiwania LibreNostr</string>
+    <string name="explore_feed_search_feed_description">Wyniki wyszukiwania OUTKAST</string>
     <string name="explore_feed_user_feed_title">Użytkownik: %1$s</string>
     <string name="explore_feed_user_feed_description">Najnowszy przez użytkownika następujące</string>
     <string name="explore_feed_user_notes_feed_description">Najnowsze notatki użytkownika następujące</string>
@@ -580,7 +580,7 @@
     <string name="media_item_error_on_save_try_again">Retry</string>
     <string name="settings_title">Ustawienia</string>
     <string name="settings_language_title">Język</string>
-    <string name="settings_language_description">Wybierz język LibreNostr. Zmiana zostanie zastosowana od razu.</string>
+    <string name="settings_language_description">Wybierz język OUTKAST. Zmiana zostanie zastosowana od razu.</string>
     <string name="settings_language_system_default">Język systemu</string>
     <string name="long_reads_title">Długie czytanie</string>
     <string name="long_reads_no_content">Nie ma jeszcze długich postów.</string>
@@ -616,7 +616,7 @@
     <string name="settings_wallet_nwc_profile_lightning_address_hint">Możesz zmienić swój adres Nostr Lightning (dla odbierania zaps) w swoim</string>
     <string name="settings_wallet_nwc_profile_lightning_address_hint_suffix">ustawienia profilu</string>
     <string name="settings_wallet_max_wallet_balance">Maksymalne saldo portfela</string>
-    <string name="settings_wallet_max_wallet_balance_hint">LibreNostr Portfel to portfel transakcyjny, przeznaczony do obsługi małych kwot. Zalecamy opiekę nad sobą w większych ilościach.</string>
+    <string name="settings_wallet_max_wallet_balance_hint">OUTKAST Portfel to portfel transakcyjny, przeznaczony do obsługi małych kwot. Zalecamy opiekę nad sobą w większych ilościach.</string>
     <string name="settings_wallet_hide_transactions_below">Ukryj transakcje poniżej</string>
     <string name="settings_wallet_nwc_connections_header_app">Aplikacja</string>
     <string name="settings_wallet_nwc_connections_header_daily_budget">Budżet dzienny</string>
@@ -634,7 +634,7 @@
     <string name="settings_wallet_hide_transactions_below_edit_title">Edytuj kwotę</string>
     <string name="settings_wallet_ln_address">Adres Nostr</string>
     <string name="settings_wallet_start_in_wallet">Zacznij w portfelu</string>
-    <string name="settings_wallet_start_in_wallet_hint">Otwórz portfel po uruchomieniu LibreNostr</string>
+    <string name="settings_wallet_start_in_wallet_hint">Otwórz portfel po uruchomieniu OUTKAST</string>
     <string name="settings_wallet_save">Zapisz</string>
     <string name="settings_wallet_backup_wallet_title">Portfel kopii zapasowej</string>
     <string name="settings_wallet_backup_wallet_subtitle">Zapisz swoją frazę odzyskiwania portfela, aby nie stracić dostępu do swoich funduszy</string>
@@ -646,7 +646,7 @@
     <string name="settings_wallet_export_nwc_logs_subtitle">Pobierz historię dzienników dla wszystkich połączeń NWC w formacie CSV</string>
     <string name="settings_wallet_new_nwc_connection_title">Nowe połączenie portfela</string>
     <string name="settings_wallet_new_nwc_connection_app_name_input_header">Nazwa aplikacji, którą chcesz połączyć:</string>
-    <string name="settings_wallet_new_nwc_connection_hint">W ustawieniach portfela LibreNostr można w każdej chwili cofnąć dostęp.</string>
+    <string name="settings_wallet_new_nwc_connection_hint">W ustawieniach portfela OUTKAST można w każdej chwili cofnąć dostęp.</string>
     <string name="settings_wallet_new_nwc_connection_create_new_connection_button">Utwórz połączenie portfela</string>
     <string name="settings_wallet_new_nwc_connection_cancel_button">Anuluj</string>
     <string name="settings_wallet_new_nwc_connection_bottom_sheet_pick_daily_budget_title">Wybierz maksymalny dzienny budżet</string>
@@ -655,8 +655,8 @@
     <string name="settings_wallet_new_nwc_connection_copy_nwc_string_button">Kopiuj ciąg NWC</string>
     <string name="settings_wallet_new_nwc_connection_done_button">Gotowe</string>
     <string name="settings_wallet_new_nwc_connection_connection_created_text">Wykonane połączenie</string>
-    <string name="settings_wallet_link_primal_wallet_title">Link LibreNostr Portfel</string>
-    <string name="settings_wallet_link_external_app_request">Zewnętrzna aplikacja "%1$s" wymaga dostępu do twojego portfela LibreNostr. Jeśli chcesz na to pozwolić, kliknij "Daj dostęp do portfela" poniżej.</string>
+    <string name="settings_wallet_link_primal_wallet_title">Link wallet</string>
+    <string name="settings_wallet_link_external_app_request">Zewnętrzna aplikacja "%1$s" wymaga dostępu do twojego portfela OUTKAST. Jeśli chcesz na to pozwolić, kliknij "Daj dostęp do portfela" poniżej.</string>
     <string name="settings_wallet_link_give_wallet_access_button">Daj dostęp do portfela</string>
     <string name="settings_wallet_nwc_qr_code_scan_title">Połącz Portfel NWC</string>
     <string name="settings_wallet_nwc_qr_code_scan_hint">Przeskanuj kod QR połączenia NWC \n</string>
@@ -692,7 +692,7 @@
     <string name="settings_notifications_group_preferences_reactions_from_follows">Pokaż tylko reakcje użytkowników, których śledzę</string>
     <string name="settings_notifications_enable_push_notifications">Włącz powiadomienia push</string>
     <string name="settings_notifications_show_new_followers">Pokaż nowych wyznawców</string>
-    <string name="settings_notifications_enable_push_notifications_description">Otrzymuj powiadomienia systemowe z LibreNostr. Możesz je również skonfigurować w ustawieniach systemu.</string>
+    <string name="settings_notifications_enable_push_notifications_description">Otrzymuj powiadomienia systemowe z OUTKAST. Możesz je również skonfigurować w ustawieniach systemu.</string>
     <string name="settings_appearance_title">Wygląd</string>
     <string name="settings_appearance_theme_section_title">Motyw</string>
     <string name="settings_appearance_auto_adjust_dark_mode">Automatyczne dostosowywanie ciemnego motywu</string>
@@ -910,8 +910,8 @@
     <string name="profile_editor_input_header_bitcoin_lightning_address">Adres błyskawicy Bitcoin</string>
     <string name="profile_editor_input_header_nip_05">Zweryfikowany adres Nostr (NIP 05)</string>
     <string name="profile_editor_required_field_hint">wymagane</string>
-    <string name="profile_editor_premium_dialog_title">LibreNostr Premium</string>
-    <string name="profile_editor_premium_dialog_description">Potrzebne jest konto LibreNostr Premium, aby uzyskać własny Nostr zweryfikowany adres na LibreNostr.</string>
+    <string name="profile_editor_premium_dialog_title">Custom address</string>
+    <string name="profile_editor_premium_dialog_description">Potrzebne jest konto OUTKAST Premium, aby uzyskać własny Nostr zweryfikowany adres na OUTKAST.</string>
     <string name="profile_editor_premium_dialog_dismiss_text">Anuluj</string>
     <string name="profile_editor_premium_dialog_confirm_text">Dobrze.</string>
     <string name="profile_followers_title">%1$s \'s followers</string>
@@ -948,11 +948,11 @@
     <string name="zap_bottom_sheet_comment_placeholder">Dodaj komentarz…</string>
     <string name="zap_bottom_sheet_custom_amount_placeholder">Niestandardowe kwoty…</string>
     <string name="zap_bottom_sheet_zap_button">Zap</string>
-    <string name="zap_warning_bottom_sheet_enable_wallet_text">Aby zap ludzi na Nostr, trzeba włączyć swój portfel LibreNostr lub podłączyć portfel zewnętrzny.</string>
+    <string name="zap_warning_bottom_sheet_enable_wallet_text">Aby zap ludzi na Nostr, trzeba włączyć swój portfel OUTKAST lub podłączyć portfel zewnętrzny.</string>
     <string name="zap_warning_bottom_sheet_no_sats_to_zap">Za mało sat do zap, trzeba dostać kilka sat, zanim można zap.</string>
     <string name="zap_warning_bottom_sheet_go_to_wallet_button">Idź do Portfela.</string>
     <string name="qrcode_scanner_permission_title">Wymagane zezwolenie</string>
-    <string name="qrcode_scanner_permission_rationale">LibreNostr potrzebuje dostępu do aparatu, żeby skanować kody QR.</string>
+    <string name="qrcode_scanner_permission_rationale">OUTKAST potrzebuje dostępu do aparatu, żeby skanować kody QR.</string>
     <string name="qrcode_scanner_grant_permission_button">Umożliwić dostęp</string>
     <string name="qrcode_scanner_cancel_button">Anuluj</string>
     <string name="accessibility_back_button">Tył</string>
@@ -1096,7 +1096,7 @@
     <string name="permissions_bottom_sheet_event_details_unavailable">Szczegóły zdarzenia niedostępne</string>
     <string name="permissions_bottom_sheet_back_button">Tył</string>
     <string name="signer_notification_name">Zdalny sygnał</string>
-    <string name="signer_notification_summary_title">LibreNostr Remote Signer</string>
+    <string name="signer_notification_summary_title">OUTKAST Remote Signer</string>
     <string name="signer_notification_end_session">Koniec sesji</string>
     <string name="signer_notification_unknown_app">Nieznana aplikacja</string>
     <string name="signer_notification_logged_in_as">Zalogowane jako %s</string>
@@ -1107,7 +1107,7 @@
     <string name="signer_notification_enable_switch_label">Włącz powiadomienia</string>
     <string name="signer_notification_enable_button">Chodźmy.</string>
     <string name="signer_notification_session_active_prefix">Sesja aktywna</string>
-    <string name="signer_notification_keep_running_description">Aby działać niezawodnie, gdy LibreNostr znajduje się w tle lub gdy telefon jest zablokowany, musisz włączyć zdalne powiadomienia sygnatariuszy.</string>
+    <string name="signer_notification_keep_running_description">Aby działać niezawodnie, gdy OUTKAST znajduje się w tle lub gdy telefon jest zablokowany, musisz włączyć zdalne powiadomienia sygnatariuszy.</string>
     <string name="local_app_unknown_app">Nieznana aplikacja</string>
     <plurals name="poll_votes_count">
         <item quantity="one">%1$d głosów</item>

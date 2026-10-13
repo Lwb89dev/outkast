@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">LibreNostr</string>
+    <string name="app_name">OUTKAST</string>
     <string name="nsec_or_npub">nsec / npub</string>
     <string name="nsec">NSEC</string>
     <string name="npub">npub</string>
@@ -36,7 +36,7 @@
     <string name="app_error_unable_to_update_follow_list">Ne mogu ažurirati popis za praćenje. Molim pokušajte ponovo.</string>
     <string name="app_error_unable_to_set_nostr_address">Ne mogu postaviti nostr adresu. Molim pokušajte ponovo.</string>
     <string name="app_error_unable_to_set_lightning_address">Ne mogu postaviti adresu munje. Molim pokušajte ponovo.</string>
-    <string name="app_npub_login_error">LibreNostr je u modu čitanja samo zato što ste se prijavili putem vašeg javnog ključa. Da biste omogućili sve opcije, molimo prijavite se sa svojim privatnim ključem.</string>
+    <string name="app_npub_login_error">OUTKAST je u modu čitanja samo zato što ste se prijavili putem vašeg javnog ključa. Da biste omogućili sve opcije, molimo prijavite se sa svojim privatnim ključem.</string>
     <string name="app_error_restore_default_blossom_server">Ne mogu vratiti uobičajeni poslužitelj cvijeta. Molim pokušajte ponovo.</string>
     <string name="app_error_unable_to_update_blossom_server_list">Ne mogu ažurirati popis cvjetnih poslužitelja. Molim pokušajte ponovo.</string>
     <string name="app_error_fetching_mute_list">Neuspjeh učitavanja popisa neuspjeha. Molimo provjerite vašu vezu i pokušajte ponovo.</string>
@@ -53,7 +53,7 @@
     <string name="welcome_sign_in_button_title">Prijava</string>
     <string name="welcome_create_account_button_title">Napravi račun</string>
     <string name="welcome_tos_prefix">Postupkom prihvaćate naše</string>
-    <string name="onboarding_welcome_title">LibreNostr</string>
+    <string name="onboarding_welcome_title">OUTKAST</string>
     <string name="onboarding_welcome_description">Nostr klijent koji izravno razgovara s relejima. Nijedna tvrtka ne sjedi u sredini: vaše bilješke, poruke i slijedi dolaze izravno iz releja koje ste izabrali, vaš ključ nikada ne napušta ovaj uređaj, a nema računa za koji biste se prijavili.</string>
     <string name="login_security_notice">Amber je preporučen za sigurnije upravljanje ključem. Nemojte sirovdog svoj NSEC u aplikaciju koju ne znate. Ne vjerujte, provjerite: ako ne razumijete kod, imate AI pregledati repozitorij prije ulaska osjetljive ključeve.</string>
     <string name="legal_tos_hint_highlighted_word">Uvjeti službe</string>
@@ -92,7 +92,7 @@
     <string name="login_bunker_url_hint">Bunker /…</string>
     <string name="login_bunker_button_connect">Spojite se</string>
     <string name="login_enter_bunker_url">Zalijepi niz za povezivanje bunkera koji ti je potpisnik dao:</string>
-    <string name="login_amber_required">LibreNostr znakovi s Amber. Instalirajte Amber nastaviti.</string>
+    <string name="login_amber_required">OUTKAST znakovi s Amber. Instalirajte Amber nastaviti.</string>
     <string name="login_description">Unesite svoj Nostr ključ za prijavu:</string>
     <string name="login_button_sign_in">Prijavite se</string>
     <string name="login_button_paste_your_key">Zalijepi svoj ključ</string>
@@ -106,7 +106,7 @@
     <string name="scan_code_apply_button">Primijeniti</string>
     <string name="scan_code_error_invalid_login_string">Neispravno polje za udaljeno prijavljivanje. Molim pokušajte ponovo.</string>
     <string name="scan_code_redeem_button">Redeem kod</string>
-    <string name="scan_code_onboard_button">Na brodu LibreNostr</string>
+    <string name="scan_code_onboard_button">Na brodu OUTKAST</string>
     <string name="scan_code_use_keyboard_button">Umjesto toga koristi tipkovnicu</string>
     <string name="scan_code_enter_placeholder">Unesite kod..</string>
     <string name="scan_code_remote_login_manual_entry_placeholder">nostrconnect://</string>
@@ -114,7 +114,7 @@
     <string name="scan_code_loaded_with">Ovaj kod je učitan sa:</string>
     <string name="scan_code_get_zapping">Zovi Zappinga!</string>
     <string name="scan_code_sats">Sats</string>
-    <string name="scan_code_primal_premium">LibreNostr Premium</string>
+    <string name="scan_code_primal_premium">Custom address</string>
     <plurals name="scan_code_premium_months">
         <item quantity="one">%1$s mjesec</item>
         <item quantity="other">%1$s mjeseci</item>
@@ -133,8 +133,8 @@
     <string name="scan_code_scan_anything_title">Skeniraj sve:</string>
     <string name="scan_code_scan_anything_subtitle">Pozivni kod, račun za plaćanje, prijavni niz, korisnička veza, link sadržaja, poklon kartica</string>
     <string name="scan_code_remote_login_camera_title">Prijavite se u bilo koju Nostr aplikaciju</string>
-    <string name="scan_code_remote_login_camera_subtitle">Koristite svoj LibreNostr korisnički račun za prijavu na bilo koju aplikaciju \n Nostr koja podržava udaljeni znak.</string>
-    <string name="scan_code_remote_login_manual_entry_subtitle">Koristite svoj LibreNostr korisnički račun za prijavu na bilo koju Nostr aplikaciju koja podržava udaljeni znak. Prilijepite niz veze ispod:</string>
+    <string name="scan_code_remote_login_camera_subtitle">Koristite svoj OUTKAST korisnički račun za prijavu na bilo koju aplikaciju \n Nostr koja podržava udaljeni znak.</string>
+    <string name="scan_code_remote_login_manual_entry_subtitle">Koristite svoj OUTKAST korisnički račun za prijavu na bilo koju Nostr aplikaciju koja podržava udaljeni znak. Prilijepite niz veze ispod:</string>
     <string name="logout_title">Odjavite se</string>
     <string name="logout_description">Ako niste sačuvali privatni ključ, on će biti neizbježno izgubljen.</string>
     <string name="logout_cancel_button">Otkaži</string>
@@ -165,11 +165,11 @@
     <string name="account_switcher_edit">Urediti</string>
     <string name="account_switcher_create_new_account">Napravi novi korisnički račun</string>
     <string name="account_switcher_add_existing_account">Dodaj postojeći korisnički račun</string>
-    <string name="subscription_primal_title_primary">LibreNostr</string>
+    <string name="subscription_primal_title_primary">OUTKAST</string>
     <string name="subscription_primal_title_secondary">Premium i Pro</string>
-    <string name="subscription_primal_subtitle">Nadogradite svoje LibreNostr iskustvo danas.</string>
+    <string name="subscription_primal_subtitle">Nadogradite svoje OUTKAST iskustvo danas.</string>
     <string name="subscription_primal_buy_pro">Kupi Pro</string>
-    <string name="subscription_learn_about_pro">Saznajte nešto o LibreNostr Pro</string>
+    <string name="subscription_learn_about_pro">Saznajte nešto o OUTKAST Pro</string>
     <string name="subscription_price_per_month">Mjesec</string>
     <string name="subscription_billed_annually">%1$s naplaćuje se godišnje</string>
     <string name="subscription_save_percent">Spremi %1$d %%</string>
@@ -296,9 +296,9 @@
     <string name="feed_lightning_invoice_expired">Ova faktura je istekla</string>
     <string name="feed_missing_event_alt_description_note">Spomenuta poruka nije pronađena.</string>
     <string name="feed_missing_event_alt_description_event">Spomenuti događaj nije pronađen.</string>
-    <string name="feed_paywall_title">Ovo je LibreNostr Premium feed.</string>
+    <string name="feed_paywall_title">Ovo je OUTKAST Premium feed.</string>
     <string name="feed_paywall_description">Kupite pretplatu da biste postali Nostr korisnik moći i podržati naš rad:</string>
-    <string name="feed_paywall_get_premium_button">Dobiti LibreNostr Premium</string>
+    <string name="feed_paywall_get_premium_button">Dobiti OUTKAST Premium</string>
     <string name="post_delete_repost_button_confirmation">Obriši repost</string>
     <string name="post_repost_button_confirmation">Repost</string>
     <string name="post_quote_button_confirmation">Citiraj</string>
@@ -417,7 +417,7 @@
     <string name="explore_feed_topic_reads_feed_description">Svi podaci označeni %1$s</string>
     <string name="explore_feed_advanced_search_feed_title">Rezultati pretrage</string>
     <string name="explore_feed_simple_search_feed_title">Traži: %1$s</string>
-    <string name="explore_feed_search_feed_description">LibreNostr rezultati pretrage</string>
+    <string name="explore_feed_search_feed_description">OUTKAST rezultati pretrage</string>
     <string name="explore_feed_user_feed_title">Korisnik: %1$s</string>
     <string name="explore_feed_user_feed_description">Posljednji od korisnika slijedi</string>
     <string name="explore_feed_user_notes_feed_description">Slijedi najnovije bilješke korisnika</string>
@@ -580,7 +580,7 @@
     <string name="media_item_error_on_save_try_again">Pokušaj ponovo</string>
     <string name="settings_title">Postavke</string>
     <string name="settings_language_title">Jezik</string>
-    <string name="settings_language_description">Odaberite jezik LibreNostra. Promjena se primjenjuje odmah.</string>
+    <string name="settings_language_description">Odaberite jezik OUTKASTa. Promjena se primjenjuje odmah.</string>
     <string name="settings_language_system_default">Jezik sustava</string>
     <string name="long_reads_title">Dugačka čitanja</string>
     <string name="long_reads_no_content">Još nema dugih postova.</string>
@@ -616,7 +616,7 @@
     <string name="settings_wallet_nwc_profile_lightning_address_hint">Možete promijeniti svoju Nostr Lightning adresu (za primanje zaps) u vašem</string>
     <string name="settings_wallet_nwc_profile_lightning_address_hint_suffix">Postavke profila</string>
     <string name="settings_wallet_max_wallet_balance">Najveća ravnoteža novčanika</string>
-    <string name="settings_wallet_max_wallet_balance_hint">LibreNostr novčanik je transakcijski novčanik, dizajniran za rukovanje malim količinama. Preporučujemo samozaštitu za veće iznose.</string>
+    <string name="settings_wallet_max_wallet_balance_hint">OUTKAST novčanik je transakcijski novčanik, dizajniran za rukovanje malim količinama. Preporučujemo samozaštitu za veće iznose.</string>
     <string name="settings_wallet_hide_transactions_below">Sakrij transakcije dolje</string>
     <string name="settings_wallet_nwc_connections_header_app">Aplikacija</string>
     <string name="settings_wallet_nwc_connections_header_daily_budget">Dnevni proračun</string>
@@ -634,7 +634,7 @@
     <string name="settings_wallet_hide_transactions_below_edit_title">Uredi iznos</string>
     <string name="settings_wallet_ln_address">Nostr munja adresa</string>
     <string name="settings_wallet_start_in_wallet">Počnite u novčaniku</string>
-    <string name="settings_wallet_start_in_wallet_hint">Otvori novčanik kada LibreNostr počne</string>
+    <string name="settings_wallet_start_in_wallet_hint">Otvori novčanik kada OUTKAST počne</string>
     <string name="settings_wallet_save">Uštedi</string>
     <string name="settings_wallet_backup_wallet_title">Povratni novčanik</string>
     <string name="settings_wallet_backup_wallet_subtitle">Zapiši svoju frazu za oporavak novčanika da ne izgubiš pristup svojim sredstvima</string>
@@ -646,7 +646,7 @@
     <string name="settings_wallet_export_nwc_logs_subtitle">Preuzmite povijest dnevnika za sve NWC veze u CSV formatu</string>
     <string name="settings_wallet_new_nwc_connection_title">Nova poveznica novčanika</string>
     <string name="settings_wallet_new_nwc_connection_app_name_input_header">Ime aplikacije koju želite spojiti:</string>
-    <string name="settings_wallet_new_nwc_connection_hint">Možete poništiti pristup u bilo koje vrijeme u postavki LibreNostr novčanika.</string>
+    <string name="settings_wallet_new_nwc_connection_hint">Možete poništiti pristup u bilo koje vrijeme u postavki OUTKAST novčanika.</string>
     <string name="settings_wallet_new_nwc_connection_create_new_connection_button">Stvaranje povezivanja novčanika</string>
     <string name="settings_wallet_new_nwc_connection_cancel_button">Otkaži</string>
     <string name="settings_wallet_new_nwc_connection_bottom_sheet_pick_daily_budget_title">Izaberite maksimalni dnevni proračun</string>
@@ -655,8 +655,8 @@
     <string name="settings_wallet_new_nwc_connection_copy_nwc_string_button">Kopiraj NWC string</string>
     <string name="settings_wallet_new_nwc_connection_done_button">Gotovo</string>
     <string name="settings_wallet_new_nwc_connection_connection_created_text">Veza je stvorena</string>
-    <string name="settings_wallet_link_primal_wallet_title">Link LibreNostr novčanik</string>
-    <string name="settings_wallet_link_external_app_request">Vanjska aplikacija “%1$s ” traži pristup vašem LibreNostr novčaniku. Ako želite to dopustiti, kliknite “Dajte novčanik Pristup” u nastavku.</string>
+    <string name="settings_wallet_link_primal_wallet_title">Link wallet</string>
+    <string name="settings_wallet_link_external_app_request">Vanjska aplikacija “%1$s ” traži pristup vašem OUTKAST novčaniku. Ako želite to dopustiti, kliknite “Dajte novčanik Pristup” u nastavku.</string>
     <string name="settings_wallet_link_give_wallet_access_button">Daj pristup novčaniku</string>
     <string name="settings_wallet_nwc_qr_code_scan_title">Spojite NWC novčanik</string>
     <string name="settings_wallet_nwc_qr_code_scan_hint">Skeniraj NWC \n priključak QR kod</string>
@@ -692,7 +692,7 @@
     <string name="settings_notifications_group_preferences_reactions_from_follows">Pokažite samo reakcije korisnika koje pratim</string>
     <string name="settings_notifications_enable_push_notifications">Omogući push obavijesti</string>
     <string name="settings_notifications_show_new_followers">Pokaži nove sljedbenike</string>
-    <string name="settings_notifications_enable_push_notifications_description">Primajte sistemske obavijesti iz LibreNostra. Možete ih konfigurirati i u postavkama sustava.</string>
+    <string name="settings_notifications_enable_push_notifications_description">Primajte sistemske obavijesti iz OUTKASTa. Možete ih konfigurirati i u postavkama sustava.</string>
     <string name="settings_appearance_title">Izgled</string>
     <string name="settings_appearance_theme_section_title">Tema</string>
     <string name="settings_appearance_auto_adjust_dark_mode">Automatsko prilagođavanje temne teme</string>
@@ -910,8 +910,8 @@
     <string name="profile_editor_input_header_bitcoin_lightning_address">Bitcoin munja adresa</string>
     <string name="profile_editor_input_header_nip_05">Provjerena Nostr adresa (NIP 05)</string>
     <string name="profile_editor_required_field_hint">potrebno</string>
-    <string name="profile_editor_premium_dialog_title">LibreNostr Premium</string>
-    <string name="profile_editor_premium_dialog_description">Trebate LibreNostr Premium korisnički račun kako biste dobili prilagođenu Nostr Potvrđenu adresu na LibreNostr.</string>
+    <string name="profile_editor_premium_dialog_title">Custom address</string>
+    <string name="profile_editor_premium_dialog_description">Trebate OUTKAST Premium korisnički račun kako biste dobili prilagođenu Nostr Potvrđenu adresu na OUTKAST.</string>
     <string name="profile_editor_premium_dialog_dismiss_text">Otkaži</string>
     <string name="profile_editor_premium_dialog_confirm_text">Dobro</string>
     <string name="profile_followers_title">%1$s-ovi sljedbenici</string>
@@ -946,11 +946,11 @@
     <string name="zap_bottom_sheet_comment_placeholder">Dodaj komentar..</string>
     <string name="zap_bottom_sheet_custom_amount_placeholder">Prilagođeni iznos..</string>
     <string name="zap_bottom_sheet_zap_button">Zap</string>
-    <string name="zap_warning_bottom_sheet_enable_wallet_text">Da biste zap ljudi na Nostr, morate omogućiti svoj LibreNostr novčanik ili spojiti vanjski novčanik.</string>
+    <string name="zap_warning_bottom_sheet_enable_wallet_text">Da biste zap ljudi na Nostr, morate omogućiti svoj OUTKAST novčanik ili spojiti vanjski novčanik.</string>
     <string name="zap_warning_bottom_sheet_no_sats_to_zap">Nedovoljno satova za zap, morate dobiti neke sats prije nego što možete zap.</string>
     <string name="zap_warning_bottom_sheet_go_to_wallet_button">Idi do novčanika</string>
     <string name="qrcode_scanner_permission_title">Dozvola je potrebna</string>
-    <string name="qrcode_scanner_permission_rationale">LibreNostr treba pristup vašoj kameri za skeniranje QR kodova.</string>
+    <string name="qrcode_scanner_permission_rationale">OUTKAST treba pristup vašoj kameri za skeniranje QR kodova.</string>
     <string name="qrcode_scanner_grant_permission_button">Dopusti pristup</string>
     <string name="qrcode_scanner_cancel_button">Otkaži</string>
     <string name="accessibility_back_button">Natrag</string>
@@ -1093,7 +1093,7 @@
     <string name="permissions_bottom_sheet_event_details_unavailable">Detalji događaja nedostupni</string>
     <string name="permissions_bottom_sheet_back_button">Natrag</string>
     <string name="signer_notification_name">Daljinski potpisnik</string>
-    <string name="signer_notification_summary_title">LibreNostr daljinski potpisnik</string>
+    <string name="signer_notification_summary_title">OUTKAST daljinski potpisnik</string>
     <string name="signer_notification_end_session">Kraj sesije</string>
     <string name="signer_notification_unknown_app">Nepoznata aplikacija</string>
     <string name="signer_notification_logged_in_as">Prijavljeni kao %s</string>
@@ -1104,7 +1104,7 @@
     <string name="signer_notification_enable_switch_label">Omogući obavijesti</string>
     <string name="signer_notification_enable_button">Idemo</string>
     <string name="signer_notification_session_active_prefix">Sesija je aktivna</string>
-    <string name="signer_notification_keep_running_description">Da biste nastavili pouzdano raditi dok je LibreNostr u pozadini ili kada je vaš telefon zaključan, morate omogućiti obavijesti o udaljenom potpisivanju.</string>
+    <string name="signer_notification_keep_running_description">Da biste nastavili pouzdano raditi dok je OUTKAST u pozadini ili kada je vaš telefon zaključan, morate omogućiti obavijesti o udaljenom potpisivanju.</string>
     <string name="local_app_unknown_app">Nepoznata aplikacija</string>
     <plurals name="poll_votes_count">
         <item quantity="one">%1$d glas</item>

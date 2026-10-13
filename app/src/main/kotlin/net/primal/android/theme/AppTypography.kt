@@ -127,21 +127,3 @@ val PrimalTypography = Typography(
         lineHeight = 44.sp,
     ),
 )
-
-val PixelTypography = PrimalTypography.copy(
-    bodyLarge = PrimalTypography.bodyLarge.copy(fontFamily = FiraMonoFontFamily),
-    bodyMedium = PrimalTypography.bodyMedium.copy(fontFamily = FiraMonoFontFamily),
-    bodySmall = PrimalTypography.bodySmall.copy(fontFamily = FiraMonoFontFamily),
-    titleLarge = PrimalTypography.titleLarge.copy(fontFamily = FiraMonoFontFamily),
-    titleMedium = PrimalTypography.titleMedium.copy(fontFamily = FiraMonoFontFamily),
-    titleSmall = PrimalTypography.titleSmall.copy(fontFamily = FiraMonoFontFamily),
-    labelLarge = PrimalTypography.labelLarge.copy(fontFamily = FiraMonoFontFamily),
-    labelMedium = PrimalTypography.labelMedium.copy(fontFamily = FiraMonoFontFamily),
-    labelSmall = PrimalTypography.labelSmall.copy(fontFamily = FiraMonoFontFamily),
-    headlineLarge = PrimalTypography.headlineLarge.copy(fontFamily = FiraMonoFontFamily),
-    headlineMedium = PrimalTypography.headlineMedium.copy(fontFamily = FiraMonoFontFamily),
-    headlineSmall = PrimalTypography.headlineSmall.copy(fontFamily = FiraMonoFontFamily),
-    displayLarge = PrimalTypography.displayLarge.copy(fontFamily = FiraMonoFontFamily),
-    displayMedium = PrimalTypography.displayMedium.copy(fontFamily = FiraMonoFontFamily),
-    displaySmall = PrimalTypography.displaySmall.copy(fontFamily = FiraMonoFontFamily),
-)

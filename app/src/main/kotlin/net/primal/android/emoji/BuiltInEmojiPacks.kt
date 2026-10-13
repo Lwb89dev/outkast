@@ -44,7 +44,7 @@ object BuiltInEmojiPacks {
     val ostrichPack = EmojiPack(
         ownerPubkey = "",
         identifier = "librenostr-ostrich",
-        title = "LibreNostr Ostrich",
+        title = "OUTKAST Legacy Ostrich",
         emojis = ostrichEmojis.map { CustomEmoji(shortcode = it.shortcode, url = it.url) },
         isBuiltIn = true,
     )

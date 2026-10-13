@@ -191,7 +191,7 @@ private fun ZapButton(onClick: () -> Unit) {
 @Preview
 @Composable
 private fun PreviewArticleTopZapsSection() {
-    PrimalPreview(primalTheme = net.primal.android.theme.domain.PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = net.primal.android.theme.domain.PrimalTheme.OutkastDark) {
         Surface(modifier = Modifier.fillMaxWidth()) {
             ArticleTopZapsSection(
                 modifier = Modifier.fillMaxWidth(),

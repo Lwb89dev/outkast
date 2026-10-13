@@ -29,7 +29,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import net.primal.android.BuildConfig
-import net.primal.android.core.compose.icons.LibreNavigationIcons
+import net.primal.android.core.compose.icons.OutkastNavigationIcons
 import net.primal.android.theme.AppTheme
 
 @Composable
@@ -67,7 +67,7 @@ fun MediaPickerIconButton(
                 androidx.compose.foundation.layout.Column {
                     ListItem(
                         headlineContent = { Text("Photo or video from device") },
-                        leadingContent = { Icon(imageVector = LibreNavigationIcons.Gallery, contentDescription = null, tint = tint) },
+                        leadingContent = { Icon(imageVector = OutkastNavigationIcons.Gallery, contentDescription = null, tint = tint) },
                         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                         modifier = androidx.compose.ui.Modifier.clickable {
                             galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
@@ -75,7 +75,7 @@ fun MediaPickerIconButton(
                     )
                     ListItem(
                         headlineContent = { Text("Camera") },
-                        leadingContent = { Icon(imageVector = LibreNavigationIcons.Camera, contentDescription = null, tint = tint) },
+                        leadingContent = { Icon(imageVector = OutkastNavigationIcons.Camera, contentDescription = null, tint = tint) },
                         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                         modifier = androidx.compose.ui.Modifier.clickable {
                             val file = File.createTempFile(

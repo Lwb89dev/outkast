@@ -135,7 +135,7 @@ private fun WotDiscoveryState.statusText(): String =
 @Composable
 @androidx.compose.ui.tooling.preview.Preview
 private fun PreviewWebOfTrustSettingsScreen() {
-    PrimalPreview(primalTheme = net.primal.android.theme.domain.PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = net.primal.android.theme.domain.PrimalTheme.OutkastDark) {
         WebOfTrustSettingsScreen(
             state = WebOfTrustSettingsContract.UiState(
                 filterEnabled = true,

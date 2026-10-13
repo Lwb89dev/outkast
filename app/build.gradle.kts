@@ -51,8 +51,8 @@ fun extractSigningConfigProperties(storeName: String): SigningConfigProperties? 
     )
 }
 
-val appVersionCode = 48
-val appVersionName = "1.1.3"
+val appVersionCode = 49
+val appVersionName = "2.0.0"
 
 // ELF header layout, used by verifyBuiltInTorLibrary below.
 val ELF_HEADER_BYTES = 20
@@ -277,7 +277,7 @@ androidComponents {
                 .find { it.filterType == FilterConfiguration.FilterType.ABI }
                 ?.identifier
             if (abi != null) {
-                output.outputFileName.set("librenostr-$appVersionName-$abi.apk")
+                output.outputFileName.set("outkast-$appVersionName-$abi.apk")
             }
         }
     }

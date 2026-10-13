@@ -2,11 +2,9 @@ package net.primal.android.core.compose
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import net.primal.android.R
 
@@ -16,17 +14,9 @@ fun PrimalLogo(modifier: Modifier = Modifier, showBackground: Boolean = false) {
         modifier = modifier,
         contentAlignment = Alignment.TopCenter,
     ) {
-        if (showBackground) {
-            Image(
-                modifier = Modifier.clip(CircleShape),
-                painter = painterResource(id = R.drawable.primal_icon_bg),
-                contentDescription = null,
-            )
-        }
-
         Image(
-            painter = painterResource(id = R.drawable.primal_icon),
-            contentDescription = "LibreNostr",
+            painter = painterResource(id = R.drawable.outkast_icon),
+            contentDescription = "OUTKAST",
         )
     }
 }

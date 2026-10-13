@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
  * The rounded 1.8 dp construction echoes the curves of the app mark while keeping every glyph
  * readable when Android applies a single theme tint at 24 dp.
  */
-object LibreNavigationIcons {
+object OutkastNavigationIcons {
     val Home: ImageVector by lazy {
         icon("LibreHome") {
             path(

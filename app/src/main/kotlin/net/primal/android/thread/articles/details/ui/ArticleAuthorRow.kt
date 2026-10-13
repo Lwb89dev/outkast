@@ -188,7 +188,7 @@ private fun ProfileButton(
 @Preview
 @Composable
 fun PreviewArticleAuthorRow() {
-    PrimalPreview(primalTheme = net.primal.android.theme.domain.PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = net.primal.android.theme.domain.PrimalTheme.OutkastDark) {
         Surface(modifier = Modifier.fillMaxWidth()) {
             ArticleAuthorRow(
                 modifier = Modifier.fillMaxWidth(),
@@ -203,7 +203,7 @@ fun PreviewArticleAuthorRow() {
 @Preview
 @Composable
 fun PreviewArticleLegendaryAuthorRow() {
-    PrimalPreview(primalTheme = net.primal.android.theme.domain.PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = net.primal.android.theme.domain.PrimalTheme.OutkastDark) {
         Surface(modifier = Modifier.fillMaxWidth()) {
             ArticleAuthorRow(
                 modifier = Modifier.fillMaxWidth(),

@@ -206,7 +206,7 @@ private fun ExploreSearchNavBar(onSearchClick: () -> Unit, onAdvancedSearchClick
 @Preview
 @Composable
 fun PreviewExploreTopAppBar() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         Surface {
             ExploreTopAppBar(
                 activeSection = ExploreSection.Explore,

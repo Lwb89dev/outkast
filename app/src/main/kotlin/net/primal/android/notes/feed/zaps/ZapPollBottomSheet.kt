@@ -593,7 +593,7 @@ private val previewDefaultZapAmounts = listOf(21L, 420L, 1_000L, 5_000L, 10_000L
 @Preview
 @Composable
 private fun PreviewZapPollBottomSheetFixedAmount() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         Surface {
             ZapPollBottomSheet(
                 optionId = "0",
@@ -611,7 +611,7 @@ private fun PreviewZapPollBottomSheetFixedAmount() {
 @Preview
 @Composable
 private fun PreviewZapPollBottomSheetTwoItems() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         Surface {
             ZapPollBottomSheet(
                 optionId = "0",
@@ -629,7 +629,7 @@ private fun PreviewZapPollBottomSheetTwoItems() {
 @Preview
 @Composable
 private fun PreviewZapPollBottomSheetThreeItems() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         Surface {
             ZapPollBottomSheet(
                 optionId = "0",
@@ -647,7 +647,7 @@ private fun PreviewZapPollBottomSheetThreeItems() {
 @Preview
 @Composable
 private fun PreviewZapPollBottomSheetFourItems() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         Surface {
             ZapPollBottomSheet(
                 optionId = "0",
@@ -665,7 +665,7 @@ private fun PreviewZapPollBottomSheetFourItems() {
 @Preview
 @Composable
 private fun PreviewZapPollBottomSheetFiveItems() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         Surface {
             ZapPollBottomSheet(
                 optionId = "0",
@@ -683,7 +683,7 @@ private fun PreviewZapPollBottomSheetFiveItems() {
 @Preview
 @Composable
 private fun PreviewZapPollBottomSheetSixItems() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         Surface {
             ZapPollBottomSheet(
                 optionId = "0",
@@ -701,7 +701,7 @@ private fun PreviewZapPollBottomSheetSixItems() {
 @Preview
 @Composable
 private fun PreviewZapPollBottomSheetLargeRange() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         Surface {
             ZapPollBottomSheet(
                 optionId = "0",
@@ -718,7 +718,7 @@ private fun PreviewZapPollBottomSheetLargeRange() {
 @Preview
 @Composable
 private fun PreviewZapPollBottomSheetUnconstrained() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         Surface {
             ZapPollBottomSheet(
                 optionId = "0",

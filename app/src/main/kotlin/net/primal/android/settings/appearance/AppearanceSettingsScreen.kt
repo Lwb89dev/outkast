@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -54,7 +53,7 @@ import net.primal.android.theme.AppTheme
 import net.primal.android.theme.domain.PrimalTheme
 
 // 4x2 grid for the current 8 themes, per explicit design decision.
-private const val THEME_GRID_COLUMNS = 4
+private const val THEME_GRID_COLUMNS = 2
 
 @Composable
 fun AppearanceSettingsScreen(
@@ -278,11 +277,7 @@ private fun ThemeBox(
 
 @Composable
 private fun ThemePaletteIcon(modifier: Modifier = Modifier, primalTheme: PrimalTheme) {
-    val iconShape = if (primalTheme.isPixelTheme) {
-        RoundedCornerShape(4.dp)
-    } else {
-        CircleShape
-    }
+    val iconShape = RoundedCornerShape(14.dp)
 
     Box(
         modifier = modifier
@@ -312,7 +307,7 @@ private fun ThemePaletteIcon(modifier: Modifier = Modifier, primalTheme: PrimalT
                 .align(Alignment.TopEnd)
                 .background(
                     color = primalTheme.colorScheme.tertiary,
-                    shape = if (primalTheme.isPixelTheme) RoundedCornerShape(1.dp) else CircleShape,
+                    shape = RoundedCornerShape(3.dp),
                 ),
         )
     }

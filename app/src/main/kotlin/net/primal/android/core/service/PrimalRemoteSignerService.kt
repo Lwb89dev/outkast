@@ -191,7 +191,7 @@ class PrimalRemoteSignerService : Service(), DefaultLifecycleObserver {
 
     private fun buildSummaryNotification(): Notification =
         NotificationCompat.Builder(this, PRIMAL_SERVICE_NOTIFICATION_CHANNEL_ID)
-            .setSmallIcon(R.drawable.librenostr_stat_icon)
+            .setSmallIcon(R.drawable.outkast_stat_icon)
             .setContentTitle(resources.getString(R.string.signer_notification_summary_title))
             .setOngoing(true)
             .setGroup(GROUP_ID)
@@ -211,7 +211,7 @@ class PrimalRemoteSignerService : Service(), DefaultLifecycleObserver {
         )
 
         return NotificationCompat.Builder(this, PRIMAL_SERVICE_NOTIFICATION_CHANNEL_ID)
-            .setSmallIcon(R.drawable.librenostr_stat_icon)
+            .setSmallIcon(R.drawable.outkast_stat_icon)
             .setContentTitle(
                 resources.getQuantityString(
                     R.plurals.signer_notification_new_signer_request,
@@ -314,7 +314,7 @@ class PrimalRemoteSignerService : Service(), DefaultLifecycleObserver {
         val notification = NotificationCompat.Builder(this, PRIMAL_SERVICE_NOTIFICATION_CHANNEL_ID)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
-            .setSmallIcon(R.drawable.librenostr_stat_icon)
+            .setSmallIcon(R.drawable.outkast_stat_icon)
             .run {
                 if (appIconBitmap != null) {
                     this.setLargeIcon(appIconBitmap)

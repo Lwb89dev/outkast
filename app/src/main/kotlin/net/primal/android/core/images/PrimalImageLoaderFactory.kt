@@ -27,7 +27,7 @@ class PrimalImageLoaderFactory @Inject constructor() : SingletonImageLoader.Fact
         val defaultBuilder = ImageLoader.Builder(context)
         val imageCacheDir = context.cacheDir.resolve("image_cache").toOkioPath()
         // Wikimedia Commons rejects Coil's default Android user agent with HTTP 403.
-        // Use a small dedicated client for image requests and identify LibreNostr
+        // Use a small dedicated client for image requests and identify OUTKAST
         // according to Wikimedia's API policy. The referer also makes thumbnail
         // requests indistinguishable from a normal Commons page load.
         val imageHttpClient = OkHttpClient.Builder()
@@ -39,7 +39,7 @@ class PrimalImageLoaderFactory @Inject constructor() : SingletonImageLoader.Fact
                         request.newBuilder()
                             .header(
                                 "User-Agent",
-                                "LibreNostr/1.0",
+                                "OUTKAST/1.0",
                             )
                             .header("Referer", "https://commons.wikimedia.org/")
                             .build(),

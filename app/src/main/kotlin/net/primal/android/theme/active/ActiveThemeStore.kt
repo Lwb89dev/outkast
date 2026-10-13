@@ -51,6 +51,6 @@ class ActiveThemeStore @Inject constructor(
          * a fresh install, or an existing one that never opened the appearance settings, starts
          * here instead of following the system.
          */
-        val DEFAULT_THEME: PrimalTheme = PrimalTheme.DarkPixel
+        val DEFAULT_THEME: PrimalTheme = PrimalTheme.OutkastDark
     }
 }

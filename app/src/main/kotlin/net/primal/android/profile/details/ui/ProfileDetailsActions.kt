@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.sp
 import net.primal.android.R
 import net.primal.android.core.compose.button.PrimalFilledButton
 import net.primal.android.core.compose.icons.PrimalIcons
-import net.primal.android.core.compose.icons.LibreNavigationIcons
+import net.primal.android.core.compose.icons.OutkastNavigationIcons
 import net.primal.android.core.compose.icons.primaliconpack.FeedZaps
 import net.primal.android.core.compose.icons.primaliconpack.Message
 import net.primal.android.core.compose.icons.primaliconpack.Share
@@ -61,7 +61,7 @@ fun ProfileActions(
             ActionButton(
                 containerColor = containerColor,
                 onClick = onMessageClick,
-                iconVector = LibreNavigationIcons.Envelope,
+                iconVector = OutkastNavigationIcons.Envelope,
                 contentDescription = stringResource(id = R.string.accessibility_profile_messages),
             )
 

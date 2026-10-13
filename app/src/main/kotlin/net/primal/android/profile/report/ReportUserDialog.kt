@@ -122,7 +122,7 @@ private fun RadioTextButton(
 @Preview
 @Composable
 fun PreviewReportUserDialog() {
-    PrimalPreview(primalTheme = net.primal.android.theme.domain.PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = net.primal.android.theme.domain.PrimalTheme.OutkastDark) {
         Surface {
             ReportUserDialog(
                 onDismissRequest = {},

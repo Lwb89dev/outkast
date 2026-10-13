@@ -308,7 +308,7 @@ private fun PollResultOption(
 @Preview
 @Composable
 private fun PreviewPollPending() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         Surface {
             NotePollContent(
                 modifier = Modifier.padding(16.dp),
@@ -346,7 +346,7 @@ private fun PreviewPollPending() {
 @Preview
 @Composable
 private fun PreviewPollVoted() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         Surface {
             NotePollContent(
                 modifier = Modifier.padding(16.dp),
@@ -390,7 +390,7 @@ private fun PreviewPollVoted() {
 @Preview
 @Composable
 private fun PreviewPollEnded() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         Surface {
             NotePollContent(
                 modifier = Modifier.padding(16.dp),
@@ -432,7 +432,7 @@ private fun PreviewPollEnded() {
 @Preview
 @Composable
 private fun PreviewPollEndedUserLost() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         Surface {
             NotePollContent(
                 modifier = Modifier.padding(16.dp),
@@ -474,7 +474,7 @@ private fun PreviewPollEndedUserLost() {
 @Preview
 @Composable
 private fun PreviewZapPollPending() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         Surface {
             NotePollContent(
                 modifier = Modifier.padding(16.dp),
@@ -484,7 +484,7 @@ private fun PreviewZapPollPending() {
                         PollOptionUi(id = "1", label = "Phoenix"),
                         PollOptionUi(id = "2", label = "Muun"),
                         PollOptionUi(id = "3", label = "Blue Wallet"),
-                        PollOptionUi(id = "4", label = "LibreNostr"),
+                        PollOptionUi(id = "4", label = "OUTKAST"),
                     ),
 
                     endsAt = Instant.now().plus(Duration.ofDays(1)),
@@ -501,7 +501,7 @@ private fun PreviewZapPollPending() {
 @Preview
 @Composable
 private fun PreviewZapPollVoted() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         Surface {
             NotePollContent(
                 modifier = Modifier.padding(16.dp),
@@ -528,7 +528,7 @@ private fun PreviewZapPollVoted() {
                         ),
                         PollOptionUi(
                             id = "4",
-                            label = "LibreNostr",
+                            label = "OUTKAST",
                             votePercentage = 0.576f,
                             satsZapped = 89_000,
                             isWinner = true,
@@ -550,7 +550,7 @@ private fun PreviewZapPollVoted() {
 @Preview
 @Composable
 private fun PreviewZapPollEnded() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         Surface {
             NotePollContent(
                 modifier = Modifier.padding(16.dp),
@@ -577,7 +577,7 @@ private fun PreviewZapPollEnded() {
                         ),
                         PollOptionUi(
                             id = "4",
-                            label = "LibreNostr",
+                            label = "OUTKAST",
                             votePercentage = 0.618f,
                             satsZapped = 4_441,
                             isWinner = true,

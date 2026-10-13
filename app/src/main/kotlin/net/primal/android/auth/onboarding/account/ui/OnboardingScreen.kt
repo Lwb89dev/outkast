@@ -123,7 +123,7 @@ private class UiStateProvider(
 private fun PreviewOnboarding(
     @PreviewParameter(provider = UiStateProvider::class) uiState: OnboardingContract.UiState,
 ) {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         OnboardingScreen(
             state = uiState,
             eventPublisher = {},

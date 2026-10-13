@@ -458,7 +458,7 @@ private val mockRecentSessionsForPreview = listOf(
 @Preview
 @Composable
 fun PreviewRemoteAppDetailsScreen() {
-    PrimalPreview(primalTheme = PrimalTheme.Ice) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastLight) {
         RemoteAppDetailsScreen(
             state = UiState(
                 loading = false,

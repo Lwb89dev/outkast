@@ -47,7 +47,7 @@ fun ZappersAvatarThumbnailRow(zaps: List<EventZapUiModel>, onClick: (() -> Unit)
 @Preview
 @Composable
 private fun PreviewZappersAvatarThumbnailRow() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         Surface {
             Row(
                 modifier = Modifier.fillMaxWidth(),

@@ -256,7 +256,7 @@ private const val PERMILLE_PER_PERCENT = 10
 @Preview
 @Composable
 private fun PreviewTorSettingsScreen() {
-    PrimalPreview(primalTheme = net.primal.android.theme.domain.PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = net.primal.android.theme.domain.PrimalTheme.OutkastDark) {
         TorSettingsScreen(
             state = TorSettingsContract.UiState(networkMode = NetworkMode.TOR, orbotInstalled = false),
             onClose = {},

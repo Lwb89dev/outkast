@@ -344,7 +344,7 @@ fun renderContentAsAnnotatedString(
 @Preview
 @Composable
 fun PreviewPostContent() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         Surface {
             NoteContent(
                 data = NoteContentUi(
@@ -383,7 +383,7 @@ fun PreviewPostContent() {
 @Preview
 @Composable
 fun PreviewPostUnknownReferencedEventWithAlt() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         Surface(modifier = Modifier.fillMaxWidth()) {
             NoteContent(
                 data = NoteContentUi(
@@ -417,7 +417,7 @@ fun PreviewPostUnknownReferencedEventWithAlt() {
 @Preview
 @Composable
 fun PreviewPostUnknownReferencedEventWithoutAlt() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         Surface(modifier = Modifier.fillMaxWidth()) {
             NoteContent(
                 data = NoteContentUi(
@@ -452,7 +452,7 @@ fun PreviewPostUnknownReferencedEventWithoutAlt() {
 @Composable
 @Suppress("LongMethod")
 fun PreviewPostContentWithReferencedPost() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         Surface {
             NoteContent(
                 data = NoteContentUi(

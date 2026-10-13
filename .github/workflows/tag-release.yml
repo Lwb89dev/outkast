@@ -1,6 +1,6 @@
 name: Release from tag
 
-# Only LibreNostr release tags. The imported history carries 396 upstream tags
+# Only OUTKAST release tags. The imported history carries 396 upstream tags
 # (31 of them `ios-*`); matching `v*` keeps this workflow from firing on any of
 # them if they are ever pushed, and replaces the old `'*'` + `'!ios-*'` pair.
 on:
@@ -103,10 +103,10 @@ jobs:
           mkdir -p release
           ls -la app/build/outputs/apk/altRelease/
           for abi in arm64-v8a; do
-            cp "app/build/outputs/apk/altRelease/librenostr-${version}-${abi}.apk" \
-               "release/librenostr-${version}-${abi}.apk"
+            cp "app/build/outputs/apk/altRelease/outkast-${version}-${abi}.apk" \
+               "release/outkast-${version}-${abi}.apk"
           done
-          (cd release && sha256sum librenostr-*.apk > SHA256SUMS.txt)
+          (cd release && sha256sum outkast-*.apk > SHA256SUMS.txt)
           echo "version=${version}" >> "$GITHUB_OUTPUT"
 
       # A debug-signed APK is the one failure mode that would look successful all
@@ -116,7 +116,7 @@ jobs:
         run: |
           set -euo pipefail
           apksigner="$(ls "$ANDROID_HOME"/build-tools/*/apksigner | tail -1)"
-          for apk in release/librenostr-*.apk; do
+          for apk in release/outkast-*.apk; do
             "$apksigner" verify --print-certs "$apk"
             if "$apksigner" verify --print-certs "$apk" | grep -q "CN=Android Debug"; then
               echo "::error::$apk is debug-signed; the release keystore was not applied."
@@ -143,10 +143,10 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
-          name: LibreNostr ${{ github.ref_name }}
+          name: OUTKAST ${{ github.ref_name }}
           draft: false
           prerelease: false
           body_path: release-notes.md
           files: |
-            release/librenostr-*.apk
+            release/outkast-*.apk
             release/SHA256SUMS.txt

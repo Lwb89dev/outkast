@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -92,7 +93,7 @@ import androidx.compose.ui.unit.sp
 import kotlin.math.abs
 import kotlinx.coroutines.launch
 import net.primal.android.core.compose.icons.PrimalIcons
-import net.primal.android.core.compose.icons.LibreNavigationIcons
+import net.primal.android.core.compose.icons.OutkastNavigationIcons
 import net.primal.android.core.compose.icons.primaliconpack.Close
 import net.primal.android.core.compose.icons.primaliconpack.Search
 import net.primal.android.core.compose.foundation.keyboardVisibilityAsState
@@ -136,7 +137,7 @@ fun PrimalTopLevelAppBar(
     homeActions: (@Composable () -> Unit)? = null,
 ) {
     if (onSearchClick != null && titleOverride == null) {
-        LibreNostrHomeHeader(
+        OutkastHomeHeader(
             avatarCdnImage = avatarCdnImage,
             avatarBlossoms = avatarBlossoms,
             onAvatarClick = onAvatarClick,
@@ -168,7 +169,7 @@ fun PrimalTopLevelAppBar(
                 if (onMenuClick != null) {
                     IconButton(onClick = onMenuClick) {
                         Icon(
-                            imageVector = LibreNavigationIcons.Menu,
+                            imageVector = OutkastNavigationIcons.Menu,
                             contentDescription = "Open algorithms",
                             tint = AppTheme.colorScheme.onSurface,
                         )
@@ -227,7 +228,7 @@ fun PrimalTopLevelAppBar(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun LibreNostrHomeHeader(
+private fun OutkastHomeHeader(
     avatarCdnImage: CdnImage?,
     avatarBlossoms: List<String>,
     onAvatarClick: () -> Unit,
@@ -263,7 +264,7 @@ private fun LibreNostrHomeHeader(
     // reached (the search bar first, since it sits lowest in the column) kept drawing on top of
     // the feed instead of disappearing until the header fully reached its offset limit.
     SubcomposeLayout(modifier = modifier.fillMaxWidth().clipToBounds()) { constraints ->
-        val header = subcompose("LibreNostrHomeHeader") {
+        val header = subcompose("OutkastHomeHeader") {
             HomeHeaderContent(
                 avatarCdnImage = avatarCdnImage,
                 avatarBlossoms = avatarBlossoms,
@@ -300,7 +301,7 @@ private fun HomeHeaderContent(
     onHeightMeasured: (Int) -> Unit,
     homeActions: (@Composable () -> Unit)? = null,
 ) {
-    val tokens = AppTheme.libreNostrTokens
+    val tokens = AppTheme.outkastTokens
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -309,31 +310,24 @@ private fun HomeHeaderContent(
             .padding(horizontal = 18.dp, vertical = 10.dp)
             .onSizeChanged { onHeightMeasured(it.height) },
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "LibreNostr",
-                    style = AppTheme.typography.headlineSmall.copy(
-                        fontWeight = FontWeight.Bold,
-                        brush = Brush.linearGradient(listOf(tokens.accent, tokens.accentSecondary)),
-                    ),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    text = stringResource(id = net.primal.android.R.string.home_wordmark_subtitle),
-                    style = AppTheme.typography.labelMedium,
-                    color = AppTheme.colorScheme.onSurface.copy(alpha = 0.62f),
-                )
-            }
-            if (showAvatar) {
-                SwipeableAvatar(
-                    avatarCdnImage = avatarCdnImage,
-                    avatarBlossoms = avatarBlossoms,
-                    onAvatarClick = onAvatarClick,
-                    onAvatarSwipeDown = onAvatarSwipeDown,
-                )
-            }
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                text = "OUTKAST",
+                style = AppTheme.typography.headlineSmall.copy(
+                    fontWeight = FontWeight.Bold,
+                    brush = Brush.linearGradient(listOf(tokens.accent, tokens.accentSecondary)),
+                ),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                text = stringResource(id = net.primal.android.R.string.onboarding_welcome_tagline),
+                style = AppTheme.typography.labelMedium,
+                color = AppTheme.colorScheme.onSurface.copy(alpha = 0.62f),
+            )
         }
 
         Spacer(modifier = Modifier.height(14.dp))
@@ -370,7 +364,7 @@ private fun HomeSearchBar(
     val imeBottomPx = WindowInsets.ime.getBottom(density)
     val focusRequester = remember { FocusRequester() }
     var keyboardWasVisible by remember { mutableStateOf(false) }
-    val accent = AppTheme.libreNostrTokens.accent
+    val accent = AppTheme.outkastTokens.accent
     val onSurface = AppTheme.colorScheme.onSurface
     val panelVisible = active && suggestionsVisible
     val barShape = if (panelVisible) {

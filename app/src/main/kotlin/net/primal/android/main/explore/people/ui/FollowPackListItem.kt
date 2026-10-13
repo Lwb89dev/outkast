@@ -148,7 +148,7 @@ fun ItemFooter(
 @Composable
 private fun FollowPackListItemPreview() {
     PrimalPreview(
-        primalTheme = PrimalTheme.Midnight,
+        primalTheme = PrimalTheme.OutkastDark,
     ) {
         FollowPackListItem(
             onProfileClick = {},

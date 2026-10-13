@@ -102,7 +102,7 @@ fun FloatingArticlePill(
 @Composable
 @Preview
 private fun PreviewFloatingArticlePill() {
-    PrimalPreview(primalTheme = PrimalTheme.Ice) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastLight) {
         PrimalScaffold(
             floatingActionButton = {
                 FloatingArticlePill(

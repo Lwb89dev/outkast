@@ -42,7 +42,7 @@ fun NoteSurfaceCard(
 @Preview
 @Composable
 fun PreviewCardWithHighlight() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         NoteSurfaceCard {
             Box(
                 modifier = Modifier

@@ -58,7 +58,7 @@ fun ArticleHashtags(
 @Composable
 @Preview
 private fun PreviewArticleHashtags() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         Surface {
             ArticleHashtags(
                 hashtags = listOf("#librenostr", "#nostr", "#wallet", "#bitcoin", "#mobile", "#android", "#freedom"),

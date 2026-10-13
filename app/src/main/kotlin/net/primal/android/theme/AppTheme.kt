@@ -19,7 +19,7 @@ fun defaultPrimalTheme(): PrimalTheme {
 }
 
 fun findThemeOrDefault(isDark: Boolean): PrimalTheme {
-    return if (isDark) PrimalTheme.Midnight else PrimalTheme.Ice
+    return if (isDark) PrimalTheme.OutkastDark else PrimalTheme.OutkastLight
 }
 
 @Composable
@@ -52,7 +52,7 @@ object AppTheme {
         @Composable
         get() = MaterialTheme.shapes
 
-    val libreNostrTokens: LibreNostrTokens
+    val outkastTokens: OutkastTokens
         @Composable
-        get() = rememberLibreNostrTokens()
+        get() = rememberOutkastTokens()
 }

@@ -381,7 +381,7 @@ private fun LazyListScope.followPackTitleDescription(
 @Preview
 @Composable
 private fun FollowPackScreenPreview() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         FollowPackScreen(
             state = FollowPackContract.UiState(
                 loading = false,
