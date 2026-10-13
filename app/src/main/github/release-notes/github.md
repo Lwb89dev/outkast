@@ -8,4 +8,4 @@ profiles, threads, notifications, DMs, search, bookmarks, mute lists, articles o
 accounts, databases, Keystore material, signing identity and `com.librenostr.android` upgrade
 compatibility are preserved.
 
-See [CHANGELOG.md](https://github.com/Lwb89dev/librenostr/blob/main/CHANGELOG.md) for the full list of changes.
+See [CHANGELOG.md](https://github.com/Lwb89dev/outkast/blob/main/CHANGELOG.md) for the full list of changes.

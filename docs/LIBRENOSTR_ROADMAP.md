@@ -6,7 +6,7 @@ Ordering below follows repository reality: **read-side RelayPool must exist befo
 
 ## Phase 0 — Baseline and audit
 
-Status: **done locally** (import + `aospDebug` compile + unit/`allTests` + these docs). GitHub `origin` is `Lwb89dev/librenostr`.
+Status: **done locally** (import + `aospDebug` compile + unit/`allTests` + these docs). GitHub `origin` is `Lwb89dev/outkast`.
 
 - Import Primal 3.5.25 with history.
 - Configure `origin` / `upstream` (push to upstream disabled).

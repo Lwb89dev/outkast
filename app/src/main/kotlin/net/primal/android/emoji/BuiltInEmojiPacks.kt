@@ -19,7 +19,7 @@ import net.primal.android.emoji.model.EmojiPack
 object BuiltInEmojiPacks {
 
     private const val OSTRICH_PACK_BASE_URL =
-        "https://raw.githubusercontent.com/Lwb89dev/librenostr/main/assets/emoji/librenostr-ostrich-pack"
+        "https://raw.githubusercontent.com/Lwb89dev/outkast/main/assets/emoji/librenostr-ostrich-pack"
 
     private data class BuiltInEmoji(
         val shortcode: String,

@@ -10,8 +10,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Lwb89dev/librenostr/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-6430D5?style=for-the-badge" alt="MIT License"></a>
-  <a href="https://github.com/Lwb89dev/librenostr"><img src="https://img.shields.io/badge/status-active%20development-222?style=for-the-badge" alt="Active development"></a>
+  <a href="https://github.com/Lwb89dev/outkast/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-6430D5?style=for-the-badge" alt="MIT License"></a>
+  <a href="https://github.com/Lwb89dev/outkast"><img src="https://img.shields.io/badge/status-active%20development-222?style=for-the-badge" alt="Active development"></a>
 </p>
 
 OUTKAST is an independent social client built from the LibreNostr and [Primal Android](https://github.com/PrimalHQ/primal-android-app) foundations. It keeps the mature Android/Compose and protocol layers while presenting a simpler product organized around Feed, Discover, Inbox and You.
@@ -24,8 +24,8 @@ client  <->  Nostr relays  +  local Room/DataStore
 
 The imported codebase still contains upstream namespaces and compatibility services. Those are being removed incrementally, path by path, instead of hiding the remaining dependencies behind a rebrand.
 
-The current release is [`v2.0.0`](https://github.com/Lwb89dev/librenostr/releases/tag/v2.0.0). Release APKs
-are signed, `arm64-v8a` only, and published from the [`altRelease`](https://github.com/Lwb89dev/librenostr/releases)
+The current release is [`v2.0.0`](https://github.com/Lwb89dev/outkast/releases/tag/v2.0.0). Release APKs
+are signed, `arm64-v8a` only, and published from the [`altRelease`](https://github.com/Lwb89dev/outkast/releases)
 build variant.
 
 ## Current state
@@ -142,8 +142,8 @@ The APK is written to
 ## Releases
 
 Signed release APKs (`altRelease`, `arm64-v8a` only) are published on the
-[GitHub Releases](https://github.com/Lwb89dev/librenostr/releases) page. The latest release is
-[`v2.0.0`](https://github.com/Lwb89dev/librenostr/releases/tag/v2.0.0). Verify the APK signature
+[GitHub Releases](https://github.com/Lwb89dev/outkast/releases) page. The latest release is
+[`v2.0.0`](https://github.com/Lwb89dev/outkast/releases/tag/v2.0.0). Verify the APK signature
 before installing:
 
 ```bash
@@ -169,7 +169,7 @@ apksigner verify --print-certs outkast-<version>-<abi>.apk
 ## Git remotes
 
 ```text
-origin    https://github.com/Lwb89dev/librenostr.git
+origin    https://github.com/Lwb89dev/outkast.git
 upstream  https://github.com/PrimalHQ/primal-android-app.git   (fetch only)
 ```
 
