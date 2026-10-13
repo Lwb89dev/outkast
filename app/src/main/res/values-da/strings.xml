@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">LibreNostr</string>
+    <string name="app_name">OUTKAST</string>
     <string name="nsec_or_npub">nsec / npub</string>
     <string name="nsec">nsec</string>
     <string name="npub">npub</string>
@@ -36,7 +36,7 @@
     <string name="app_error_unable_to_update_follow_list">Kan ikke opdatere følgende liste. Prøv igen.</string>
     <string name="app_error_unable_to_set_nostr_address">Kan ikke indstille nostr- adresse. Prøv igen.</string>
     <string name="app_error_unable_to_set_lightning_address">Kan ikke indstille lynadresse. Prøv igen.</string>
-    <string name="app_npub_login_error">LibreNostr er i skrivebeskyttet tilstand, fordi du er logget ind via din offentlige nøgle. For at aktivere alle muligheder, skal du logge ind med din private nøgle.</string>
+    <string name="app_npub_login_error">OUTKAST er i skrivebeskyttet tilstand, fordi du er logget ind via din offentlige nøgle. For at aktivere alle muligheder, skal du logge ind med din private nøgle.</string>
     <string name="app_error_restore_default_blossom_server">Kan ikke gendanne standard blossom server. Prøv igen.</string>
     <string name="app_error_unable_to_update_blossom_server_list">Kan ikke opdatere blossom serverlisten. Prøv igen.</string>
     <string name="app_error_fetching_mute_list">Kunne ikke indlæse din stumme liste. Tjek din forbindelse og prøv igen.</string>
@@ -53,7 +53,7 @@
     <string name="welcome_sign_in_button_title">Log ind</string>
     <string name="welcome_create_account_button_title">Opret konto</string>
     <string name="welcome_tos_prefix">Ved at fortsætte accepterer du vores</string>
-    <string name="onboarding_welcome_title">LibreNostr</string>
+    <string name="onboarding_welcome_title">OUTKAST</string>
     <string name="onboarding_welcome_description">En Nostr-klient, der taler direkte. Ingen virksomhed sidder i midten: dine noter, beskeder og følger kommer direkte fra relæer du vælger, din nøgle aldrig forlader denne enhed, og der er ingen konto at tilmelde sig.</string>
     <string name="login_security_notice">Amber anbefales til sikrere nøglehåndtering. Du skal ikke rawdog dit nec ind i en app, du ikke kender. Stol ikke på, verificer: hvis du ikke forstår koden, har en AI gennemgå lageret, før du indtaster følsomme nøgler.</string>
     <string name="legal_tos_hint_highlighted_word">Tjenestevilkår</string>
@@ -92,7 +92,7 @@
     <string name="login_bunker_url_hint">bunker: / /…</string>
     <string name="login_bunker_button_connect">Forbind</string>
     <string name="login_enter_bunker_url">Indsæt bunkeren forbindelsesstreng din signator gav dig:</string>
-    <string name="login_amber_required">LibreNostr tegn med Amber. Installer Amber til at fortsætte.</string>
+    <string name="login_amber_required">OUTKAST tegn med Amber. Installer Amber til at fortsætte.</string>
     <string name="login_description">Indtast din Nostr nøgle til at logge på:</string>
     <string name="login_button_sign_in">Log ind</string>
     <string name="login_button_paste_your_key">Indsæt din nøgle</string>
@@ -106,7 +106,7 @@
     <string name="scan_code_apply_button">Anvend</string>
     <string name="scan_code_error_invalid_login_string">Ugyldig ekstern login streng. Prøv igen.</string>
     <string name="scan_code_redeem_button">Indløs kode</string>
-    <string name="scan_code_onboard_button">Ombord til LibreNostr</string>
+    <string name="scan_code_onboard_button">Ombord til OUTKAST</string>
     <string name="scan_code_use_keyboard_button">Brug tastatur i stedet</string>
     <string name="scan_code_enter_placeholder">Indtast kode…</string>
     <string name="scan_code_remote_login_manual_entry_placeholder">nostrconnect: / /</string>
@@ -114,7 +114,7 @@
     <string name="scan_code_loaded_with">Denne kode er indlæst med:</string>
     <string name="scan_code_get_zapping">Få fat i Zapping!</string>
     <string name="scan_code_sats">sæt</string>
-    <string name="scan_code_primal_premium">LibreNostr Premium</string>
+    <string name="scan_code_primal_premium">Custom address</string>
     <plurals name="scan_code_premium_months">
         <item quantity="one">%1$s måneder</item>
         <item quantity="other">%1$s måneder</item>
@@ -133,8 +133,8 @@
     <string name="scan_code_scan_anything_title">Scan alt:</string>
     <string name="scan_code_scan_anything_subtitle">Inviter kode, betalingsfaktura, login streng, brugerlink, indholdslink, gavekort</string>
     <string name="scan_code_remote_login_camera_title">Login til Nostr app</string>
-    <string name="scan_code_remote_login_camera_subtitle">Brug din LibreNostr-konto til at logge ind på enhver \n Nostr-app, der understøtter fjernadgang.</string>
-    <string name="scan_code_remote_login_manual_entry_subtitle">Brug din LibreNostr-konto til at logge ind på enhver Nostr-app, der understøtter fjernadgang. Indsæt forbindelsesstrengen nedenfor:</string>
+    <string name="scan_code_remote_login_camera_subtitle">Brug din OUTKAST-konto til at logge ind på enhver \n Nostr-app, der understøtter fjernadgang.</string>
+    <string name="scan_code_remote_login_manual_entry_subtitle">Brug din OUTKAST-konto til at logge ind på enhver Nostr-app, der understøtter fjernadgang. Indsæt forbindelsesstrengen nedenfor:</string>
     <string name="logout_title">Log ud</string>
     <string name="logout_description">Hvis du ikke har gemt din private nøgle, vil det være uigenkaldeligt tabt. Vil du virkelig melde dig?</string>
     <string name="logout_cancel_button">Annullér</string>
@@ -165,11 +165,11 @@
     <string name="account_switcher_edit">Redigér</string>
     <string name="account_switcher_create_new_account">Opret en ny konto</string>
     <string name="account_switcher_add_existing_account">Tilføj en eksisterende konto</string>
-    <string name="subscription_primal_title_primary">LibreNostr</string>
+    <string name="subscription_primal_title_primary">OUTKAST</string>
     <string name="subscription_primal_title_secondary">Premium og Pro</string>
-    <string name="subscription_primal_subtitle">Opgrader din LibreNostr oplevelse i dag.</string>
+    <string name="subscription_primal_subtitle">Opgrader din OUTKAST oplevelse i dag.</string>
     <string name="subscription_primal_buy_pro">Køb Pro</string>
-    <string name="subscription_learn_about_pro">Lær om LibreNostr Pro</string>
+    <string name="subscription_learn_about_pro">Lær om OUTKAST Pro</string>
     <string name="subscription_price_per_month">/ måned</string>
     <string name="subscription_billed_annually">%1$s faktureret årligt</string>
     <string name="subscription_save_percent">Gem %1$d %%</string>
@@ -296,9 +296,9 @@
     <string name="feed_lightning_invoice_expired">Denne faktura er udløbet</string>
     <string name="feed_missing_event_alt_description_note">Nævnt notat ikke fundet.</string>
     <string name="feed_missing_event_alt_description_event">Nævnt begivenhed ikke fundet.</string>
-    <string name="feed_paywall_title">Dette er en LibreNostr Premium feed.</string>
+    <string name="feed_paywall_title">Dette er en OUTKAST Premium feed.</string>
     <string name="feed_paywall_description">Køb et Abonnement til at blive en Nostr magt bruger og støtte vores arbejde:</string>
-    <string name="feed_paywall_get_premium_button">Få LibreNostr Premium</string>
+    <string name="feed_paywall_get_premium_button">Få OUTKAST Premium</string>
     <string name="post_delete_repost_button_confirmation">Slet repost</string>
     <string name="post_repost_button_confirmation">Genindstil</string>
     <string name="post_quote_button_confirmation">Citat</string>
@@ -417,7 +417,7 @@
     <string name="explore_feed_topic_reads_feed_description">Alle læst tagget med %1$s</string>
     <string name="explore_feed_advanced_search_feed_title">Søgeresultater</string>
     <string name="explore_feed_simple_search_feed_title">Søg: %1$s</string>
-    <string name="explore_feed_search_feed_description">LibreNostr søgeresultater</string>
+    <string name="explore_feed_search_feed_description">OUTKAST søgeresultater</string>
     <string name="explore_feed_user_feed_title">Bruger: %1$s</string>
     <string name="explore_feed_user_feed_description">Seneste af brugeren følger</string>
     <string name="explore_feed_user_notes_feed_description">Seneste noter af brugeren følger</string>
@@ -580,7 +580,7 @@
     <string name="media_item_error_on_save_try_again">Prøv igen</string>
     <string name="settings_title">Indstillinger</string>
     <string name="settings_language_title">Sprog</string>
-    <string name="settings_language_description">Vælg sproget i LibreNostr. Ændringen anvendes med det samme.</string>
+    <string name="settings_language_description">Vælg sproget i OUTKAST. Ændringen anvendes med det samme.</string>
     <string name="settings_language_system_default">Systemets sprog</string>
     <string name="long_reads_title">Langtidslæsning</string>
     <string name="long_reads_no_content">Ingen lange stillinger endnu.</string>
@@ -616,7 +616,7 @@
     <string name="settings_wallet_nwc_profile_lightning_address_hint">Du kan ændre din Nostr Lightning adresse (for at modtage zaps) i din</string>
     <string name="settings_wallet_nwc_profile_lightning_address_hint_suffix">profilindstillinger</string>
     <string name="settings_wallet_max_wallet_balance">Maks. tegnebogsbalance</string>
-    <string name="settings_wallet_max_wallet_balance_hint">LibreNostr Wallet er en transaktionstegnebog, designet til håndtering af små beløb. Vi anbefaler selvbevogtning for større beløb.</string>
+    <string name="settings_wallet_max_wallet_balance_hint">OUTKAST Wallet er en transaktionstegnebog, designet til håndtering af små beløb. Vi anbefaler selvbevogtning for større beløb.</string>
     <string name="settings_wallet_hide_transactions_below">Skjul transaktioner nedenfor</string>
     <string name="settings_wallet_nwc_connections_header_app">App</string>
     <string name="settings_wallet_nwc_connections_header_daily_budget">Dagligt budget</string>
@@ -634,7 +634,7 @@
     <string name="settings_wallet_hide_transactions_below_edit_title">Redigér beløb</string>
     <string name="settings_wallet_ln_address">Nostr-lynadresse</string>
     <string name="settings_wallet_start_in_wallet">Start i tegnebog</string>
-    <string name="settings_wallet_start_in_wallet_hint">Åbn tegnebogen når LibreNostr starter</string>
+    <string name="settings_wallet_start_in_wallet_hint">Åbn tegnebogen når OUTKAST starter</string>
     <string name="settings_wallet_save">Gem</string>
     <string name="settings_wallet_backup_wallet_title">Backup tegnebog</string>
     <string name="settings_wallet_backup_wallet_subtitle">Skriv din tegnebog opsving sætning, så du ikke mister adgang til dine midler</string>
@@ -646,7 +646,7 @@
     <string name="settings_wallet_export_nwc_logs_subtitle">Download loghistorik for alle NWC-forbindelser i CSV-format</string>
     <string name="settings_wallet_new_nwc_connection_title">Ny Wallet- forbindelse</string>
     <string name="settings_wallet_new_nwc_connection_app_name_input_header">Navn på den app, du ønsker at tilslutte:</string>
-    <string name="settings_wallet_new_nwc_connection_hint">Du kan til enhver tid tilbagekalde adgang i dine LibreNostr Wallet indstillinger.</string>
+    <string name="settings_wallet_new_nwc_connection_hint">Du kan til enhver tid tilbagekalde adgang i dine OUTKAST Wallet indstillinger.</string>
     <string name="settings_wallet_new_nwc_connection_create_new_connection_button">Opret Wallet- forbindelse</string>
     <string name="settings_wallet_new_nwc_connection_cancel_button">Annullér</string>
     <string name="settings_wallet_new_nwc_connection_bottom_sheet_pick_daily_budget_title">Vælg maksimalt dagligt budget</string>
@@ -655,8 +655,8 @@
     <string name="settings_wallet_new_nwc_connection_copy_nwc_string_button">Kopiér NWC streng</string>
     <string name="settings_wallet_new_nwc_connection_done_button">Færdig</string>
     <string name="settings_wallet_new_nwc_connection_connection_created_text">Opret forbindelse</string>
-    <string name="settings_wallet_link_primal_wallet_title">Link LibreNostr Wallet</string>
-    <string name="settings_wallet_link_external_app_request">En ekstern app "%1$s" anmoder om adgang til din LibreNostr Wallet. Hvis du ønsker at tillade dette, skal du klikke på "Giv tegnebog adgang" nedenfor.</string>
+    <string name="settings_wallet_link_primal_wallet_title">Link wallet</string>
+    <string name="settings_wallet_link_external_app_request">En ekstern app "%1$s" anmoder om adgang til din OUTKAST Wallet. Hvis du ønsker at tillade dette, skal du klikke på "Giv tegnebog adgang" nedenfor.</string>
     <string name="settings_wallet_link_give_wallet_access_button">Giv tegnebog adgang</string>
     <string name="settings_wallet_nwc_qr_code_scan_title">Forbind NWC tegnebog</string>
     <string name="settings_wallet_nwc_qr_code_scan_hint">Scan NWC \n tilslutning QR kode</string>
@@ -692,7 +692,7 @@
     <string name="settings_notifications_group_preferences_reactions_from_follows">Vis kun reaktioner fra brugere jeg følger</string>
     <string name="settings_notifications_enable_push_notifications">Aktivér push-notifikationer</string>
     <string name="settings_notifications_show_new_followers">Vis nye følgere</string>
-    <string name="settings_notifications_enable_push_notifications_description">Modtag systemnotifikationer fra LibreNostr. De kan også konfigureres i systemindstillingerne.</string>
+    <string name="settings_notifications_enable_push_notifications_description">Modtag systemnotifikationer fra OUTKAST. De kan også konfigureres i systemindstillingerne.</string>
     <string name="settings_appearance_title">Udseende</string>
     <string name="settings_appearance_theme_section_title">Tema</string>
     <string name="settings_appearance_auto_adjust_dark_mode">Automatisk justér mørkt tema</string>
@@ -910,8 +910,8 @@
     <string name="profile_editor_input_header_bitcoin_lightning_address">Bitcoin lyn adresse</string>
     <string name="profile_editor_input_header_nip_05">Verificeret Nostr adresse (NIP 05)</string>
     <string name="profile_editor_required_field_hint">påkrævet</string>
-    <string name="profile_editor_premium_dialog_title">LibreNostr Premium</string>
-    <string name="profile_editor_premium_dialog_description">Du har brug for en LibreNostr Premium konto for at få en brugerdefineret Nostr Verified Adresse på LibreNostr.</string>
+    <string name="profile_editor_premium_dialog_title">Custom address</string>
+    <string name="profile_editor_premium_dialog_description">Du har brug for en OUTKAST Premium konto for at få en brugerdefineret Nostr Verified Adresse på OUTKAST.</string>
     <string name="profile_editor_premium_dialog_dismiss_text">Annullér</string>
     <string name="profile_editor_premium_dialog_confirm_text">Okay.</string>
     <string name="profile_followers_title">%1$s \'s tilhængere</string>
@@ -948,11 +948,11 @@
     <string name="zap_bottom_sheet_comment_placeholder">Tilføj en kommentar…</string>
     <string name="zap_bottom_sheet_custom_amount_placeholder">Brugerdefineret beløb…</string>
     <string name="zap_bottom_sheet_zap_button">Zap</string>
-    <string name="zap_warning_bottom_sheet_enable_wallet_text">For at zappe folk på Nostr, skal du aktivere din LibreNostr tegnebog eller tilslutte den eksterne tegnebog.</string>
+    <string name="zap_warning_bottom_sheet_enable_wallet_text">For at zappe folk på Nostr, skal du aktivere din OUTKAST tegnebog eller tilslutte den eksterne tegnebog.</string>
     <string name="zap_warning_bottom_sheet_no_sats_to_zap">Utilstrækkelige sats til zap, du har brug for at få nogle sats, før du kan zap.</string>
     <string name="zap_warning_bottom_sheet_go_to_wallet_button">Gå til tegnebog</string>
     <string name="qrcode_scanner_permission_title">Påkrævet tilladelse</string>
-    <string name="qrcode_scanner_permission_rationale">LibreNostr har brug for adgang til dit kamera til at scanne QR-koder.</string>
+    <string name="qrcode_scanner_permission_rationale">OUTKAST har brug for adgang til dit kamera til at scanne QR-koder.</string>
     <string name="qrcode_scanner_grant_permission_button">Tillad adgang</string>
     <string name="qrcode_scanner_cancel_button">Annullér</string>
     <string name="accessibility_back_button">Tilbage</string>
@@ -1096,7 +1096,7 @@
     <string name="permissions_bottom_sheet_event_details_unavailable">Begivenhedsoplysninger ikke tilgængelige</string>
     <string name="permissions_bottom_sheet_back_button">Tilbage</string>
     <string name="signer_notification_name">FjernsigterComment</string>
-    <string name="signer_notification_summary_title">LibreNostr Remote Signer</string>
+    <string name="signer_notification_summary_title">OUTKAST Remote Signer</string>
     <string name="signer_notification_end_session">Slutsession</string>
     <string name="signer_notification_unknown_app">Ukendt app</string>
     <string name="signer_notification_logged_in_as">Logget ind som %s</string>
@@ -1107,7 +1107,7 @@
     <string name="signer_notification_enable_switch_label">Aktivér notifikationer</string>
     <string name="signer_notification_enable_button">Kom så.</string>
     <string name="signer_notification_session_active_prefix">session aktiv med</string>
-    <string name="signer_notification_keep_running_description">For at blive ved med at køre pålideligt, mens LibreNostr er i baggrunden, eller når telefonen er låst, skal du aktivere fjernsignermeddelelser.</string>
+    <string name="signer_notification_keep_running_description">For at blive ved med at køre pålideligt, mens OUTKAST er i baggrunden, eller når telefonen er låst, skal du aktivere fjernsignermeddelelser.</string>
     <string name="local_app_unknown_app">Ukendt app</string>
     <plurals name="poll_votes_count">
         <item quantity="one">%1$d vote</item>

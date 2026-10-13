@@ -182,7 +182,7 @@ fun NostrUserText(
 @Preview
 @Composable
 fun PreviewNostrUserTextWithPrimalBadge() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         Surface {
             NostrUserText(
                 displayName = "Nostr Adamus",
@@ -198,7 +198,7 @@ fun PreviewNostrUserTextWithPrimalBadge() {
 @Preview
 @Composable
 fun PreviewNostrUserTextWithRandomBadge() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         Surface {
             NostrUserText(
                 displayName = "Nostr Adamus",
@@ -214,7 +214,7 @@ fun PreviewNostrUserTextWithRandomBadge() {
 @Preview
 @Composable
 fun PreviewNostrUserTextWithoutBadge() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         Surface {
             NostrUserText(
                 displayName = "Nostr Adamus",
@@ -230,7 +230,7 @@ fun PreviewNostrUserTextWithoutBadge() {
 @Preview
 @Composable
 fun PreviewNostrUserTextWithCustomBadge() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         Surface {
             NostrUserText(
                 displayName = "Nostr Adamus",

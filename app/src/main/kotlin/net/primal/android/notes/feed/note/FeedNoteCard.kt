@@ -768,7 +768,7 @@ fun PreviewFeedNoteListItemLightMultiLineHeader(
     @PreviewParameter(FeedPostUiProvider::class)
     feedPostUi: FeedPostUi,
 ) {
-    PrimalPreview(primalTheme = PrimalTheme.Ice) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastLight) {
         FeedNoteCard(
             data = feedPostUi,
             state = NoteContract.UiState(),
@@ -786,7 +786,7 @@ fun PreviewFeedNoteListItemLightMultiLineHeaderFullWidth(
     @PreviewParameter(FeedPostUiProvider::class)
     feedPostUi: FeedPostUi,
 ) {
-    PrimalPreview(primalTheme = PrimalTheme.Ice) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastLight) {
         FeedNoteCard(
             data = feedPostUi,
             state = NoteContract.UiState(),
@@ -804,7 +804,7 @@ fun PreviewFeedNoteListItemDarkSingleLineHeader(
     @PreviewParameter(FeedPostUiProvider::class)
     feedPostUi: FeedPostUi,
 ) {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         FeedNoteCard(
             data = feedPostUi,
             state = NoteContract.UiState(),
@@ -822,7 +822,7 @@ fun PreviewFeedNoteListItemDarkSingleLineHeaderFullWidth(
     @PreviewParameter(FeedPostUiProvider::class)
     feedPostUi: FeedPostUi,
 ) {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         FeedNoteCard(
             data = feedPostUi,
             state = NoteContract.UiState(),
@@ -840,7 +840,7 @@ fun PreviewFeedNoteListItemLightForcedContentIndentFullWidthSingleLineHeader(
     @PreviewParameter(FeedPostUiProvider::class)
     feedPostUi: FeedPostUi,
 ) {
-    PrimalPreview(primalTheme = PrimalTheme.Ice) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastLight) {
         FeedNoteCard(
             data = feedPostUi,
             state = NoteContract.UiState(),
@@ -860,7 +860,7 @@ fun PreviewFeedNoteListItemDarkForcedContentIndentSingleLineHeader(
     @PreviewParameter(FeedPostUiProvider::class)
     feedPostUi: FeedPostUi,
 ) {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         FeedNoteCard(
             data = feedPostUi,
             state = NoteContract.UiState(),
@@ -878,7 +878,7 @@ fun PreviewFeedNoteListItemDarkForcedContentIndentSingleLineHeader(
 @Preview
 @Composable
 fun PreviewFeedNoteCardWithSingleChoicePollPending() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         FeedNoteCard(
             data = FeedPostUi(
                 postId = "pollPost1",
@@ -924,7 +924,7 @@ fun PreviewFeedNoteCardWithSingleChoicePollPending() {
 @Preview
 @Composable
 fun PreviewFeedNoteCardWithSingleChoicePollVoted() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         FeedNoteCard(
             data = FeedPostUi(
                 postId = "pollPost2",
@@ -988,7 +988,7 @@ fun PreviewFeedNoteCardWithSingleChoicePollVoted() {
 @Preview
 @Composable
 fun PreviewFeedNoteCardWithSingleChoicePollEnded() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         FeedNoteCard(
             data = FeedPostUi(
                 postId = "pollPost3",

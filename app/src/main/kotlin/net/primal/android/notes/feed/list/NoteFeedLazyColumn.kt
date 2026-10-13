@@ -33,7 +33,7 @@ import io.github.aakira.napier.Napier
 import net.primal.android.R
 import net.primal.android.core.compose.ListLoadingError
 import net.primal.android.core.compose.ListNoContent
-import net.primal.android.core.compose.LibreNostrLoadingSpinner
+import net.primal.android.core.compose.OutkastLoadingSpinner
 import net.primal.android.core.compose.PremiumFeedPaywall
 import net.primal.android.core.compose.heightAdjustableLoadingLazyListPlaceholder
 import net.primal.android.core.compose.isEmpty
@@ -148,7 +148,7 @@ fun NoteFeedLazyColumn(
                         FeedNoteCard(
                             data = renderedItem,
                             shape = AppTheme.shapes.large,
-                            border = BorderStroke(1.dp, AppTheme.libreNostrTokens.softOutline),
+                            border = BorderStroke(1.dp, AppTheme.outkastTokens.softOutline),
                             cardPadding = PaddingValues(horizontal = 10.dp, vertical = 5.dp),
                             fullWidthContent = true,
                             forceContentIndent = true,
@@ -195,7 +195,7 @@ fun NoteFeedLazyColumn(
                                     modifier = Modifier.fillParentMaxSize(),
                                     contentAlignment = Alignment.Center,
                                 ) {
-                                    LibreNostrLoadingSpinner()
+                                    OutkastLoadingSpinner()
                                 }
                             }
                         } else {

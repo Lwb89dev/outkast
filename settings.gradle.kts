@@ -23,7 +23,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "LibreNostr"
+rootProject.name = "OUTKAST"
 
 include(":app")
 include(":detekt-rules")
@@ -57,4 +57,3 @@ include(":data:account:repository")
 include(":domain:nostr")
 include(":domain:primal")
 include(":domain:account")
-

@@ -1,20 +1,20 @@
-# LibreNostr
+# OUTKAST
 
 <p align="center">
-  <img src="assets/icons/icon.png" alt="LibreNostr" width="128" height="128">
+  <img src="assets/icons/icon-outkast.png" alt="OUTKAST" width="160" height="160">
 </p>
 
 <p align="center">
-  <strong>A relay-first Nostr client for Android.</strong><br>
-  Connects to Nostr relays directly and keeps local state on the device, without proprietary infrastructure.
+  <strong>You don't need permission to exist online.</strong><br>
+  A social-first, relay-native Nostr client for Android.
 </p>
 
 <p align="center">
-  <a href="https://github.com/Lwb89dev/librenostr/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-6430D5?style=for-the-badge" alt="MIT License"></a>
-  <a href="https://github.com/Lwb89dev/librenostr"><img src="https://img.shields.io/badge/status-active%20development-222?style=for-the-badge" alt="Active development"></a>
+  <a href="https://github.com/Lwb89dev/outkast/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-6430D5?style=for-the-badge" alt="MIT License"></a>
+  <a href="https://github.com/Lwb89dev/outkast"><img src="https://img.shields.io/badge/status-active%20development-222?style=for-the-badge" alt="Active development"></a>
 </p>
 
-LibreNostr is a fork of an open-source Android client ([upstream repository](https://github.com/PrimalHQ/primal-android-app)). The project keeps the mature Android/Compose foundation while replacing the remote cache dependency with ordinary Nostr relay queries wherever the relay path is ready.
+OUTKAST is an independent social client built from the LibreNostr and [Primal Android](https://github.com/PrimalHQ/primal-android-app) foundations. It keeps the mature Android/Compose and protocol layers while presenting a simpler product organized around Feed, Discover, Inbox and You.
 
 The target architecture is:
 
@@ -24,8 +24,8 @@ client  <->  Nostr relays  +  local Room/DataStore
 
 The imported codebase still contains upstream namespaces and compatibility services. Those are being removed incrementally, path by path, instead of hiding the remaining dependencies behind a rebrand.
 
-The current release is [`v1.1.3`](https://github.com/Lwb89dev/librenostr/releases/tag/v1.1.3). Release APKs
-are signed, `arm64-v8a` only, and published from the [`altRelease`](https://github.com/Lwb89dev/librenostr/releases)
+The current release is [`v2.0.0`](https://github.com/Lwb89dev/outkast/releases/tag/v2.0.0). Release APKs
+are signed, `arm64-v8a` only, and published from the [`altRelease`](https://github.com/Lwb89dev/outkast/releases)
 build variant.
 
 ## Current state
@@ -45,20 +45,18 @@ and [`docs/SECURITY_AUDIT.md`](docs/SECURITY_AUDIT.md).
 - local-key note publishing to write relays, with the published event persisted locally;
 - NWC (NIP-47) as the only in-app wallet transport; legacy centralized/embedded wallet, premium and FCM push services are removed or fail closed;
 - Android Keystore AES-GCM local credential storage, disabled Android backup, HTTPS-only/cleartext-disabled networking;
-- LibreNostr-branded Compose UI with home, notifications, profile, algorithm and settings navigation;
+- OUTKAST Dark and OUTKAST Light, a focused editorial Compose system, and four primary destinations: Feed, Discover, Inbox and You;
 - profile sharing through `nostrich.org/p/<npub>` and Android deep-link handling;
 - inline search: profile results appear below the search field and note/read results render in the same screen, without an intermediate results page;
 - persistent recent searches and recent profiles, capped at five entries per group and shown with profile images;
 - note composer attachments, camera/gallery selection, polls and a GIF picker backed by Wikimedia Commons previews.
 - deck mode on tablets held in landscape: several named decks of drag-and-drop columns (feeds, hashtags, profiles, Reads, notifications, messages), with notes, profiles and DMs opening inside their column; phones and portrait tablets keep the tabbed layout.
 
-The app name and launcher icon are LibreNostr. The Android application ID is
-`com.librenostr.android`; the internal Kotlin/Java package namespace is still
-`net.primal.android` and is renamed separately from the networking migration.
+The Android application ID intentionally remains `com.librenostr.android` so signed OUTKAST releases can update existing LibreNostr installations without losing identities, databases, relay settings, wallet connections or Android Keystore material. The internal namespace remains `net.primal.android` until a separately verified namespace-only migration is safe; it is not the product identity.
 
 ### Network routing and Tor
 
-LibreNostr supports three network modes:
+OUTKAST supports three network modes:
 
 | Mode | Behavior |
 |---|---|
@@ -76,7 +74,7 @@ therefore distributed as an `arm64-v8a` split only.
 
 ## Remaining boundaries
 
-LibreNostr is not yet a complete removal of every upstream-specific component. In particular:
+OUTKAST still carries compatibility boundaries inherited from upstream. In particular:
 
 - wallet/premium/external-signer UI and compatibility modules remain in the imported tree; their centralized transports are fail-closed but the modules themselves (including the optional Breez/Spark native library) are still compiled in and scheduled for removal;
 - some upstream class, package and module names (e.g. `networking-primal`, `domain-primal`) still reflect the original codebase;
@@ -102,7 +100,7 @@ The Android application is packaged for `arm64-v8a` only. The built-in Tor nativ
 committed under `app/src/main/jniLibs/arm64-v8a/`; rebuilding it separately requires the pinned toolchain
 documented in [`tools/arti-build/README.md`](tools/arti-build/README.md).
 
-There is a single build: LibreNostr ships without Google Play services, Play Billing, ML Kit or Firebase, so there is no flavor dimension.
+There is a single build: OUTKAST ships without Google Play services, Play Billing, ML Kit or Firebase, so there is no flavor dimension.
 
 ```bash
 export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64   # or another JDK 21 path
@@ -139,17 +137,17 @@ storage key. Build and install the signed release with:
 ```
 
 The APK is written to
-`app/build/outputs/apk/altRelease/librenostr-<version>-arm64-v8a.apk`.
+`app/build/outputs/apk/altRelease/outkast-<version>-arm64-v8a.apk`.
 
 ## Releases
 
 Signed release APKs (`altRelease`, `arm64-v8a` only) are published on the
-[GitHub Releases](https://github.com/Lwb89dev/librenostr/releases) page. The latest release is
-[`v1.1.3`](https://github.com/Lwb89dev/librenostr/releases/tag/v1.1.3). Verify the APK signature
+[GitHub Releases](https://github.com/Lwb89dev/outkast/releases) page. The latest release is
+[`v2.0.0`](https://github.com/Lwb89dev/outkast/releases/tag/v2.0.0). Verify the APK signature
 before installing:
 
 ```bash
-apksigner verify --print-certs librenostr-<version>-<abi>.apk
+apksigner verify --print-certs outkast-<version>-<abi>.apk
 ```
 
 ## Documentation
@@ -159,6 +157,7 @@ apksigner verify --print-certs librenostr-<version>-<abi>.apk
 | [`CHANGELOG.md`](CHANGELOG.md) | English release history |
 | [`built_in_tor.md`](built_in_tor.md) | Built-in Tor design, implementation status and verification notes |
 | [`docs/UPSTREAM.md`](docs/UPSTREAM.md) | Origin, remotes and MIT obligations |
+| [`docs/OUTKAST_MIGRATION.md`](docs/OUTKAST_MIGRATION.md) | Upgrade contract, feature-preservation matrix and regression plan |
 | [`docs/BASELINE.md`](docs/BASELINE.md) | Toolchain and imported baseline |
 | [`docs/ARCHITECTURE_UPSTREAM.md`](docs/ARCHITECTURE_UPSTREAM.md) | KEEP / REFACTOR / REPLACE / REMOVE map |
 | [`docs/PRIMAL_SERVER_DEPENDENCIES.md`](docs/PRIMAL_SERVER_DEPENDENCIES.md) | Inventory of remaining server verbs |
@@ -170,7 +169,7 @@ apksigner verify --print-certs librenostr-<version>-<abi>.apk
 ## Git remotes
 
 ```text
-origin    https://github.com/Lwb89dev/librenostr.git
+origin    https://github.com/Lwb89dev/outkast.git
 upstream  https://github.com/PrimalHQ/primal-android-app.git   (fetch only)
 ```
 
@@ -185,7 +184,7 @@ migration phase before starting work on the networking layer.
 
 ## License
 
-MIT. Upstream copyright: Copyright (c) 2023 PRIMAL SYSTEMS INC. See [LICENSE](LICENSE). LibreNostr does not claim authorship of unmodified upstream code and uses LibreNostr as its product identity.
+MIT. Upstream copyright: Copyright (c) 2023 PRIMAL SYSTEMS INC. See [LICENSE](LICENSE). OUTKAST preserves attribution for LibreNostr and all unmodified upstream code.
 
 ## Acknowledgments
 

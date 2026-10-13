@@ -21,7 +21,7 @@ import net.primal.android.profile.details.NOTES_TAB_INDEX
 import net.primal.android.profile.details.READS_TAB_INDEX
 import net.primal.android.profile.details.REPLIES_TAB_INDEX
 import net.primal.android.theme.AppTheme
-import net.primal.android.core.compose.icons.LibreNavigationIcons
+import net.primal.android.core.compose.icons.OutkastNavigationIcons
 
 internal const val PROFILE_TAB_COUNT = 4
 
@@ -51,7 +51,7 @@ fun ProfileTabs(
             modifier = Modifier.fillMaxWidth(),
             selected = selectedTabIndex == NOTES_TAB_INDEX,
             onClick = onNotesCountClick,
-            icon = LibreNavigationIcons.Notes,
+            icon = OutkastNavigationIcons.Notes,
             label = stringResource(id = R.string.profile_notes_stat),
         )
 
@@ -59,21 +59,21 @@ fun ProfileTabs(
             modifier = Modifier.fillMaxWidth(),
             selected = selectedTabIndex == REPLIES_TAB_INDEX,
             onClick = onRepliesCountClick,
-            icon = LibreNavigationIcons.Replies,
+            icon = OutkastNavigationIcons.Replies,
             label = stringResource(id = R.string.profile_replies_stat),
         )
 
         CustomTab(
             selected = selectedTabIndex == READS_TAB_INDEX,
             onClick = onReadsCountClick,
-            icon = LibreNavigationIcons.Reads,
+            icon = OutkastNavigationIcons.Reads,
             label = stringResource(id = R.string.profile_reads_stat),
         )
 
         CustomTab(
             selected = selectedTabIndex == MEDIA_TAB_INDEX,
             onClick = onMediaCountClick,
-            icon = LibreNavigationIcons.Media,
+            icon = OutkastNavigationIcons.Media,
             label = stringResource(id = R.string.profile_media_stat),
         )
     }

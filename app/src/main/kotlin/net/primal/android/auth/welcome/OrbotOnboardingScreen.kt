@@ -89,7 +89,7 @@ fun OrbotOnboardingScreen(onComplete: () -> Unit) {
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(18.dp),
-                    color = Color(0xFF6B3FE8).copy(alpha = 0.12f),
+                    color = Color(0xFFFF6238).copy(alpha = 0.12f),
                 ) {
                     Text(
                         modifier = Modifier.padding(horizontal = 18.dp, vertical = 14.dp),
@@ -121,7 +121,7 @@ private fun PrivacyModeCard(
         color = Color.White.copy(alpha = if (emphasized) 0.26f else 0.16f),
         border = BorderStroke(
             width = 1.dp,
-            color = if (emphasized) Color(0xFF6B3FE8).copy(alpha = 0.45f) else Color.White.copy(alpha = 0.3f),
+            color = if (emphasized) Color(0xFFFF6238).copy(alpha = 0.45f) else Color.White.copy(alpha = 0.3f),
         ),
     ) {
         Row(
@@ -131,7 +131,7 @@ private fun PrivacyModeCard(
             Surface(
                 modifier = Modifier.size(36.dp),
                 shape = CircleShape,
-                color = if (emphasized) Color(0xFF6B3FE8) else Color.White.copy(alpha = 0.3f),
+                color = if (emphasized) Color(0xFFFF6238) else Color.White.copy(alpha = 0.3f),
             ) {
                 Row(
                     horizontalArrangement = Arrangement.Center,

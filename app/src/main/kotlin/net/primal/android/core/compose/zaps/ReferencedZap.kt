@@ -138,7 +138,7 @@ fun ZapAmountAndMessageColumn(amountInSats: Double, message: String?) {
 @Preview
 @Composable
 fun PreviewMessageAndDisplayName() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         ReferencedZap(
             modifier = Modifier.width(300.dp),
             noteCallbacks = NoteCallbacks(),
@@ -156,7 +156,7 @@ fun PreviewMessageAndDisplayName() {
 @Preview
 @Composable
 fun PreviewNoMessageAndDisplayName() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         ReferencedZap(
             modifier = Modifier.width(300.dp),
             noteCallbacks = NoteCallbacks(),
@@ -174,7 +174,7 @@ fun PreviewNoMessageAndDisplayName() {
 @Preview
 @Composable
 fun PreviewNoMessageAndNoDisplayName() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         ReferencedZap(
             modifier = Modifier.width(300.dp),
             noteCallbacks = NoteCallbacks(),
@@ -192,7 +192,7 @@ fun PreviewNoMessageAndNoDisplayName() {
 @Preview
 @Composable
 fun PreviewMessageAndNoDisplayName() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         ReferencedZap(
             modifier = Modifier.width(300.dp),
             noteCallbacks = NoteCallbacks(),

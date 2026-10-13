@@ -59,7 +59,7 @@ fun AppBarIcon(
 @Preview
 @Composable
 fun PreviewAppBarIcon() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         PrimalScaffold(
             topBar = {
                 TopAppBar(

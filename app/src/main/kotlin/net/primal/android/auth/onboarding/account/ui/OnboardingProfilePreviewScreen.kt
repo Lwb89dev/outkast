@@ -559,7 +559,7 @@ private fun SuccessAvatarBox(modifier: Modifier = Modifier, avatarUri: Uri?) {
 @Preview
 @Composable
 private fun PreviewOnboardingProfilePreviewScreen() {
-    PrimalPreview(primalTheme = net.primal.android.theme.domain.PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = net.primal.android.theme.domain.PrimalTheme.OutkastDark) {
         ColumnWithBackground(
             backgroundBrushProvider = ::primalGradientBrush,
             brushAlpha = PrimalGradientAlpha,
@@ -586,7 +586,7 @@ private fun PreviewOnboardingProfilePreviewScreen() {
 @Preview
 @Composable
 private fun PreviewOnboardingProfileSuccessScreen() {
-    PrimalPreview(primalTheme = net.primal.android.theme.domain.PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = net.primal.android.theme.domain.PrimalTheme.OutkastDark) {
         ColumnWithBackground(
             backgroundBrushProvider = ::primalGradientBrush,
             brushAlpha = PrimalGradientAlpha,

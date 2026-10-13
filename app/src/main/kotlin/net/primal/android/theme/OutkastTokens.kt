@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
  * colour constants.
  */
 @Immutable
-data class LibreNostrTokens(
+data class OutkastTokens(
     val accent: Color,
     val accentSecondary: Color,
     val accentTertiary: Color,
@@ -31,21 +31,18 @@ data class LibreNostrTokens(
     val dockHeight: Dp = DEFAULT_DOCK_HEIGHT_DP.dp,
 ) {
     companion object {
-        // Exposed as a raw Int (rather than just a private default) so callers that need to
-        // reserve layout space for the dock outside a Composable — where rememberLibreNostrTokens()
-        // isn't reachable — can still stay in sync with it. See PrimalNavigationBar's
-        // NavigationBarFullHeightDp.
+        // Retained as a stable size token for the compact Orbit surfaces.
         const val DEFAULT_DOCK_HEIGHT_DP = 68
     }
 }
 
 @Composable
-fun rememberLibreNostrTokens(): LibreNostrTokens {
+fun rememberOutkastTokens(): OutkastTokens {
     val colors = AppTheme.colorScheme
     val extra = AppTheme.extraColorScheme
 
     return remember(colors, extra) {
-        LibreNostrTokens(
+        OutkastTokens(
             accent = colors.primary,
             accentSecondary = colors.secondary,
             accentTertiary = colors.tertiary,

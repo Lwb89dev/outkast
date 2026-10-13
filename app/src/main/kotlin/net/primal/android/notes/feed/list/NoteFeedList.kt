@@ -341,7 +341,7 @@ fun NoteFeedList(
         NoteFeedLazyColumn(
             modifier = Modifier
                 .testTag(CommonTestTags.NOTE_FEED_LAZY_COLUMN)
-                .background(color = AppTheme.libreNostrTokens.sunkenSurface)
+                .background(color = AppTheme.outkastTokens.sunkenSurface)
                 .fillMaxSize(),
             contentPadding = paddingValues,
             pagingItems = pagingItems,

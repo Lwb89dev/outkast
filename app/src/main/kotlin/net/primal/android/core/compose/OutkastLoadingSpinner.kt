@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.dp
 import net.primal.android.theme.AppTheme
 
 @Composable
-fun LibreNostrLoadingSpinner(
+fun OutkastLoadingSpinner(
     modifier: Modifier = Modifier,
     size: Dp = 56.dp,
 ) {

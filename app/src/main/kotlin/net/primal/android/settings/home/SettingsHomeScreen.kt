@@ -309,7 +309,7 @@ private fun PrimalSettingsSection.title(): String {
 @Preview
 @Composable
 private fun PreviewSettingsHomeScreen() {
-    PrimalPreview(primalTheme = PrimalTheme.Ice) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastLight) {
         SettingsHomeScreen(
             state = SettingsHomeContract.UiState(version = "1.1"),
             onClose = { },

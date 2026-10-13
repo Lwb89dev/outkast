@@ -49,7 +49,7 @@ import net.primal.android.R
 import net.primal.android.articles.feed.ui.FeedArticleListItem
 import net.primal.android.articles.feed.ui.FeedArticleUi
 import net.primal.android.core.compose.ListLoadingError
-import net.primal.android.core.compose.LibreNostrLoadingSpinner
+import net.primal.android.core.compose.OutkastLoadingSpinner
 import net.primal.android.core.compose.PremiumFeedPaywall
 import net.primal.android.core.activity.LocalActiveAccountId
 import net.primal.android.core.compose.PrimalDivider
@@ -340,7 +340,7 @@ private fun ArticleFeedLazyColumn(
                         modifier = Modifier.fillParentMaxSize(),
                         contentAlignment = Alignment.Center,
                     ) {
-                        LibreNostrLoadingSpinner()
+                        OutkastLoadingSpinner()
                     }
                 }
             } else {

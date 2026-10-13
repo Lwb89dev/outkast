@@ -14,8 +14,6 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v4
-        with:
-          ref: main
 
       - name: Download & install zsp
         run: |
@@ -27,4 +25,9 @@ jobs:
       - name: Publish to Zapstore
         env:
           SIGN_WITH: ${{ secrets.ZAPSTORE_SIGN_WITH }}
-        run: zsp publish -q
+        run: |
+          # Use the config from the ref selected for this workflow run. The old
+          # hard-coded `main` checkout could leave zsp with the pre-OUTKAST
+          # matcher (`librenostr-*.apk`) and therefore reject the release asset.
+          zsp publish --check zapstore.yaml
+          zsp publish --quiet zapstore.yaml

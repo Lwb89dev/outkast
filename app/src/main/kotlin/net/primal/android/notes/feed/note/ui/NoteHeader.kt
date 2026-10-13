@@ -172,7 +172,7 @@ private fun NoteAuthorBadgeAndTimestampSection(
 fun PreviewLightNoteHeader() {
     CompositionLocalProvider(LocalContentDisplaySettings provides ContentDisplaySettings()) {
         PrimalTheme(
-            primalTheme = PrimalTheme.Ice,
+            primalTheme = PrimalTheme.OutkastLight,
         ) {
             Surface {
                 FeedNoteHeader(
@@ -192,7 +192,7 @@ fun PreviewLightNoteHeader() {
 fun PreviewLightSingleNoteHeader() {
     CompositionLocalProvider(LocalContentDisplaySettings provides ContentDisplaySettings()) {
         PrimalTheme(
-            primalTheme = PrimalTheme.Ice,
+            primalTheme = PrimalTheme.OutkastLight,
         ) {
             Surface {
                 FeedNoteHeader(
@@ -214,7 +214,7 @@ fun PreviewLightSingleNoteHeader() {
 fun PreviewDarkNoteHeader() {
     CompositionLocalProvider(LocalContentDisplaySettings provides ContentDisplaySettings()) {
         PrimalTheme(
-            primalTheme = PrimalTheme.Midnight,
+            primalTheme = PrimalTheme.OutkastDark,
         ) {
             Surface {
                 FeedNoteHeader(
@@ -235,7 +235,7 @@ fun PreviewDarkNoteHeader() {
 fun PreviewDarkSingleLineNoAvatarNoteHeader() {
     CompositionLocalProvider(LocalContentDisplaySettings provides ContentDisplaySettings()) {
         PrimalTheme(
-            primalTheme = PrimalTheme.Midnight,
+            primalTheme = PrimalTheme.OutkastDark,
         ) {
             Surface {
                 FeedNoteHeader(

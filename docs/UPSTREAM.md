@@ -41,14 +41,14 @@ The current `LICENSE` file is unchanged from upstream and remains the legal noti
 
 | Field | Value |
 |---|---|
-| GitHub repository | [Lwb89dev/librenostr](https://github.com/Lwb89dev/librenostr) |
-| Local `origin` | `https://github.com/Lwb89dev/librenostr.git` |
+| GitHub repository | [Lwb89dev/outkast](https://github.com/Lwb89dev/outkast) |
+| Local `origin` | `https://github.com/Lwb89dev/outkast.git` |
 | Local `upstream` | `https://github.com/PrimalHQ/primal-android-app.git` |
 | `upstream` push URL | `DISABLE` (push to Primal is blocked on purpose) |
 
 Status on 2026-08-27:
 
-- GitHub repository created as `Lwb89dev/librenostr` (private).
+- GitHub repository created as `Lwb89dev/outkast` (private).
 - `origin` points at that URL.
 - First push of `main` is the imported Primal 3.5.25 history plus LibreNostr Phase 0 docs.
 
@@ -57,7 +57,7 @@ Do **not** push to `upstream`.
 ## Recommended remote setup
 
 ```text
-origin    → Lwb89dev/librenostr          (LibreNostr work)
+origin    → Lwb89dev/outkast             (OUTKAST work)
 upstream  → PrimalHQ/primal-android-app  (fetch only)
 ```
 
@@ -65,8 +65,8 @@ Verify:
 
 ```bash
 git remote -v
-# origin    https://github.com/Lwb89dev/librenostr.git (fetch)
-# origin    https://github.com/Lwb89dev/librenostr.git (push)
+# origin    https://github.com/Lwb89dev/outkast.git (fetch)
+# origin    https://github.com/Lwb89dev/outkast.git (push)
 # upstream  https://github.com/PrimalHQ/primal-android-app.git (fetch)
 # upstream  DISABLE (push)
 ```

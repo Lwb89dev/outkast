@@ -51,7 +51,7 @@ import net.primal.android.notes.feed.note.ui.FeedNoteActionsRow
 import net.primal.android.notes.feed.note.ui.NoteContent
 import net.primal.android.notes.feed.note.ui.events.NoteCallbacks
 import net.primal.android.theme.AppTheme
-import net.primal.android.theme.domain.PrimalTheme.Midnight
+import net.primal.android.theme.domain.PrimalTheme.OutkastDark
 import net.primal.domain.nostr.NostrEventKind
 import net.primal.domain.notifications.NotificationType
 
@@ -796,7 +796,7 @@ private fun PreviewUnseenNotificationsListItem(
     @PreviewParameter(NotificationsParameterProvider::class)
     notifications: List<NotificationUi>,
 ) {
-    PrimalPreview(primalTheme = Midnight) {
+    PrimalPreview(primalTheme = OutkastDark) {
         NotificationListItem(
             notifications = notifications,
             type = notifications.first().notificationType,
@@ -812,7 +812,7 @@ private fun PreviewSeenNotificationsListItem(
     @PreviewParameter(NotificationsParameterProvider::class)
     notifications: List<NotificationUi>,
 ) {
-    PrimalPreview(primalTheme = Midnight) {
+    PrimalPreview(primalTheme = OutkastDark) {
         NotificationListItem(
             notifications = notifications,
             type = notifications.first().notificationType,

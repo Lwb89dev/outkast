@@ -619,7 +619,7 @@ fun LaunchedErrorHandler(viewModel: LoginViewModel) {
 @Preview
 @Composable
 fun PreviewLoginScreen() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         LoginScreen(
             state = LoginContract.UiState(loading = false),
             eventPublisher = {},

@@ -57,7 +57,7 @@ class ActiveThemeStoreTest {
     @Test
     fun `setUserTheme stores the user theme`() =
         runTest {
-            val expectedTheme = net.primal.android.theme.domain.PrimalTheme.Midnight
+            val expectedTheme = net.primal.android.theme.domain.PrimalTheme.OutkastDark
             val activeThemeStore = createActiveThemeStore()
             activeThemeStore.setUserTheme(expectedTheme.themeName)
             advanceUntilIdleAndDelay()
@@ -81,7 +81,7 @@ class ActiveThemeStoreTest {
     @Test
     fun `userThemeState corresponds to saved theme`() =
         runTest {
-            val expectedTheme = net.primal.android.theme.domain.PrimalTheme.Ice
+            val expectedTheme = net.primal.android.theme.domain.PrimalTheme.OutkastLight
             persistence.updateData { expectedTheme.themeName }
             val activeThemeStore = createActiveThemeStore()
             advanceUntilIdle()
@@ -92,7 +92,7 @@ class ActiveThemeStoreTest {
         }
 
     @Test
-    fun `legacy sunset theme migrates to Midnight`() =
+    fun `legacy sunset theme migrates to OUTKAST dark`() =
         runTest {
             persistence.updateData { "sunset" }
             val activeThemeStore = createActiveThemeStore()
@@ -100,11 +100,11 @@ class ActiveThemeStoreTest {
 
             val actual = activeThemeStore.userThemeState.value
             actual.shouldNotBeNull()
-            actual shouldBe net.primal.android.theme.domain.PrimalTheme.Midnight
+            actual shouldBe net.primal.android.theme.domain.PrimalTheme.OutkastDark
         }
 
     @Test
-    fun `legacy sunrise theme migrates to Ice`() =
+    fun `legacy sunrise theme migrates to OUTKAST light`() =
         runTest {
             persistence.updateData { "sunrise" }
             val activeThemeStore = createActiveThemeStore()
@@ -112,7 +112,7 @@ class ActiveThemeStoreTest {
 
             val actual = activeThemeStore.userThemeState.value
             actual.shouldNotBeNull()
-            actual shouldBe net.primal.android.theme.domain.PrimalTheme.Ice
+            actual shouldBe net.primal.android.theme.domain.PrimalTheme.OutkastLight
         }
 
     @Test
@@ -122,7 +122,7 @@ class ActiveThemeStoreTest {
             createActiveThemeStore()
 
             val persisted = persistence.data.first()
-            persisted shouldBe "midnight"
+            persisted shouldBe "outkast-dark"
         }
 
     @Test
@@ -132,7 +132,7 @@ class ActiveThemeStoreTest {
             createActiveThemeStore()
 
             val persisted = persistence.data.first()
-            persisted shouldBe "ice"
+            persisted shouldBe "outkast-light"
         }
 
     /**
@@ -153,8 +153,8 @@ class ActiveThemeStoreTest {
     }
 
     @Test
-    fun `dark pixel is the default theme`() {
-        ActiveThemeStore.DEFAULT_THEME shouldBe PrimalTheme.DarkPixel
+    fun `OUTKAST dark is the default theme`() {
+        ActiveThemeStore.DEFAULT_THEME shouldBe PrimalTheme.OutkastDark
     }
 
     @Test
@@ -169,17 +169,17 @@ class ActiveThemeStoreTest {
         runTest {
             val (_, store) = createStoreLikeProduction(fileName = "chosenOverDefaultTheme")
 
-            store.setUserTheme(PrimalTheme.Ice.themeName)
+            store.setUserTheme(PrimalTheme.OutkastLight.themeName)
             advanceUntilIdleAndDelay()
 
-            store.userThemeState.value shouldBe PrimalTheme.Ice
+            store.userThemeState.value shouldBe PrimalTheme.OutkastLight
         }
 
     @Test
     fun `following the system stays null instead of falling back to the default theme`() =
         runTest {
             // "Adjust to the system" is stored as an empty string. It is a choice the user made, so
-            // changing the default for people who never chose must not turn it into Dark Pixel.
+            // changing the default for people who never chose must not turn it into OUTKAST Dark.
             val (persistence, _) = createStoreLikeProduction(fileName = "followSystemTheme")
             persistence.updateData { "" }
 

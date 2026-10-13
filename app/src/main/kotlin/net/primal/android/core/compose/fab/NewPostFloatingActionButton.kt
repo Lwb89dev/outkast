@@ -20,7 +20,7 @@ import net.primal.android.theme.AppTheme
 
 @Composable
 fun NewPostFloatingActionButton(onNewPostClick: () -> Unit) {
-    val tokens = AppTheme.libreNostrTokens
+    val tokens = AppTheme.outkastTokens
     Box(
         modifier = Modifier
             .size(48.dp)

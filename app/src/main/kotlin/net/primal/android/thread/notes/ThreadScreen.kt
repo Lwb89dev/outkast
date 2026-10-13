@@ -982,7 +982,7 @@ private fun ReplyToOptions(
 @Preview
 @Composable
 fun ThreadScreenPreview() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         ThreadScreen(
             state = ThreadContract.UiState(
                 highlightPostId = "",

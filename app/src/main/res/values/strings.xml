@@ -1,5 +1,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <string name="app_name">LibreNostr</string>
+    <string name="app_name">OUTKAST</string>
+    <string name="outkast_orbit_title">Move differently</string>
+    <string name="outkast_orbit_hint">Swipe from either edge to move between worlds. Pull this portal upward whenever you want the full map.</string>
 
     <string name="nsec_or_npub">nsec / npub</string>
     <string name="nsec">nsec</string>
@@ -39,7 +41,7 @@
     <string name="app_error_unable_to_update_follow_list">Unable to update follow list. Please try again.</string>
     <string name="app_error_unable_to_set_nostr_address">Unable to set nostr address. Please try again.</string>
     <string name="app_error_unable_to_set_lightning_address">Unable to set lightning address. Please try again.</string>
-    <string name="app_npub_login_error">LibreNostr is in read only mode because you are signed in via your public key. To enable all options, please sign in with your private key.</string>
+    <string name="app_npub_login_error">OUTKAST is in read only mode because you are signed in via your public key. To enable all options, please sign in with your private key.</string>
     <string name="app_error_restore_default_blossom_server">Unable to restore default blossom server. Please try again.</string>
     <string name="app_error_unable_to_update_blossom_server_list">Unable to update blossom server list. Please try again.</string>
     <string name="app_error_fetching_mute_list">Failed to load your mute list. Please check your connection and try again.</string>
@@ -52,7 +54,7 @@
     <string name="onboarding_relay_note_profiles">Profiles only — serves names and avatars, not notes</string>
     <string name="onboarding_relay_eyebrow">CHOOSE YOUR NETWORK</string>
     <string name="onboarding_relay_title">Connect directly to Nostr</string>
-    <string name="onboarding_relay_description">Pick at least three relays. LibreNostr talks to them directly, with no caching server in between.</string>
+    <string name="onboarding_relay_description">Pick at least three relays. OUTKAST talks to them directly, with no caching server in between.</string>
     <string name="onboarding_relay_hint">Your NIP-65 list appears here when available.</string>
     <string name="onboarding_relay_count">%1$d of %2$d selected</string>
     <string name="onboarding_relay_custom_placeholder">wss://your-relay.example</string>
@@ -60,22 +62,22 @@
     <string name="onboarding_relay_continue">Continue</string>
     <string name="onboarding_relay_saving">Saving…</string>
     <string name="onboarding_orbot_title">Privacy, your way</string>
-    <string name="onboarding_orbot_description">LibreNostr includes its own Tor engine and can also use Orbot. Choose a mode anytime in Settings > Tor.</string>
+    <string name="onboarding_orbot_description">OUTKAST includes its own Tor engine and can also use Orbot. Choose a mode anytime in Settings > Tor.</string>
     <string name="onboarding_orbot_restart_notice">Tor for everything fails closed: if Tor is unavailable, traffic does not silently fall back to a direct connection.</string>
-    <string name="onboarding_orbot_continue">Continue to LibreNostr</string>
-    <string name="welcome_sign_in_button_title">Sign In</string>
-    <string name="welcome_create_account_button_title">Create Account</string>
+    <string name="onboarding_orbot_continue">Continue to OUTKAST</string>
+    <string name="welcome_sign_in_button_title">I already have a Nostr identity</string>
+    <string name="welcome_create_account_button_title">Get started</string>
     <string name="welcome_tos_prefix">By proceeding you accept our</string>
 
-    <string name="onboarding_welcome_title">LibreNostr</string>
-    <string name="onboarding_welcome_eyebrow">RELAY-NATIVE · OPEN SOURCE</string>
-    <string name="onboarding_welcome_tagline">Your keys. Your relays. Your feed.</string>
-    <string name="onboarding_welcome_description">A direct line to Nostr, with no proprietary server in the middle.</string>
-    <string name="onboarding_welcome_feature_relays">Direct relay access</string>
-    <string name="onboarding_welcome_feature_tor">Built-in Tor</string>
-    <string name="onboarding_welcome_feature_local">Local-first identity</string>
+    <string name="onboarding_welcome_title">OUTKAST</string>
+    <string name="onboarding_welcome_eyebrow">NO PERMISSION REQUIRED</string>
+    <string name="onboarding_welcome_tagline">You don’t need permission to exist online.</string>
+    <string name="onboarding_welcome_description">Publish, discover and connect on your terms. No platform account. No gatekeeper.</string>
+    <string name="onboarding_welcome_feature_relays">Your identity stays yours</string>
+    <string name="onboarding_welcome_feature_tor">Private routes when you need them</string>
+    <string name="onboarding_welcome_feature_local">Open network, no central feed algorithm</string>
     <string name="onboarding_step_progress">Step %1$d of %2$d</string>
-    <string name="login_security_notice">Amber is recommended for safer key management. Don’t rawdog your nsec into an app you don’t know. Don’t trust, verify: if you don’t understand the code, have an AI review the repository before entering sensitive keys.</string>
+    <string name="login_security_notice">Your private key controls your identity. A dedicated signer such as Amber keeps it outside OUTKAST and is the safer choice. Never paste an nsec you have not backed up.</string>
 
     <string name="legal_tos_hint_highlighted_word">Terms of Service</string>
     <string name="legal_privacy_policy_hint_highlighted_word">Privacy Policy</string>
@@ -122,7 +124,7 @@
     <string name="login_bunker_url_hint">bunker://…</string>
     <string name="login_bunker_button_connect">Connect</string>
     <string name="login_enter_bunker_url">Paste the bunker connection string your signer gave you:</string>
-    <string name="login_amber_required">LibreNostr signs with Amber. Install Amber to continue.</string>
+    <string name="login_amber_required">OUTKAST signs with Amber. Install Amber to continue.</string>
     <string name="login_description">Enter your Nostr key to sign in:</string>
     <string name="login_button_sign_in">Sign In</string>
     <string name="login_button_paste_your_key">Paste Your Key</string>
@@ -137,7 +139,7 @@
     <string name="scan_code_apply_button">Apply</string>
     <string name="scan_code_error_invalid_login_string">Invalid remote login string. Please try again.</string>
     <string name="scan_code_redeem_button">Redeem code</string>
-    <string name="scan_code_onboard_button">Onboard to LibreNostr</string>
+    <string name="scan_code_onboard_button">Onboard to OUTKAST</string>
     <string name="scan_code_use_keyboard_button">Use Keyboard instead</string>
     <string name="scan_code_enter_placeholder">Enter code…</string>
     <string name="scan_code_remote_login_manual_entry_placeholder">nostrconnect://</string>
@@ -145,7 +147,7 @@
     <string name="scan_code_loaded_with">This code is loaded with:</string>
     <string name="scan_code_get_zapping">Get Zapping!</string>
     <string name="scan_code_sats">sats</string>
-    <string name="scan_code_primal_premium">LibreNostr Premium</string>
+    <string name="scan_code_primal_premium">OUTKAST Premium</string>
     <plurals name="scan_code_premium_months">
         <item quantity="one">%1$s month</item>
         <item quantity="other">%1$s months</item>
@@ -165,24 +167,27 @@
     <string name="scan_code_scan_anything_title">Scan Anything:</string>
     <string name="scan_code_scan_anything_subtitle">Invite code, payment invoice, login string, user link, content link, gift card</string>
     <string name="scan_code_remote_login_camera_title">Login to Any Nostr App</string>
-    <string name="scan_code_remote_login_camera_subtitle">Use your LibreNostr account to login to any\nNostr app that supports remote sign in.</string>
-    <string name="scan_code_remote_login_manual_entry_subtitle">Use your LibreNostr account to login to any Nostr app that supports remote sign in. Paste the connection string below:</string>
+    <string name="scan_code_remote_login_camera_subtitle">Use your OUTKAST account to login to any\nNostr app that supports remote sign in.</string>
+    <string name="scan_code_remote_login_manual_entry_subtitle">Use your OUTKAST account to login to any Nostr app that supports remote sign in. Paste the connection string below:</string>
 
     <string name="logout_title">Sign out</string>
     <string name="logout_description">If you didn\'t save your private key, it will be irretrievably lost. Do you really want to sign out?</string>
     <string name="logout_cancel_button">Cancel</string>
     <string name="logout_button">Sign out</string>
 
-    <string name="primary_destination_feed_label">Home</string>
+    <string name="primary_destination_feed_label">Feed</string>
     <string name="primary_destination_reads_label">Reads</string>
-    <string name="primary_destination_notifications_label">Notifications</string>
+    <string name="primary_destination_notifications_label">Inbox</string>
     <string name="primary_destination_messages_label">Messages</string>
     <string name="primary_destination_messages_short_label">Chats</string>
-    <string name="primary_destination_notifications_short_label">Alerts</string>
-    <string name="primary_destination_post_label">Post</string>
-    <string name="primary_destination_explore_label">Algorithm</string>
-    <string name="algorithm_title">Your algorithms</string>
-    <string name="algorithm_subtitle">You get to decide what you want to see</string>
+    <string name="primary_destination_notifications_short_label">Inbox</string>
+    <string name="primary_destination_post_label">Create</string>
+    <string name="primary_destination_explore_label">Discover</string>
+    <string name="primary_destination_you_label">You</string>
+    <string name="inbox_activity_tab">Activity</string>
+    <string name="inbox_messages_tab">Messages</string>
+    <string name="algorithm_title">Discover</string>
+    <string name="algorithm_subtitle">People, posts, topics and long reads</string>
     <string name="home_search_placeholder">Search everything</string>
     <string name="home_wordmark_subtitle">Own your social</string>
     <string name="home_quick_algorithms">Algorithms</string>
@@ -209,11 +214,11 @@
     <string name="account_switcher_create_new_account">Create a new account</string>
     <string name="account_switcher_add_existing_account">Add an existing account</string>
 
-    <string name="subscription_primal_title_primary">LibreNostr</string>
+    <string name="subscription_primal_title_primary">OUTKAST</string>
     <string name="subscription_primal_title_secondary">Premium and Pro</string>
-    <string name="subscription_primal_subtitle">Upgrade your LibreNostr experience today.</string>
+    <string name="subscription_primal_subtitle">Upgrade your OUTKAST experience today.</string>
     <string name="subscription_primal_buy_pro">Buy Pro</string>
-    <string name="subscription_learn_about_pro">Learn about LibreNostr Pro</string>
+    <string name="subscription_learn_about_pro">Learn about OUTKAST Pro</string>
     <string name="subscription_price_per_month"> /month</string>
     <string name="subscription_billed_annually">%1$s billed annually</string>
     <string name="subscription_save_percent">Save %1$d%%</string>
@@ -313,7 +318,7 @@
     <string name="feed_list_restore_default_feeds_title">Restore default feeds</string>
     <string name="feed_list_restore_default_feeds_prompt_text">This will replace your feed list with the default feeds. Do you wish to continue?</string>
 
-    <string name="feed_no_content">Nothing to show - Pull down to refresh</string>
+    <string name="feed_no_content">Nothing here yet. Find your people.</string>
     <string name="feed_error_loading">Unable to load content for this feed. Please try again.</string>
     <string name="feed_refresh_button">Refresh</string>
     <string name="feed_append_exhausted_message">No more notes right now — there may be more further back.</string>
@@ -351,23 +356,23 @@
     <string name="feed_missing_event_alt_description_note">Mentioned note not found.</string>
     <string name="feed_missing_event_alt_description_event">Mentioned event not found.</string>
 
-    <string name="feed_paywall_title">This is a LibreNostr Premium feed.</string>
+    <string name="feed_paywall_title">This is a OUTKAST Premium feed.</string>
     <string name="feed_paywall_description">Buy a Subscription to become a Nostr power user and support our work:</string>
-    <string name="feed_paywall_get_premium_button">Get LibreNostr Premium</string>
+    <string name="feed_paywall_get_premium_button">Get OUTKAST Premium</string>
 
     <string name="post_delete_repost_button_confirmation">Delete Repost</string>
     <string name="post_repost_button_confirmation">Repost</string>
     <string name="post_quote_button_confirmation">Quote</string>
     <string name="post_repost_again_button_confirmation">Repost Again</string>
 
-    <string name="note_editor_post_publish_button">Post</string>
+    <string name="note_editor_post_publish_button">Publish</string>
     <string name="note_editor_reply_publish_button">Reply</string>
     <string name="note_editor_quote_publish_button">Quote</string>
     <string name="note_editor_post_publishing_button">Posting…</string>
     <string name="note_editor_reply_publishing_button">Replying…</string>
     <string name="note_editor_quoting_publishing_button">Quoting…</string>
     <string name="note_editor_uploading_attachments">Uploading…</string>
-    <string name="note_editor_content_placeholder">Share something with your network…</string>
+    <string name="note_editor_content_placeholder">Say something.</string>
     <string name="note_editor_nostr_publish_error">Unable to publish your note. Please check your connection and try again.</string>
     <string name="note_editor_unable_to_locate_event">Unable to preview %1$s event. Tap to retry.</string>
 
@@ -494,7 +499,7 @@
     <string name="explore_feed_topic_reads_feed_description">All reads tagged with %1$s</string>
     <string name="explore_feed_advanced_search_feed_title">Search results</string>
     <string name="explore_feed_simple_search_feed_title">Search: %1$s</string>
-    <string name="explore_feed_search_feed_description">LibreNostr search results</string>
+    <string name="explore_feed_search_feed_description">OUTKAST search results</string>
     <string name="explore_feed_user_feed_title">User: %1$s</string>
     <string name="explore_feed_user_feed_description">Latest by user follows</string>
     <string name="explore_feed_user_notes_feed_description">Latest notes by user follows</string>
@@ -518,7 +523,7 @@
     <string name="bookmarks_title_reads">Reads Bookmarks</string>
     <string name="bookmarks_bottom_sheet_notes">Note Bookmarks</string>
     <string name="bookmarks_bottom_sheet_reads">Reads Bookmarks</string>
-    <string name="bookmarks_no_content">Your bookmarks will appear here.</string>
+    <string name="bookmarks_no_content">Keep the good stuff.</string>
     <string name="bookmarks_drawer_title">Bookmarks</string>
     <string name="bookmarks_drawer_see_all">See all</string>
     <string name="bookmarks_drawer_empty">Nothing saved yet. Tap the bookmark icon on any note to keep it here.</string>
@@ -607,7 +612,7 @@
     <string name="notifications_filter_replies_description">Show replies in your threads</string>
     <string name="notifications_filter_mentions_description">Show mentions of you or your content</string>
     <string name="notifications_filter_reposts_description">Show reposts of your content</string>
-    <string name="notifications_no_content">Your notifications will appear here.</string>
+    <string name="notifications_no_content">Quiet for now.</string>
     <string name="notifications_initial_loading_error">Unable to load notifications. Please try again.</string>
     <plurals name="notification_list_item_and_others">
         <item quantity="one">and %1$s other</item>
@@ -647,8 +652,8 @@
     <string name="messages_other_tab_title">Other</string>
     <string name="messages_mark_all_read_button">Mark All Read</string>
     <string name="notifications_mark_all_read_button">Mark all as read</string>
-    <string name="messages_no_conversations">Your conversations will appear here.</string>
-    <string name="messages_no_chat">Your messages will appear here.</string>
+    <string name="messages_no_conversations">Quiet for now.</string>
+    <string name="messages_no_chat">No messages here yet.</string>
     <string name="messages_conversations_initial_loading_error">Unable to load conversations. Please try again.</string>
     <string name="messages_chat_initial_loading_error">Unable to load messages. Please try again.</string>
 
@@ -679,7 +684,7 @@
 
     <string name="settings_title">Settings</string>
     <string name="settings_language_title">Language</string>
-    <string name="settings_language_description">Choose the language used throughout LibreNostr. The change is applied immediately.</string>
+    <string name="settings_language_description">Choose the language used throughout OUTKAST. The change is applied immediately.</string>
     <string name="settings_language_system_default">System language</string>
     <string name="long_reads_title">Long reads</string>
     <string name="long_reads_no_content">No long-form posts yet.</string>
@@ -717,7 +722,7 @@
     <string name="settings_wallet_nwc_profile_lightning_address_hint">You can change your Nostr Lightning Address (for receiving zaps) in your</string>
     <string name="settings_wallet_nwc_profile_lightning_address_hint_suffix">profile settings</string>
     <string name="settings_wallet_max_wallet_balance">Max wallet balance</string>
-    <string name="settings_wallet_max_wallet_balance_hint">LibreNostr Wallet is a transactional wallet, designed for handling small amounts. We recommend self-custody for larger amounts.</string>
+    <string name="settings_wallet_max_wallet_balance_hint">Use connected wallets for small social payments and keep larger amounts in self-custody.</string>
     <string name="settings_wallet_hide_transactions_below">Hide transactions below</string>
     <string name="settings_wallet_nwc_connections_header_app">App</string>
     <string name="settings_wallet_nwc_connections_header_daily_budget">Daily Budget</string>
@@ -735,7 +740,7 @@
     <string name="settings_wallet_hide_transactions_below_edit_title">Edit amount</string>
     <string name="settings_wallet_ln_address">Nostr lightning address</string>
     <string name="settings_wallet_start_in_wallet">Start in wallet</string>
-    <string name="settings_wallet_start_in_wallet_hint">Open the wallet when LibreNostr starts</string>
+    <string name="settings_wallet_start_in_wallet_hint">Open the wallet when OUTKAST starts</string>
     <string name="settings_wallet_save">Save</string>
     <string name="settings_wallet_backup_wallet_title">Backup wallet</string>
     <string name="settings_wallet_backup_wallet_subtitle">Write down your wallet recovery phrase so you don\'t lose access to your funds</string>
@@ -747,7 +752,7 @@
     <string name="settings_wallet_export_nwc_logs_subtitle">Download logs history for all NWC connections in CSV format</string>
     <string name="settings_wallet_new_nwc_connection_title">New Wallet Connection</string>
     <string name="settings_wallet_new_nwc_connection_app_name_input_header">Name of the app you wish to connect:</string>
-    <string name="settings_wallet_new_nwc_connection_hint">You can revoke access at any time in your LibreNostr Wallet settings.</string>
+    <string name="settings_wallet_new_nwc_connection_hint">You can revoke access at any time in your OUTKAST Wallet settings.</string>
     <string name="settings_wallet_new_nwc_connection_create_new_connection_button">Create Wallet Connection</string>
     <string name="settings_wallet_new_nwc_connection_cancel_button">Cancel</string>
     <string name="settings_wallet_new_nwc_connection_bottom_sheet_pick_daily_budget_title">Pick maximum daily budget</string>
@@ -756,8 +761,8 @@
     <string name="settings_wallet_new_nwc_connection_copy_nwc_string_button">Copy NWC String</string>
     <string name="settings_wallet_new_nwc_connection_done_button">Done</string>
     <string name="settings_wallet_new_nwc_connection_connection_created_text">Connection created</string>
-    <string name="settings_wallet_link_primal_wallet_title">Link LibreNostr Wallet</string>
-    <string name="settings_wallet_link_external_app_request">An external app “%1$s” is requesting access to your LibreNostr Wallet. If you wish to allow this, click “Give Wallet Access” below.</string>
+    <string name="settings_wallet_link_primal_wallet_title">Link wallet</string>
+    <string name="settings_wallet_link_external_app_request">An external app “%1$s” is requesting access to your connected wallet. Review the request before granting access.</string>
     <string name="settings_wallet_link_give_wallet_access_button">Give Wallet Access</string>
 
     <string name="settings_wallet_nwc_qr_code_scan_title">Connect NWC Wallet</string>
@@ -795,7 +800,7 @@
     <string name="settings_notifications_group_preferences_reactions_from_follows">Only show reactions from users I follow</string>
     <string name="settings_notifications_enable_push_notifications">Enable Push Notifications</string>
     <string name="settings_notifications_show_new_followers">Show new followers</string>
-    <string name="settings_notifications_enable_push_notifications_description">Get system notifications from LibreNostr. You can also configure this in your system settings.</string>
+    <string name="settings_notifications_enable_push_notifications_description">Get system notifications from OUTKAST. You can also configure this in your system settings.</string>
 
     <string name="settings_appearance_title">Appearance</string>
     <string name="settings_appearance_theme_section_title">Theme</string>
@@ -823,7 +828,7 @@
     <string name="settings_tor_port_title">Orbot SOCKS port</string>
     <string name="settings_tor_port_error">Enter a valid port number (1–65535).</string>
     <string name="settings_tor_engine_built_in_title">Built-in Tor</string>
-    <string name="settings_tor_engine_built_in_description">Runs Tor inside LibreNostr. Nothing else to install.</string>
+    <string name="settings_tor_engine_built_in_description">Runs Tor inside OUTKAST. Nothing else to install.</string>
     <string name="settings_tor_engine_orbot_title">Orbot</string>
     <string name="settings_tor_engine_orbot_description">Use the Orbot app\'s SOCKS proxy.</string>
     <string name="settings_tor_status_off">Not running</string>
@@ -1056,8 +1061,8 @@
     <string name="profile_editor_input_header_bitcoin_lightning_address">Bitcoin lightning address</string>
     <string name="profile_editor_input_header_nip_05">Verified Nostr address (NIP 05)</string>
     <string name="profile_editor_required_field_hint">required</string>
-    <string name="profile_editor_premium_dialog_title">LibreNostr Premium</string>
-    <string name="profile_editor_premium_dialog_description">You need a LibreNostr Premium account to get a custom Nostr Verified Address on LibreNostr.</string>
+    <string name="profile_editor_premium_dialog_title">Custom address</string>
+    <string name="profile_editor_premium_dialog_description">This inherited address service is unavailable in OUTKAST. You can still use any NIP-05 address from a provider you trust.</string>
     <string name="profile_editor_premium_dialog_dismiss_text">Cancel</string>
     <string name="profile_editor_premium_dialog_confirm_text">Okay</string>
 
@@ -1104,7 +1109,7 @@
     <string name="zap_bottom_sheet_custom_amount_placeholder">Custom amount…</string>
     <string name="zap_bottom_sheet_zap_button">Zap</string>
 
-    <string name="zap_warning_bottom_sheet_enable_wallet_text">To zap people on Nostr, you need to enable your LibreNostr wallet or connect the external wallet.</string>
+    <string name="zap_warning_bottom_sheet_enable_wallet_text">To zap someone, connect an external wallet with Nostr Wallet Connect.</string>
     <string name="zap_warning_bottom_sheet_no_sats_to_zap">Insufficient sats to zap, you need to get some sats before you can zap.</string>
     <string name="zap_warning_bottom_sheet_go_to_wallet_button">Go to Wallet</string>
 
@@ -1115,7 +1120,7 @@
     <!-- Wallet Notice: Detected (Case 3) -->
 
     <string name="qrcode_scanner_permission_title">Permission required</string>
-    <string name="qrcode_scanner_permission_rationale">LibreNostr needs access to your camera to scan QR codes.</string>
+    <string name="qrcode_scanner_permission_rationale">OUTKAST needs access to your camera to scan QR codes.</string>
     <string name="qrcode_scanner_grant_permission_button">Allow access</string>
     <string name="qrcode_scanner_cancel_button">Cancel</string>
 
@@ -1271,7 +1276,7 @@
     <string name="permissions_bottom_sheet_back_button">Back</string>
 
     <string name="signer_notification_name">Remote Signer</string>
-    <string name="signer_notification_summary_title">LibreNostr Remote Signer</string>
+    <string name="signer_notification_summary_title">OUTKAST Remote Signer</string>
     <string name="signer_notification_end_session">End session</string>
     <string name="signer_notification_unknown_app">Unknown App</string>
     <string name="signer_notification_logged_in_as">Logged in as %s</string>
@@ -1282,7 +1287,7 @@
     <string name="signer_notification_enable_switch_label">Enable Notifications</string>
     <string name="signer_notification_enable_button">Let’s Go</string>
     <string name="signer_notification_session_active_prefix">Session active with</string>
-    <string name="signer_notification_keep_running_description">To keep running reliably while LibreNostr is in the background or when your phone is locked, you need to enable remote signer notifications.</string>
+    <string name="signer_notification_keep_running_description">To keep running reliably while OUTKAST is in the background or when your phone is locked, you need to enable remote signer notifications.</string>
 
     <string name="local_app_unknown_app">Unknown App</string>
 

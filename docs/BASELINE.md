@@ -122,7 +122,7 @@ App unit tests and KMP `allTests` passed on this machine (see table above). Rema
 
 ### GitHub origin
 
-`origin` is `https://github.com/Lwb89dev/librenostr.git` (private). The unmodified Primal history plus Phase 0 docs are pushed there. `upstream` remains fetch-only.
+`origin` is `https://github.com/Lwb89dev/outkast.git` (private). The unmodified Primal history plus Phase 0 docs are pushed there. `upstream` remains fetch-only.
 
 ## What this baseline proves
 

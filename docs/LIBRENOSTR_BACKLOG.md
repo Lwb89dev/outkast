@@ -71,7 +71,7 @@ These are the next implementation slice after Phase 0. Do them in order.
 | LN-006 | Record baseline build | `docs/BASELINE.md` | LN-000 | `assembleAospDebug` documented | APK produced | Low | S | done |
 | LN-007 | Architecture + dependency inventory | `docs/ARCHITECTURE_UPSTREAM.md`, `docs/PRIMAL_SERVER_DEPENDENCIES.md` | LN-000 | 84 verbs classified | n/a | Low | M | done |
 | LN-008 | Run `testAospDebugUnitTest` / `allTests` | CI commands | LN-006 | Failures listed in BASELINE | those tasks | Low | M | done (344 + 985 XML, 0 fail; ktlint/detekt/lint still open) |
-| LN-009 | Create GitHub `Lwb89dev/librenostr` and push | remotes | user permission | `origin` fetch works | `git ls-remote origin` | Low | S | done |
+| LN-009 | Create GitHub `Lwb89dev/outkast` and push | remotes | user permission | `origin` fetch works | `git ls-remote origin` | Low | S | done |
 
 ## Phase 2 extras
 

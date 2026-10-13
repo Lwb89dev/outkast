@@ -199,7 +199,7 @@ private fun Instant.formatDate(): String {
 @Preview
 @Composable
 fun PreviewArticleDetailsHeader() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         Surface(modifier = Modifier.fillMaxWidth()) {
             ArticleDetailsHeader(
                 modifier = Modifier.fillMaxWidth(),

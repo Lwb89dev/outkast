@@ -36,7 +36,7 @@ import androidx.compose.ui.unit.dp
 import net.primal.android.R
 import net.primal.android.articles.feed.ArticleFeedList
 import net.primal.android.core.compose.AppBarIcon
-import net.primal.android.core.compose.LibreNostrLoadingSpinner
+import net.primal.android.core.compose.OutkastLoadingSpinner
 import net.primal.android.core.compose.PrimalScaffold
 import net.primal.android.core.compose.icons.PrimalIcons
 import net.primal.android.core.compose.icons.primaliconpack.AdvancedSearch
@@ -160,7 +160,7 @@ fun SearchScreen(
                                 .padding(paddingValues),
                             contentAlignment = androidx.compose.ui.Alignment.Center,
                         ) {
-                            LibreNostrLoadingSpinner()
+                            OutkastLoadingSpinner()
                         }
                     }
                 }

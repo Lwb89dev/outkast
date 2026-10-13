@@ -485,7 +485,7 @@ fun ZapDefaultEditor(
 @Preview
 @Composable
 private fun ZapSettingsPreview() {
-    PrimalPreview(primalTheme = net.primal.android.theme.domain.PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = net.primal.android.theme.domain.PrimalTheme.OutkastDark) {
         ZapSettingsScreen(
             uiState = ZapSettingsContract.UiState(
                 editPresetIndex = 0,

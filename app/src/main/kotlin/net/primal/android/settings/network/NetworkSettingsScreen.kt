@@ -370,7 +370,7 @@ private fun PermissionLabel(
 @Composable
 @Preview
 private fun PreviewNetworksScreen() {
-    PrimalPreview(primalTheme = net.primal.android.theme.domain.PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = net.primal.android.theme.domain.PrimalTheme.OutkastDark) {
         NetworkSettingsScreen(
             state = NetworkSettingsContract.UiState(
                 relays = listOf(

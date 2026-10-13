@@ -1,11 +1,77 @@
 # Changelog
 
-All notable changes to LibreNostr are documented in this file.
+All notable changes to OUTKAST are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 LibreNostr is a fork of [Primal](https://github.com/PrimalHQ/primal-android-app)
 (MIT, Copyright (c) 2023 PRIMAL SYSTEMS INC.); this log covers changes made in
-the LibreNostr fork on top of the imported `3.5.25` baseline.
+the LibreNostr/OUTKAST fork on top of the imported `3.5.25` baseline.
+
+## [Unreleased]
+
+## [2.0.0] - 2026-10-13
+
+### Highlights
+
+- Introduced OUTKAST Orbit, a gesture-first navigation model with no persistent bottom bar.
+- Added inward edge swipes to move between Feed, Discover, Long reads and Inbox with directional
+  transitions, plus a pull-up/tap portal for discoverable navigation.
+- Centered the OUTKAST wordmark and “You don’t need permission to exist online.” tagline in the
+  Feed header; removed the Latest control and the duplicate header avatar entry point.
+
+### Navigation and workflows
+
+- Home now opens an explicit Recent / Recent with replies choice.
+- Algorithms now opens inside Orbit, retaining the complete feed list and advanced-search editing
+  without the old side drawer.
+- Long reads, Discover and Inbox are first-class Orbit destinations while their existing paging,
+  notifications and messages behavior remains intact.
+- Bookmarks, Profile and Settings are now equal-sized Orbit actions; Profile is no longer duplicated
+  in the header, and Settings is no longer hidden behind an unreachable navigation bar.
+- Compose remains globally available as a floating action.
+
+### Product and compatibility
+
+- Removed the legacy navigation-bar component and the algorithm/bookmark side drawer from the active
+  UI path.
+- Renamed the built-in default note feeds to Recent and Recent with replies.
+- Preserved `applicationId = com.librenostr.android`, version upgrade compatibility, relay identity,
+  databases, DataStore state, Android Keystore aliases, provider authorities and release signing.
+- Release artifact is `outkast-2.0.0-arm64-v8a.apk`, signed with the configured alternative release
+  keystore.
+
+### Verification
+
+- `:app:compileDebugKotlin` passed.
+- `:app:testDebugUnitTest` passed.
+- `:app:assembleDebug` passed.
+- Final `altRelease` build and APK signature verification are performed as part of the 2.0.0 release
+  handoff.
+
+### Added
+
+- OUTKAST launcher, adaptive and themed icons derived from the supplied O/K artwork.
+- A direct onboarding choice between creating a new identity and bringing an existing one.
+- Four gesture-connected content worlds — Feed, Discover, Long reads and Inbox — with a global Create action.
+- An explicit compatibility and regression plan in `docs/OUTKAST_MIGRATION.md`.
+
+### Changed
+
+- Replaced the persistent navigation dock with OUTKAST Orbit: edge swipes move through Feed,
+  Discover, Long reads and Inbox, while a compact pull-up portal exposes the complete map and
+  Bookmarks. Compose remains a floating global action.
+- Removed the legacy algorithm/bookmark drawer and every duplicate header shortcut. Orbit now
+  owns Recent/Recent with replies, the complete algorithm list, Long reads, Bookmarks, Profile and
+  Settings; all utility tiles share the same compact geometry.
+- Replaced the Home controls with a centered OUTKAST wordmark and the product tagline.
+- Rebranded user-facing application, manifest labels, store metadata and release artifacts to OUTKAST.
+- Replaced eight legacy themes with curated OUTKAST Dark and OUTKAST Light identities. Existing saved theme values migrate by luminance and system-following remains available.
+- Connected Discover to the existing people, search, feeds, zaps and media experience; Inbox now exposes Activity and Messages together.
+- Reworked onboarding, empty-state and publishing copy around progressive disclosure and plain Nostr language.
+
+### Compatibility
+
+- Preserved `com.librenostr.android`, signing configuration, provider authorities, databases, DataStore files and Keystore access for in-place upgrades.
 
 ## [1.1.3] - 2026-10-12
 

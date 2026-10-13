@@ -61,7 +61,6 @@ import net.primal.android.bookmarks.list.BookmarksScreen
 import net.primal.android.bookmarks.list.BookmarksViewModel
 import net.primal.android.core.compose.ApplyEdgeToEdge
 import net.primal.android.core.compose.LockToOrientationPortrait
-import net.primal.android.core.compose.PrimalNavigationBar
 import net.primal.android.core.compose.PrimalScaffold
 import net.primal.android.core.compose.PrimalTopLevelDestination
 import net.primal.android.core.compose.UnlockScreenOrientation
@@ -99,7 +98,6 @@ import net.primal.android.gifpicker.GifPickerScreen
 import net.primal.android.gifpicker.GifPickerViewModel
 import net.primal.android.gifpicker.domain.GifItem
 import net.primal.android.main.MainScreen
-import net.primal.android.main.MainViewModel
 import net.primal.android.main.REQUESTED_TAB_KEY
 import net.primal.android.main.explore.followpack.FollowPackContract
 import net.primal.android.main.explore.followpack.FollowPackScreen
@@ -425,48 +423,15 @@ private fun PrimalAppNavigation(
         it.route?.startsWith("profile?") == true || it.route?.startsWith("profile/") == true
     } == true
     val persistentBarVisible = isMessages || isSettings || isProfile
-    val mainViewModel: MainViewModel = hiltViewModel()
-    val mainState by mainViewModel.state.collectAsState()
 
     PrimalScaffold(
         contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0),
-        bottomBar = if (persistentBarVisible) {
-            {
-                PrimalNavigationBar(
-                    activeDestination = when {
-                        isMessages -> PrimalTopLevelDestination.Messages
-                        isSettings -> PrimalTopLevelDestination.Settings
-                        else -> PrimalTopLevelDestination.Feeds
-                    },
-                    onTopLevelDestinationChanged = { destination ->
-                        when (destination) {
-                            PrimalTopLevelDestination.Feeds -> navController.navigateToMain(PrimalTopLevelDestination.Feeds)
-                            PrimalTopLevelDestination.Alerts -> navController.navigateToMain(PrimalTopLevelDestination.Alerts)
-                            else -> Unit
-                        }
-                    },
-                    // While on Profile, activeDestination above falls back to Feeds for lack of a
-                    // dedicated case, which makes tapping Home look like tapping the already-active
-                    // tab. This bar is never shown while genuinely on Feeds, so "go home" is always
-                    // the right outcome for this fallback regardless of which branch fires.
-                    onActiveDestinationClick = { navController.navigateToMain(PrimalTopLevelDestination.Feeds) },
-                    onMessagesClick = {
-                        if (!isMessages) navController.navigateToMessages()
-                    },
-                    onSettingsClick = {
-                        if (!isSettings) navController.navigateToSettings()
-                    },
-                    settingsSelected = isSettings,
-                    badges = mainState.badges,
-                    composeAction = {
-                        NewPostFloatingActionButton(
-                            onNewPostClick = { navController.navigateToNoteEditor(null) },
-                        )
-                    },
+        floatingActionButton = {
+            if (persistentBarVisible) {
+                NewPostFloatingActionButton(
+                    onNewPostClick = { navController.navigateToNoteEditor(null) },
                 )
             }
-        } else {
-            null
         },
     ) { paddingValues ->
         Box(
@@ -936,11 +901,12 @@ private fun NavGraphBuilder.welcome(route: String, navController: NavController)
         },
     ) {
         LockToOrientationPortrait()
-        PrimalTheme(PrimalTheme.Midnight) {
+        PrimalTheme(PrimalTheme.OutkastDark) {
             ApplyEdgeToEdge(isDarkTheme = false)
             WelcomeScreen(
                 callbacks = WelcomeContract.ScreenCallbacks(
-                    onSignInClick = { navController.navigateToLogin() },
+                    onGetStartedClick = { navController.navigateToOnboarding() },
+                    onExistingIdentityClick = { navController.navigateToLogin() },
                 ),
             )
         }
@@ -964,7 +930,7 @@ private fun NavGraphBuilder.login(route: String, navController: NavController) =
     ) {
         val viewModel: LoginViewModel = hiltViewModel(it)
         LockToOrientationPortrait()
-        PrimalTheme(PrimalTheme.Midnight) {
+        PrimalTheme(PrimalTheme.OutkastDark) {
             ApplyEdgeToEdge(isDarkTheme = false)
             LoginScreen(
                 viewModel = viewModel,
@@ -984,7 +950,7 @@ private fun NavGraphBuilder.relayOnboarding(route: String, navController: NavCon
     ) {
         val viewModel: RelayOnboardingViewModel = hiltViewModel(it)
         LockToOrientationPortrait()
-        PrimalTheme(PrimalTheme.Midnight) {
+        PrimalTheme(PrimalTheme.OutkastDark) {
             ApplyEdgeToEdge(isDarkTheme = false)
             RelayOnboardingScreen(
                 viewModel = viewModel,
@@ -1000,7 +966,7 @@ private fun NavGraphBuilder.orbotOnboarding(route: String, navController: NavCon
         exitTransition = { slideOutHorizontally(targetOffsetX = { -it }) },
     ) {
         LockToOrientationPortrait()
-        PrimalTheme(PrimalTheme.Midnight) {
+        PrimalTheme(PrimalTheme.OutkastDark) {
             ApplyEdgeToEdge(isDarkTheme = false)
             OrbotOnboardingScreen(onComplete = { navController.navigateToHome() })
         }
@@ -1029,7 +995,7 @@ private fun NavGraphBuilder.onboarding(route: String, navController: NavControll
         val viewModel: OnboardingViewModel = hiltViewModel(it)
 
         LockToOrientationPortrait()
-        PrimalTheme(PrimalTheme.Midnight) {
+        PrimalTheme(PrimalTheme.OutkastDark) {
             ApplyEdgeToEdge(isDarkTheme = false)
             OnboardingScreen(
                 viewModel = viewModel,
@@ -1696,7 +1662,7 @@ private fun NavGraphBuilder.media(
     popExitTransition = { fadeOut() },
 ) { navBackEntry ->
     val viewModel = hiltViewModel<EventMediaGalleryViewModel>(navBackEntry)
-    PrimalTheme(primalTheme = PrimalTheme.Midnight) {
+    PrimalTheme(primalTheme = PrimalTheme.OutkastDark) {
         ApplyEdgeToEdge(isDarkTheme = true)
         UnlockScreenOrientation()
         EventMediaGalleryScreen(
@@ -1718,7 +1684,7 @@ private fun NavGraphBuilder.mediaItem(
 ) {
     val viewModel = hiltViewModel<MediaItemViewModel>()
 
-    PrimalTheme(primalTheme = PrimalTheme.Midnight) {
+    PrimalTheme(primalTheme = PrimalTheme.OutkastDark) {
         ApplyEdgeToEdge(isDarkTheme = true)
         UnlockScreenOrientation()
         MediaItemScreen(
@@ -1824,7 +1790,7 @@ private fun NavGraphBuilder.profileQrCodeViewer(
 ) {
     val context = LocalContext.current
     val viewModel = hiltViewModel<ProfileQrCodeViewModel>()
-    PrimalTheme(primalTheme = PrimalTheme.Midnight) {
+    PrimalTheme(primalTheme = PrimalTheme.OutkastDark) {
         ApplyEdgeToEdge(isDarkTheme = false)
         LockToOrientationPortrait()
         ProfileQrCodeViewerScreen(

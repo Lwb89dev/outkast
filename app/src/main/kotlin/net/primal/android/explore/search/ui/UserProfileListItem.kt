@@ -101,7 +101,7 @@ fun UserProfileListItem(
 @Preview
 @Composable
 fun PreviewLegendaryUserProfileListItemWithFollow() {
-    PrimalPreview(primalTheme = net.primal.android.theme.domain.PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = net.primal.android.theme.domain.PrimalTheme.OutkastDark) {
         Surface {
             UserProfileListItem(
                 data = UserProfileItemUi(
@@ -121,7 +121,7 @@ fun PreviewLegendaryUserProfileListItemWithFollow() {
 @Preview
 @Composable
 fun PreviewLegendaryUserProfileListItemWithUnfollow() {
-    PrimalPreview(primalTheme = net.primal.android.theme.domain.PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = net.primal.android.theme.domain.PrimalTheme.OutkastDark) {
         Surface {
             UserProfileListItem(
                 data = UserProfileItemUi(
@@ -141,7 +141,7 @@ fun PreviewLegendaryUserProfileListItemWithUnfollow() {
 @Preview
 @Composable
 fun PreviewUserProfileListItemWithFollow() {
-    PrimalPreview(primalTheme = net.primal.android.theme.domain.PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = net.primal.android.theme.domain.PrimalTheme.OutkastDark) {
         Surface {
             UserProfileListItem(
                 data = UserProfileItemUi(
@@ -161,7 +161,7 @@ fun PreviewUserProfileListItemWithFollow() {
 @Preview
 @Composable
 fun PreviewUserProfileListItemWithUnfollow() {
-    PrimalPreview(primalTheme = net.primal.android.theme.domain.PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = net.primal.android.theme.domain.PrimalTheme.OutkastDark) {
         Surface {
             UserProfileListItem(
                 data = UserProfileItemUi(
@@ -181,7 +181,7 @@ fun PreviewUserProfileListItemWithUnfollow() {
 @Preview
 @Composable
 fun PreviewUserProfileListItemWithInvisibleUnfollow() {
-    PrimalPreview(primalTheme = net.primal.android.theme.domain.PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = net.primal.android.theme.domain.PrimalTheme.OutkastDark) {
         Surface {
             UserProfileListItem(
                 data = UserProfileItemUi(
@@ -201,7 +201,7 @@ fun PreviewUserProfileListItemWithInvisibleUnfollow() {
 @Preview
 @Composable
 fun PreviewUserProfileListItemWithGoneUnfollow() {
-    PrimalPreview(primalTheme = net.primal.android.theme.domain.PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = net.primal.android.theme.domain.PrimalTheme.OutkastDark) {
         Surface {
             UserProfileListItem(
                 data = UserProfileItemUi(

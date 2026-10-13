@@ -88,7 +88,7 @@ private fun RelayOnboardingScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
                 ) {
-                    CircularProgressIndicator(color = Color(0xFF6B3FE8))
+                    CircularProgressIndicator(color = Color(0xFFFF6238))
                 }
             } else {
                 RelaySelectionContent(
@@ -248,7 +248,7 @@ private fun RelayOption(
         color = Color.White.copy(alpha = if (selected) 0.26f else 0.14f),
         border = BorderStroke(
             width = 1.dp,
-            color = if (selected) Color(0xFF6B3FE8).copy(alpha = 0.4f) else Color.White.copy(alpha = 0.26f),
+            color = if (selected) Color(0xFFFF6238).copy(alpha = 0.4f) else Color.White.copy(alpha = 0.26f),
         ),
     ) {
         Row(

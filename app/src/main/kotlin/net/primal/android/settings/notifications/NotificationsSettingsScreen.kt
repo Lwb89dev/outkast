@@ -577,7 +577,7 @@ private fun NotificationSettingsType.icon(): ImageVector =
 @Preview
 @Composable
 fun PreviewNotificationsSettingsScreen() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         NotificationsSettingsScreen(
             state = NotificationsSettingsContract.UiState(),
             onClose = {},

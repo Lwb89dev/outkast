@@ -249,7 +249,7 @@ private fun QrCodeMode.invert(): QrCodeMode {
 @Preview
 @Composable
 private fun PreviewProfileQrCodeViewerScreen() {
-    PrimalPreview(primalTheme = net.primal.android.theme.domain.PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = net.primal.android.theme.domain.PrimalTheme.OutkastDark) {
         Surface {
             ProfileQrCodeViewerScreen(
                 state = ProfileQrCodeContract.UiState(

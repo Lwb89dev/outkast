@@ -278,7 +278,7 @@ private fun LocalAppIconName(appId: String, fallbackAppName: String) {
 @Preview
 @Composable
 fun PreviewConnectedAppsScreen() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         CompositionLocalProvider(LocalStreamState provides StreamState()) {
             ConnectedAppsScreen(
                 state = ConnectedAppsContract.UiState(
@@ -287,7 +287,7 @@ fun PreviewConnectedAppsScreen() {
                         AppConnectionUi(
                             connectionId = "1",
                             appId = "1",
-                            appName = "LibreNostr web app",
+                            appName = "OUTKAST web app",
                             appIconUrl = "https://nostrich.org/assets/favicon.ico",
                             userAvatarCdnImage = CdnImage("https://i.imgur.com/Z8dpmvc.png"),
                         ),
@@ -303,7 +303,7 @@ fun PreviewConnectedAppsScreen() {
                         AppConnectionUi(
                             connectionId = "3",
                             appId = "net.primal.android",
-                            appName = "LibreNostr",
+                            appName = "OUTKAST",
                             appIconUrl = null,
                             userAvatarCdnImage = CdnImage("https://i.imgur.com/Z8dpmvc.png"),
                             isLocal = true,

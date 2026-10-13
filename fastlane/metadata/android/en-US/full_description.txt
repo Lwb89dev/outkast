@@ -1,2 +1,4 @@
-<p><i>LibreNostr</i> is a relay-first Nostr client for Android, built on an open-source Android foundation.</p>
-<p>The client talks to ordinary Nostr relays, keeps a local cache on the device, and signs with a local nsec. Feeds, profiles, notifications and publishing work directly through relays.</p>
+<p><b>OUTKAST</b> is an independent social client for Android. You don't need permission to exist online.</p>
+<p>Follow people, publish posts, discover conversations, message privately and zap creators through the open Nostr network. OUTKAST talks directly to your relays and keeps its working state on your device.</p>
+<p>Your Nostr identity remains yours. Bring an existing identity or create one, choose your relays, connect an NWC wallet when you want to zap, and use Tor routing when you need it.</p>
+<p>No centralized recommendation feed. No OUTKAST account. No custodial wallet.</p>

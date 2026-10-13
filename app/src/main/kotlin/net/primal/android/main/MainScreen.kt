@@ -6,19 +6,15 @@ import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -27,7 +23,8 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -51,8 +48,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -68,8 +65,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import net.primal.android.R
-import net.primal.android.bookmarks.drawer.BookmarksDrawerSection
-import net.primal.android.core.compose.PrimalDivider
 import net.primal.android.core.compose.PrimalOverlay
 import net.primal.android.core.compose.PrimalTopLevelAppBar
 import net.primal.android.core.compose.PrimalTopLevelDestination
@@ -78,7 +73,7 @@ import net.primal.android.core.compose.bubble.AnchorHandle
 import net.primal.android.core.compose.bubble.AnchoredBubble
 import net.primal.android.core.compose.bubble.BubblePlacement
 import net.primal.android.core.compose.icons.PrimalIcons
-import net.primal.android.core.compose.icons.LibreNavigationIcons
+import net.primal.android.core.compose.icons.OutkastNavigationIcons
 import net.primal.android.core.compose.icons.primaliconpack.Bookmarks
 import net.primal.android.core.compose.fab.NewPostFloatingActionButton
 import net.primal.android.core.compose.runtime.DisposableLifecycleObserverEffect
@@ -92,6 +87,7 @@ import net.primal.android.feeds.list.FeedListOverlayContent
 import net.primal.android.feeds.list.ui.model.FeedUi
 import net.primal.android.main.explore.section.ExploreSection
 import net.primal.android.main.explore.section.ExploreSectionListOverlayContent
+import net.primal.android.main.explore.ExploreHomeContent
 import net.primal.android.main.feeds.NoteFeedTopAppBar
 import net.primal.android.main.feeds.NoteFeedsContent
 import net.primal.android.main.feeds.NoteFeedsContract
@@ -113,6 +109,7 @@ import net.primal.android.navigation.primalSlideOutHorizontallyToEnd
 import net.primal.android.navigation.primalSlideOutHorizontallyToStart
 import net.primal.android.navigation.navigateToAdvancedSearch
 import net.primal.android.navigation.navigateToHome
+import net.primal.android.navigation.navigateToFollowPack
 import net.primal.android.navigation.navigateToNoteEditor
 import net.primal.android.navigation.navigateToMessages
 import net.primal.android.navigation.navigateToProfile
@@ -242,7 +239,6 @@ fun MainScreen(
         accountSwitcherCallbacks = accountSwitcherCallbacks,
         focusModeEnabled = focusModeEnabled,
         onActiveDestinationClick = onActiveDestinationClick,
-        onMessagesClick = { navController.navigateToMessages() },
         onTabChanged = onTabChanged,
         onDrawerDestinationClick = onDrawerDestinationClick,
         navController = navController,
@@ -257,9 +253,6 @@ private fun MainScreenTopAppBar(
     scrollBehavior: TopAppBarScrollBehavior?,
     onAvatarClick: () -> Unit,
     onAvatarSwipeDown: (() -> Unit)? = null,
-    onAlgorithmMenuClick: (() -> Unit)? = null,
-    onLongReadsClick: () -> Unit,
-    onBookmarksClick: () -> Unit,
     onReadPickerRequest: () -> Unit,
     titleOverride: String? = null,
     subtitleOverride: String? = null,
@@ -285,22 +278,15 @@ private fun MainScreenTopAppBar(
                 avatarBlossoms = avatarBlossoms,
                 onAvatarClick = onAvatarClick,
                 onAvatarSwipeDown = onAvatarSwipeDown,
-                onMenuClick = onAlgorithmMenuClick,
+                onMenuClick = null,
                 onSearchClick = onExploreSearchClick,
                 scrollBehavior = scrollBehavior,
                 titleOverride = titleOverride,
                 subtitleOverride = subtitleOverride,
                 chevronExpanded = chevronExpanded,
-                showAvatar = true,
+                showAvatar = false,
                 onSearchSubmit = onExploreSearchSubmit,
                 onSearchProfileClick = onExploreSearchProfileClick,
-                homeActions = {
-                    HomeQuickAccessRow(
-                        onAlgorithmsClick = { onAlgorithmMenuClick?.invoke() },
-                        onLongReadsClick = onLongReadsClick,
-                        onBookmarksClick = onBookmarksClick,
-                    )
-                },
             )
         }
 
@@ -359,73 +345,9 @@ private fun MainScreenTopAppBar(
             )
         }
 
-        PrimalTopLevelDestination.Settings -> {}
-    }
-}
-
-@Composable
-private fun HomeQuickAccessRow(
-    onAlgorithmsClick: () -> Unit,
-    onLongReadsClick: () -> Unit,
-    onBookmarksClick: () -> Unit,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
-    ) {
-        HomeQuickAccessButton(
-            modifier = Modifier.weight(1f),
-            icon = LibreNavigationIcons.Algorithm,
-            label = stringResource(id = R.string.home_quick_algorithms),
-            onClick = onAlgorithmsClick,
-        )
-        HomeQuickAccessButton(
-            modifier = Modifier.weight(1f),
-            icon = LibreNavigationIcons.LongReads,
-            label = stringResource(id = R.string.home_quick_reads),
-            onClick = onLongReadsClick,
-        )
-        HomeQuickAccessButton(
-            modifier = Modifier.weight(1f),
-            icon = PrimalIcons.Bookmarks,
-            label = stringResource(id = R.string.home_quick_bookmarks),
-            onClick = onBookmarksClick,
-        )
-    }
-}
-
-@Composable
-private fun HomeQuickAccessButton(
-    modifier: Modifier = Modifier,
-    icon: ImageVector,
-    label: String,
-    onClick: () -> Unit,
-) {
-    val tokens = AppTheme.libreNostrTokens
-    Surface(
-        modifier = modifier,
-        onClick = onClick,
-        shape = RoundedCornerShape(18.dp),
-        color = tokens.accentSubtle,
-        contentColor = tokens.accent,
-        border = BorderStroke(1.dp, tokens.softOutline),
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 6.dp, vertical = 10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Icon(
-                modifier = Modifier.size(21.dp),
-                imageVector = icon,
-                contentDescription = null,
-            )
-            Spacer(modifier = Modifier.height(5.dp))
-            Text(
-                text = label,
-                style = AppTheme.typography.labelSmall,
-                maxLines = 1,
-            )
-        }
+        PrimalTopLevelDestination.You,
+        PrimalTopLevelDestination.Settings,
+        -> {}
     }
 }
 
@@ -441,9 +363,6 @@ private fun ScaffoldTopAppBar(
     exploreSectionPickerVisible: Boolean,
     sharedState: MainScreenSharedState,
     toggleOverlay: (ActiveOverlay) -> Unit,
-    onAlgorithmMenuClick: () -> Unit,
-    onLongReadsClick: () -> Unit,
-    onBookmarksClick: () -> Unit,
     onExploreSearchClick: () -> Unit,
     onExploreSearchProfileClick: (String) -> Unit,
     readsFeeds: List<FeedUi>,
@@ -468,9 +387,6 @@ private fun ScaffoldTopAppBar(
         } else {
             null
         },
-        onAlgorithmMenuClick = onAlgorithmMenuClick,
-        onLongReadsClick = onLongReadsClick,
-        onBookmarksClick = onBookmarksClick,
         onReadPickerRequest = { toggleOverlay(ActiveOverlay.ReadPicker) },
         titleOverride = drawerTitle,
         subtitleOverride = drawerSubtitle,
@@ -501,13 +417,13 @@ private fun ScaffoldTopAppBar(
 // function rather than adding to it.
 private val mainScreenTabTransitionSpec:
     AnimatedContentTransitionScope<PrimalTopLevelDestination>.() -> ContentTransform = {
+    val initialIndex = OUTKAST_WORLDS.indexOf(initialState)
+    val targetIndex = OUTKAST_WORLDS.indexOf(targetState)
     when {
-        initialState == PrimalTopLevelDestination.Feeds && targetState == PrimalTopLevelDestination.Alerts ->
+        initialIndex >= 0 && targetIndex > initialIndex ->
             primalSlideInHorizontallyFromEnd togetherWith primalSlideOutHorizontallyToStart
-
-        initialState == PrimalTopLevelDestination.Alerts && targetState == PrimalTopLevelDestination.Feeds ->
+        initialIndex >= 0 && targetIndex in 0 until initialIndex ->
             primalSlideInHorizontallyFromStart togetherWith primalSlideOutHorizontallyToEnd
-
         else -> EnterTransition.None togetherWith ExitTransition.None
     }
 }
@@ -572,21 +488,21 @@ private fun MainScreenContent(
                     )
 
                     PrimalTopLevelDestination.Explore -> {
-                        val active = sharedState.homeActiveFeed.value ?: homeState.feeds.firstOrNull()
-                        if (active != null) {
-                            Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-                                FeedListOverlayContent(
-                                    activeFeed = active,
-                                    feedSpecKind = FeedSpecKind.Notes,
-                                    inlineActions = true,
-                                    onFeedClick = { feed ->
-                                        sharedState.homeActiveFeed.value = feed
-                                        onTabChanged(PrimalTopLevelDestination.Feeds)
-                                    },
-                                    onDismiss = { onTabChanged(PrimalTopLevelDestination.Feeds) },
-                                )
-                            }
-                        }
+                        ExploreHomeContent(
+                            pagerState = sharedState.explorePagerState,
+                            paddingValues = paddingValues,
+                            noteCallbacks = noteCallbacks,
+                            snackbarHostState = sharedState.snackbarHostState,
+                            onFollowPackClick = { profileId, identifier ->
+                                navController.navigateToFollowPack(profileId, identifier)
+                            },
+                            onRecentSearchEditClick = { query ->
+                                navController.navigateToSearch(SearchScope.Notes, query)
+                            },
+                            onRecentSearchExecuteClick = { query ->
+                                navController.navigateToSearch(SearchScope.Notes, query)
+                            },
+                        )
                     }
 
                     PrimalTopLevelDestination.Messages -> Unit
@@ -600,9 +516,12 @@ private fun MainScreenContent(
                         paddingValues = paddingValues,
                         noteCallbacks = noteCallbacks,
                         shouldAnimateScrollToTop = sharedState.notificationsShouldAnimateScrollToTop,
+                        onMessagesClick = { navController.navigateToMessages() },
                     )
 
-                    PrimalTopLevelDestination.Settings -> Unit
+                    PrimalTopLevelDestination.You,
+                    PrimalTopLevelDestination.Settings,
+                    -> Unit
                 }
             }
         }
@@ -630,7 +549,6 @@ private fun MainScreenScaffold(
     accountSwitcherCallbacks: AccountSwitcherCallbacks,
     focusModeEnabled: Boolean,
     onActiveDestinationClick: () -> Unit,
-    onMessagesClick: () -> Unit,
     onTabChanged: (PrimalTopLevelDestination) -> Unit,
     onDrawerDestinationClick: (DrawerScreenDestination) -> Unit,
     navController: NavController,
@@ -638,7 +556,7 @@ private fun MainScreenScaffold(
     val saveableStateHolder = rememberSaveableStateHolder()
     val exploreAnchor = remember { AnchorHandle() }
     var activeOverlay by rememberSaveable { mutableStateOf<ActiveOverlay?>(null) }
-    var algorithmDrawerVisible by rememberSaveable { mutableStateOf(false) }
+    var orbitVisible by rememberSaveable { mutableStateOf(false) }
     var homeHasNewNotes by rememberSaveable { mutableStateOf(false) }
     val readPickerVisible = activeOverlay == ActiveOverlay.ReadPicker
     val exploreSectionPickerVisible = activeOverlay == ActiveOverlay.ExploreSectionPicker
@@ -646,38 +564,13 @@ private fun MainScreenScaffold(
     val exploreActiveSection = ExploreSection.entries
         .getOrElse(sharedState.explorePagerState.currentPage) { ExploreSection.Explore }
 
-    // Keep the algorithm drawer available during the short interval in which the
-    // feed pager is still restoring its active item from storage.
-    val drawerActiveFeed = sharedState.homeActiveFeed.value
-        ?: homeState.feeds.firstOrNull()
-        ?: defaultLibreNostrNoteFeeds(mainState.activeAccountId).firstOrNull()?.asFeedUi()
-    val drawerOffset by animateDpAsState(
-        targetValue = if (algorithmDrawerVisible) ALGORITHM_DRAWER_WIDTH else 0.dp,
-        label = "AlgorithmDrawerHomeOffset",
-    )
-    BackHandler(enabled = algorithmDrawerVisible) {
-        algorithmDrawerVisible = false
-    }
-
     fun toggleOverlay(overlay: ActiveOverlay) {
         activeOverlay = if (activeOverlay == overlay) null else overlay
     }
 
     PrimalMainScaffold(
-        modifier = Modifier
-            .offset(x = drawerOffset)
-            .semantics { testTagsAsResourceId = true },
-        activeDestination = activeTab,
-        onActiveDestinationClick = onActiveDestinationClick,
-        onMessagesClick = onMessagesClick,
-        onPrimaryDestinationChanged = onTabChanged,
-        onSettingsClick = { navController.navigateToSettings() },
-        settingsSelected = false,
-        badges = mainState.badges.copy(
-            unreadFeedCount = if (homeHasNewNotes) 1 else 0,
-        ),
+        modifier = Modifier.semantics { testTagsAsResourceId = true },
         focusModeEnabled = focusModeEnabled,
-        exploreAnchorHandle = exploreAnchor,
         topAppBarState = currentTopAppBarState,
         topAppBar = { scrollBehavior ->
             ScaffoldTopAppBar(
@@ -690,13 +583,6 @@ private fun MainScreenScaffold(
                 exploreSectionPickerVisible = exploreSectionPickerVisible,
                 sharedState = sharedState,
                 toggleOverlay = ::toggleOverlay,
-                onAlgorithmMenuClick = { algorithmDrawerVisible = true },
-                onLongReadsClick = { onTabChanged(PrimalTopLevelDestination.Reads) },
-                onBookmarksClick = {
-                    onDrawerDestinationClick(
-                        DrawerScreenDestination.Bookmarks(userId = mainState.activeAccountId),
-                    )
-                },
                 onExploreSearchClick = {},
                 onExploreSearchProfileClick = { profileId ->
                     navController.navigateToProfile(profileId = profileId)
@@ -730,14 +616,9 @@ private fun MainScreenScaffold(
                 accountDrawerVisible = accountDrawerVisible,
                 readPickerVisible = readPickerVisible,
                 exploreSectionPickerVisible = exploreSectionPickerVisible,
-                algorithmDrawerVisible = algorithmDrawerVisible,
                 exploreActiveSection = exploreActiveSection,
                 sharedState = sharedState,
-                homeFeeds = homeState.feeds,
-                drawerActiveFeed = drawerActiveFeed,
-                activeAccountId = mainState.activeAccountId,
                 onDismissOverlay = { activeOverlay = null },
-                onDismissAlgorithmDrawer = { algorithmDrawerVisible = false },
                 onDrawerDestinationClick = onDrawerDestinationClick,
                 accountSwitcherCallbacks = accountSwitcherCallbacks,
                 navController = navController,
@@ -752,15 +633,58 @@ private fun MainScreenScaffold(
                 placement = BubblePlacement.Above,
             )
         },
-        overlayCoversTopBar = algorithmDrawerVisible,
+        overlayCoversTopBar = false,
+        navigationOverlay = {
+            OutkastGestureNavigation(
+                activeDestination = activeTab,
+                orbitVisible = orbitVisible,
+                badges = mainState.badges.copy(
+                    unreadFeedCount = if (homeHasNewNotes) 1 else 0,
+                ),
+                homeFeeds = homeState.feeds.ifEmpty {
+                    defaultLibreNostrNoteFeeds(mainState.activeAccountId).map { it.asFeedUi() }
+                },
+                activeHomeFeed = sharedState.homeActiveFeed.value,
+                onOpenOrbit = { orbitVisible = true },
+                onDismissOrbit = { orbitVisible = false },
+                onDestinationChanged = { destination ->
+                    orbitVisible = false
+                    if (destination == activeTab) onActiveDestinationClick() else onTabChanged(destination)
+                },
+                onBookmarksClick = {
+                    orbitVisible = false
+                    onDrawerDestinationClick(
+                        DrawerScreenDestination.Bookmarks(userId = mainState.activeAccountId),
+                    )
+                },
+                onFeedSelected = { feed ->
+                    orbitVisible = false
+                    sharedState.homeActiveFeed.value = feed
+                    sharedState.homeScrollToFeed.value = feed
+                    onTabChanged(PrimalTopLevelDestination.Feeds)
+                },
+                onEditAdvancedSearch = { feedSpec ->
+                    orbitVisible = false
+                    navController.navigateToAdvancedSearch(editingFeedSpec = feedSpec)
+                },
+                onProfileClick = {
+                    orbitVisible = false
+                    if (mainState.activeAccountId.isNotEmpty()) {
+                        navController.navigateToProfile(profileId = mainState.activeAccountId)
+                    }
+                },
+                onSettingsClick = {
+                    orbitVisible = false
+                    navController.navigateToSettings()
+                },
+            )
+        },
         floatingActionButton = { MainScreenFab(navController = navController) },
         snackbarHost = {
             SnackbarHost(hostState = sharedState.snackbarHostState)
         },
     )
 }
-
-private val ALGORITHM_DRAWER_WIDTH = 320.dp
 
 @Composable
 private fun MainScreenFab(navController: NavController) {
@@ -769,20 +693,437 @@ private fun MainScreenFab(navController: NavController) {
     )
 }
 
+private val OUTKAST_WORLDS = listOf(
+    PrimalTopLevelDestination.Feeds,
+    PrimalTopLevelDestination.Explore,
+    PrimalTopLevelDestination.Reads,
+    PrimalTopLevelDestination.Alerts,
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun OutkastGestureNavigation(
+    activeDestination: PrimalTopLevelDestination,
+    orbitVisible: Boolean,
+    badges: net.primal.android.user.domain.Badges,
+    homeFeeds: List<FeedUi>,
+    activeHomeFeed: FeedUi?,
+    onOpenOrbit: () -> Unit,
+    onDismissOrbit: () -> Unit,
+    onDestinationChanged: (PrimalTopLevelDestination) -> Unit,
+    onBookmarksClick: () -> Unit,
+    onFeedSelected: (FeedUi) -> Unit,
+    onEditAdvancedSearch: (String) -> Unit,
+    onProfileClick: () -> Unit,
+    onSettingsClick: () -> Unit,
+) {
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    val swipeThreshold = with(density) { 64.dp.toPx() }
+    val activeIndex = OUTKAST_WORLDS.indexOf(activeDestination).coerceAtLeast(0)
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        OutkastEdgeGesture(
+            modifier = Modifier.align(Alignment.CenterStart),
+            direction = 1f,
+            threshold = swipeThreshold,
+            onTriggered = {
+                OUTKAST_WORLDS.getOrNull(activeIndex - 1)?.let(onDestinationChanged)
+            },
+        )
+        OutkastEdgeGesture(
+            modifier = Modifier.align(Alignment.CenterEnd),
+            direction = -1f,
+            threshold = swipeThreshold,
+            onTriggered = {
+                OUTKAST_WORLDS.getOrNull(activeIndex + 1)?.let(onDestinationChanged)
+            },
+        )
+
+        OutkastPortalHandle(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .windowInsetsPadding(WindowInsets.navigationBars)
+                .padding(bottom = 12.dp),
+            activeDestination = activeDestination,
+            pageIndex = activeIndex,
+            onOpenOrbit = onOpenOrbit,
+        )
+    }
+
+    if (orbitVisible) {
+        OutkastOrbitSheet(
+            activeDestination = activeDestination,
+            badges = badges,
+            homeFeeds = homeFeeds,
+            activeHomeFeed = activeHomeFeed,
+            onDismiss = onDismissOrbit,
+            onDestinationChanged = onDestinationChanged,
+            onBookmarksClick = onBookmarksClick,
+            onFeedSelected = onFeedSelected,
+            onEditAdvancedSearch = onEditAdvancedSearch,
+            onProfileClick = onProfileClick,
+            onSettingsClick = onSettingsClick,
+        )
+    }
+}
+
+@Composable
+private fun OutkastEdgeGesture(
+    modifier: Modifier,
+    direction: Float,
+    threshold: Float,
+    onTriggered: () -> Unit,
+) {
+    var accumulatedDrag by remember { mutableStateOf(0f) }
+    Box(
+        modifier = modifier
+            .width(22.dp)
+            .fillMaxHeight()
+            .pointerInput(direction) {
+                detectDragGestures(
+                    onDragStart = { accumulatedDrag = 0f },
+                    onDrag = { change, amount ->
+                        accumulatedDrag += amount.x
+                        change.consume()
+                    },
+                    onDragEnd = {
+                        if (accumulatedDrag * direction > threshold) onTriggered()
+                        accumulatedDrag = 0f
+                    },
+                    onDragCancel = { accumulatedDrag = 0f },
+                )
+            },
+    )
+}
+
+@Composable
+private fun OutkastPortalHandle(
+    modifier: Modifier,
+    activeDestination: PrimalTopLevelDestination,
+    pageIndex: Int,
+    onOpenOrbit: () -> Unit,
+) {
+    val tokens = AppTheme.outkastTokens
+    var verticalDrag by remember { mutableStateOf(0f) }
+    Surface(
+        modifier = modifier
+            .pointerInput(Unit) {
+                detectDragGestures(
+                    onDragStart = { verticalDrag = 0f },
+                    onDrag = { change, amount ->
+                        verticalDrag += amount.y
+                        change.consume()
+                    },
+                    onDragEnd = {
+                        if (verticalDrag < -32.dp.toPx()) onOpenOrbit()
+                        verticalDrag = 0f
+                    },
+                )
+            },
+        onClick = onOpenOrbit,
+        shape = RoundedCornerShape(50),
+        color = tokens.dockSurface.copy(alpha = 0.94f),
+        border = BorderStroke(1.dp, tokens.softOutline),
+        shadowElevation = 10.dp,
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
+        ) {
+            OUTKAST_WORLDS.forEachIndexed { index, _ ->
+                Box(
+                    modifier = Modifier
+                        .size(if (index == pageIndex) 7.dp else 4.dp)
+                        .clip(androidx.compose.foundation.shape.CircleShape)
+                        .background(
+                            if (index == pageIndex) tokens.accent else AppTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+                        ),
+                )
+            }
+            Text(
+                text = activeDestination.outkastLabel(),
+                style = AppTheme.typography.labelMedium,
+                color = AppTheme.colorScheme.onSurface,
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun OutkastOrbitSheet(
+    activeDestination: PrimalTopLevelDestination,
+    badges: net.primal.android.user.domain.Badges,
+    homeFeeds: List<FeedUi>,
+    activeHomeFeed: FeedUi?,
+    onDismiss: () -> Unit,
+    onDestinationChanged: (PrimalTopLevelDestination) -> Unit,
+    onBookmarksClick: () -> Unit,
+    onFeedSelected: (FeedUi) -> Unit,
+    onEditAdvancedSearch: (String) -> Unit,
+    onProfileClick: () -> Unit,
+    onSettingsClick: () -> Unit,
+) {
+    var section by rememberSaveable { mutableStateOf(OrbitSection.Main) }
+    val fallbackActiveFeed = activeHomeFeed ?: homeFeeds.firstOrNull()
+    androidx.compose.material3.ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        containerColor = AppTheme.colorScheme.surface,
+        dragHandle = null,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 18.dp, vertical = 20.dp),
+        ) {
+            when (section) {
+                OrbitSection.Main -> OrbitMainSection(
+                    activeDestination = activeDestination,
+                    badges = badges,
+                    onHomeClick = { section = OrbitSection.Home },
+                    onAlgorithmsClick = { section = OrbitSection.Algorithms },
+                    onDestinationChanged = onDestinationChanged,
+                    onBookmarksClick = onBookmarksClick,
+                    onProfileClick = onProfileClick,
+                    onSettingsClick = onSettingsClick,
+                )
+                OrbitSection.Home -> {
+                    OrbitSectionHeader(
+                        title = stringResource(id = R.string.primary_destination_feed_label),
+                        onBack = { section = OrbitSection.Main },
+                    )
+                    homeFeeds.take(2).forEach { feed ->
+                        OrbitFeedChoice(
+                            feed = feed,
+                            selected = feed.spec == activeHomeFeed?.spec,
+                            onClick = { onFeedSelected(feed) },
+                        )
+                    }
+                }
+                OrbitSection.Algorithms -> {
+                    OrbitSectionHeader(
+                        title = stringResource(id = R.string.home_quick_algorithms),
+                        onBack = { section = OrbitSection.Main },
+                    )
+                    if (fallbackActiveFeed != null) {
+                        Box(modifier = Modifier.fillMaxWidth().height(420.dp)) {
+                            FeedListOverlayContent(
+                                activeFeed = fallbackActiveFeed,
+                                feedSpecKind = FeedSpecKind.Notes,
+                                onFeedClick = onFeedSelected,
+                                onDismiss = { section = OrbitSection.Main },
+                                onEditAdvancedSearchFeedClick = onEditAdvancedSearch,
+                                applyNavigationBarsPadding = false,
+                            )
+                        }
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(20.dp))
+        }
+    }
+}
+
+@Composable
+private fun OutkastOrbitTile(
+    modifier: Modifier,
+    icon: ImageVector,
+    label: String,
+    selected: Boolean,
+    badge: Int,
+    onClick: () -> Unit,
+) {
+    val tokens = AppTheme.outkastTokens
+    Surface(
+        modifier = modifier,
+        onClick = onClick,
+        shape = RoundedCornerShape(22.dp),
+        color = if (selected) tokens.accentSubtle else AppTheme.colorScheme.surfaceVariant,
+        border = if (selected) BorderStroke(1.dp, tokens.accent) else null,
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Icon(
+                modifier = Modifier.size(25.dp),
+                imageVector = icon,
+                contentDescription = null,
+                tint = if (selected) tokens.accent else AppTheme.colorScheme.onSurface,
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(text = label, style = AppTheme.typography.titleMedium)
+            if (badge > 0) {
+                Text(
+                    text = badge.coerceAtMost(99).toString(),
+                    style = AppTheme.typography.labelSmall,
+                    color = tokens.accent,
+                )
+            }
+        }
+    }
+}
+
+private enum class OrbitSection { Main, Home, Algorithms }
+
+@Composable
+private fun OrbitMainSection(
+    activeDestination: PrimalTopLevelDestination,
+    badges: net.primal.android.user.domain.Badges,
+    onHomeClick: () -> Unit,
+    onAlgorithmsClick: () -> Unit,
+    onDestinationChanged: (PrimalTopLevelDestination) -> Unit,
+    onBookmarksClick: () -> Unit,
+    onProfileClick: () -> Unit,
+    onSettingsClick: () -> Unit,
+) {
+    Text(
+        text = stringResource(id = R.string.outkast_orbit_title),
+        style = AppTheme.typography.headlineSmall,
+        color = AppTheme.colorScheme.onSurface,
+    )
+    Text(
+        modifier = Modifier.padding(top = 4.dp, bottom = 18.dp),
+        text = stringResource(id = R.string.outkast_orbit_hint),
+        style = AppTheme.typography.bodyMedium,
+        color = AppTheme.colorScheme.onSurface.copy(alpha = 0.62f),
+    )
+    OrbitTileRow(
+        first = OrbitTileData(
+            OutkastNavigationIcons.Home,
+            stringResource(id = R.string.primary_destination_feed_label),
+            activeDestination == PrimalTopLevelDestination.Feeds,
+            badges.unreadFeedCount,
+            onHomeClick,
+        ),
+        second = OrbitTileData(
+            OutkastNavigationIcons.Algorithm,
+            stringResource(id = R.string.home_quick_algorithms),
+            onClick = onAlgorithmsClick,
+        ),
+    )
+    OrbitTileRow(
+        first = OrbitTileData(
+            OutkastNavigationIcons.LongReads,
+            stringResource(id = R.string.primary_destination_reads_label),
+            activeDestination == PrimalTopLevelDestination.Reads,
+            onClick = { onDestinationChanged(PrimalTopLevelDestination.Reads) },
+        ),
+        second = OrbitTileData(
+            OutkastNavigationIcons.Algorithm,
+            stringResource(id = R.string.primary_destination_explore_label),
+            activeDestination == PrimalTopLevelDestination.Explore,
+            onClick = { onDestinationChanged(PrimalTopLevelDestination.Explore) },
+        ),
+    )
+    OrbitTileRow(
+        first = OrbitTileData(
+            OutkastNavigationIcons.Notifications,
+            stringResource(id = R.string.primary_destination_notifications_label),
+            activeDestination == PrimalTopLevelDestination.Alerts,
+            badges.unreadNotificationsCount + badges.unreadMessagesCount,
+            onClick = { onDestinationChanged(PrimalTopLevelDestination.Alerts) },
+        ),
+        second = OrbitTileData(
+            PrimalIcons.Bookmarks,
+            stringResource(id = R.string.home_quick_bookmarks),
+            onClick = onBookmarksClick,
+        ),
+    )
+    OrbitTileRow(
+        first = OrbitTileData(
+            OutkastNavigationIcons.Profile,
+            stringResource(id = R.string.primary_destination_you_label),
+            onClick = onProfileClick,
+        ),
+        second = OrbitTileData(
+            OutkastNavigationIcons.Settings,
+            stringResource(id = R.string.drawer_destination_settings),
+            onClick = onSettingsClick,
+        ),
+    )
+}
+
+private data class OrbitTileData(
+    val icon: ImageVector,
+    val label: String,
+    val selected: Boolean = false,
+    val badge: Int = 0,
+    val onClick: () -> Unit,
+)
+
+@Composable
+private fun OrbitTileRow(first: OrbitTileData, second: OrbitTileData) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(10.dp),
+    ) {
+        listOf(first, second).forEach { tile ->
+            OutkastOrbitTile(
+                modifier = Modifier.weight(1f),
+                icon = tile.icon,
+                label = tile.label,
+                selected = tile.selected,
+                badge = tile.badge,
+                onClick = tile.onClick,
+            )
+        }
+    }
+    Spacer(modifier = Modifier.height(10.dp))
+}
+
+@Composable
+private fun OrbitSectionHeader(title: String, onBack: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Surface(onClick = onBack, shape = RoundedCornerShape(50), color = AppTheme.colorScheme.surfaceVariant) {
+            Text(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp), text = "←")
+        }
+        Spacer(modifier = Modifier.width(12.dp))
+        Text(text = title, style = AppTheme.typography.headlineSmall)
+    }
+}
+
+@Composable
+private fun OrbitFeedChoice(feed: FeedUi, selected: Boolean, onClick: () -> Unit) {
+    val tokens = AppTheme.outkastTokens
+    Surface(
+        modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
+        onClick = onClick,
+        shape = RoundedCornerShape(20.dp),
+        color = if (selected) tokens.accentSubtle else AppTheme.colorScheme.surfaceVariant,
+        border = if (selected) BorderStroke(1.dp, tokens.accent) else null,
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(text = feed.title, style = AppTheme.typography.titleMedium)
+            Text(
+                modifier = Modifier.padding(top = 3.dp),
+                text = feed.description,
+                style = AppTheme.typography.bodySmall,
+                color = AppTheme.colorScheme.onSurface.copy(alpha = 0.62f),
+            )
+        }
+    }
+}
+
+@Composable
+private fun PrimalTopLevelDestination.outkastLabel(): String = when (this) {
+    PrimalTopLevelDestination.Feeds -> stringResource(id = R.string.primary_destination_feed_label)
+    PrimalTopLevelDestination.Explore -> stringResource(id = R.string.primary_destination_explore_label)
+    PrimalTopLevelDestination.Reads -> stringResource(id = R.string.primary_destination_reads_label)
+    PrimalTopLevelDestination.Alerts -> stringResource(id = R.string.primary_destination_notifications_label)
+    else -> name
+}
+
 @Suppress("LongMethod")
 @Composable
 private fun MainScreenOverlays(
     accountDrawerVisible: Boolean,
     readPickerVisible: Boolean,
     exploreSectionPickerVisible: Boolean,
-    algorithmDrawerVisible: Boolean,
     exploreActiveSection: ExploreSection,
     sharedState: MainScreenSharedState,
-    homeFeeds: List<FeedUi>,
-    drawerActiveFeed: FeedUi?,
-    activeAccountId: String,
     onDismissOverlay: () -> Unit,
-    onDismissAlgorithmDrawer: () -> Unit,
     onDrawerDestinationClick: (DrawerScreenDestination) -> Unit,
     accountSwitcherCallbacks: AccountSwitcherCallbacks,
     navController: NavController,
@@ -830,112 +1171,6 @@ private fun MainScreenOverlays(
         onDismissOverlay = onDismissOverlay,
     )
 
-    AlgorithmPickerDrawer(
-        visible = algorithmDrawerVisible,
-        activeFeed = drawerActiveFeed ?: homeFeeds.firstOrNull(),
-        onDismiss = onDismissAlgorithmDrawer,
-        onFeedSelected = { feed ->
-            // Update the shared selection immediately so the active feed, title and
-            // pager cannot fall back to the first (Latest) feed while the drawer closes.
-            sharedState.homeActiveFeed.value = feed
-            sharedState.homeScrollToFeed.value = feed
-            onDismissAlgorithmDrawer()
-        },
-        onEditAdvancedSearch = { feedSpec ->
-            onDismissAlgorithmDrawer()
-            navController.navigateToAdvancedSearch(editingFeedSpec = feedSpec)
-        },
-        activeUserId = activeAccountId,
-        onBookmarkedNoteClick = { noteId ->
-            onDismissAlgorithmDrawer()
-            navController.navigateToThread(noteId = noteId)
-        },
-        onSeeAllBookmarksClick = {
-            onDismissAlgorithmDrawer()
-            onDrawerDestinationClick(DrawerScreenDestination.Bookmarks(userId = activeAccountId))
-        },
-    )
-
-}
-
-@Composable
-private fun AlgorithmPickerDrawer(
-    visible: Boolean,
-    activeFeed: FeedUi?,
-    onDismiss: () -> Unit,
-    onFeedSelected: (FeedUi) -> Unit,
-    onEditAdvancedSearch: (String) -> Unit,
-    activeUserId: String,
-    onBookmarkedNoteClick: (noteId: String) -> Unit,
-    onSeeAllBookmarksClick: () -> Unit,
-) {
-    if (activeFeed == null) return
-
-    androidx.compose.animation.AnimatedVisibility(
-        visible = visible,
-        modifier = Modifier.fillMaxSize(),
-        enter = slideInHorizontally(initialOffsetX = { -it }) + fadeIn(),
-        exit = slideOutHorizontally(targetOffsetX = { -it }) + fadeOut(),
-    ) {
-        Row(modifier = Modifier.fillMaxSize()) {
-            Box(
-                modifier = Modifier
-                    .width(ALGORITHM_DRAWER_WIDTH)
-                    .fillMaxHeight()
-                    .background(AppTheme.extraColorScheme.surfaceVariantAlt2),
-            ) {
-                androidx.compose.foundation.layout.Column(modifier = Modifier.fillMaxSize()) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(64.dp)
-                            .padding(horizontal = 20.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Icon(
-                            modifier = Modifier.size(24.dp),
-                            imageVector = LibreNavigationIcons.Algorithm,
-                            contentDescription = null,
-                            tint = AppTheme.colorScheme.primary,
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = "Algorithms",
-                            style = AppTheme.typography.titleLarge,
-                            color = AppTheme.colorScheme.onSurface,
-                        )
-                    }
-                    // The drawer is split in two equal halves: the algorithms above, the bookmarks
-                    // below. The nav-bar inset belongs to the bottom edge of the drawer, so the
-                    // upper half must not reserve it in the middle of the screen.
-                    Box(modifier = Modifier.weight(1f)) {
-                        FeedListOverlayContent(
-                            activeFeed = activeFeed,
-                            feedSpecKind = FeedSpecKind.Notes,
-                            onFeedClick = onFeedSelected,
-                            onDismiss = onDismiss,
-                            onEditAdvancedSearchFeedClick = onEditAdvancedSearch,
-                            applyNavigationBarsPadding = false,
-                        )
-                    }
-                    PrimalDivider()
-                    BookmarksDrawerSection(
-                        modifier = Modifier.weight(1f),
-                        activeUserId = activeUserId,
-                        onNoteClick = onBookmarkedNoteClick,
-                        onSeeAllClick = onSeeAllBookmarksClick,
-                    )
-                }
-            }
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.32f))
-                    .clickable(onClick = onDismiss),
-            )
-        }
-    }
 }
 
 @Composable
@@ -1007,7 +1242,9 @@ private fun rememberPerTabTopAppBarState(
         PrimalTopLevelDestination.Explore -> exploreTopAppBarState
         PrimalTopLevelDestination.Messages -> homeTopAppBarState
         PrimalTopLevelDestination.Alerts -> notificationsTopAppBarState
-        PrimalTopLevelDestination.Settings -> homeTopAppBarState
+        PrimalTopLevelDestination.You,
+        PrimalTopLevelDestination.Settings,
+        -> homeTopAppBarState
     }
 }
 
@@ -1021,7 +1258,10 @@ private fun handleActiveDestinationClick(
         PrimalTopLevelDestination.Reads -> sharedState.readsShouldAnimateScrollToTop
         PrimalTopLevelDestination.Alerts -> sharedState.notificationsShouldAnimateScrollToTop
         PrimalTopLevelDestination.Messages -> null
-        else -> null
+        PrimalTopLevelDestination.You,
+        PrimalTopLevelDestination.Settings,
+        PrimalTopLevelDestination.Explore,
+        -> null
     }
     target?.let {
         it.value = true

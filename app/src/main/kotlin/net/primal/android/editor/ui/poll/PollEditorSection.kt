@@ -657,7 +657,7 @@ private fun formatPollLength(
 @Preview
 @Composable
 private fun PollEditorSectionPreview() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         PollEditorSection(
             pollState = NoteEditorContract.PollEditorState(
                 choices = listOf(
@@ -678,7 +678,7 @@ private fun PollEditorSectionPreview() {
 @Preview
 @Composable
 private fun PollChoiceFieldPreview() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         PollChoiceField(
             choice = NoteEditorContract.PollChoice(text = "Sample choice"),
             index = 0,

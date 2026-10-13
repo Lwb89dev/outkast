@@ -99,7 +99,7 @@ import net.primal.android.core.compose.attachment.model.EventUriUi
 import net.primal.android.core.compose.button.PrimalLoadingButton
 import net.primal.android.core.compose.foundation.isAppInDarkPrimalTheme
 import net.primal.android.core.compose.foundation.keyboardVisibilityAsState
-import net.primal.android.core.compose.icons.LibreNavigationIcons
+import net.primal.android.core.compose.icons.OutkastNavigationIcons
 import net.primal.android.core.compose.icons.PrimalIcons
 import net.primal.android.core.compose.icons.primaliconpack.Delete
 import net.primal.android.core.compose.icons.primaliconpack.Gif
@@ -1176,7 +1176,7 @@ private fun NoteActionRow(
     ) {
         if (!isPrivateReply) {
             MediaPickerIconButton(
-                imageVector = LibreNavigationIcons.Gallery,
+                imageVector = OutkastNavigationIcons.Gallery,
                 contentDescription = stringResource(id = R.string.accessibility_import_photo_from_gallery),
                 tint = AppTheme.extraColorScheme.onSurfaceVariantAlt2,
                 onMediaSelected = onPhotosImported,

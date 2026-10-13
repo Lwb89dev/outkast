@@ -419,7 +419,7 @@ private fun ZapVoterListItem(
 @Preview
 @Composable
 private fun PreviewPollVotesScreenLoading() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         Surface {
             PollVotesScreen(
                 state = PollVotesContract.UiState(loading = true),
@@ -437,7 +437,7 @@ private fun PreviewPollVotesScreenLoading() {
 @Preview
 @Composable
 private fun PreviewPollVotesScreenWithContent() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         Surface {
             PollVotesScreen(
                 state = PollVotesContract.UiState(
@@ -478,7 +478,7 @@ private fun PreviewPollVotesScreenWithContent() {
 @Preview
 @Composable
 private fun PreviewPollVotesScreenZapPoll() {
-    PrimalPreview(primalTheme = PrimalTheme.Midnight) {
+    PrimalPreview(primalTheme = PrimalTheme.OutkastDark) {
         Surface {
             PollVotesScreen(
                 state = PollVotesContract.UiState(
@@ -496,7 +496,7 @@ private fun PreviewPollVotesScreenZapPoll() {
                             ),
                             PollOptionUi(
                                 id = "2",
-                                label = "LibreNostr",
+                                label = "OUTKAST",
                                 voteCount = 5,
                                 votePercentage = 0.291f,
                                 satsZapped = 45_000,
