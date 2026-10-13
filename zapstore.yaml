@@ -1,9 +1,11 @@
 repository: https://github.com/Lwb89dev/librenostr
-match: outkast-\d+\.\d+\.\d+-arm64-v8a\.apk$
+match: 'outkast-\d+\.\d+\.\d+-arm64-v8a\.apk$'
 name: OUTKAST
 description: Relay-first Nostr client for Android. Fork of Primal, without Primal cache servers as a requirement.
 license: MIT
 website: https://github.com/Lwb89dev/librenostr
+icon: ./assets/icons/icon-outkast.png
+release_notes: ./CHANGELOG.md
 metadata_sources:
     - github
 pubkey: npub1vjxq75czca0nswp2f5kgtfyzhynuccdjs29q098rd3kv09k7s6nq39hh7v
