@@ -6,7 +6,9 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
 import androidx.navigation.NavBackStackEntry
 import net.primal.android.core.compose.PrimalTopLevelDestination
 
@@ -88,3 +90,7 @@ internal fun exitTransitionFor(rightToLeft: Boolean?, fallback: ExitTransition? 
         false -> primalSlideOutHorizontallyToEnd
         null -> fallback
     }
+
+val primalSlideInVerticallyFromBottom = slideInVertically(animationSpec = tween(), initialOffsetY = { it })
+
+val primalSlideOutVerticallyToBottom = slideOutVertically(animationSpec = tween(), targetOffsetY = { it })

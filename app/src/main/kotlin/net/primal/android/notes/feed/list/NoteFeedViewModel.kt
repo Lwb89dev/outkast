@@ -43,6 +43,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.withContext
 import net.primal.domain.events.EventRepository
 import net.primal.core.utils.serialization.decodeFromJsonStringOrNull
 import net.primal.data.remote.mapper.flatMapNotNullAsCdnResource
@@ -174,6 +175,7 @@ class NoteFeedViewModel @AssistedInject constructor(
                     UiEvent.StartPolling -> startPollingIfSupported()
                     UiEvent.StopPolling -> stopPolling()
                     UiEvent.AutoUpdateFeed -> refreshFeedForVisibility()
+                    UiEvent.RefreshFeedAndScrollToTop -> refreshFeedAndScrollToTop()
                     UiEvent.NewPostsPillClick -> showLatestNotesAndScrollToTop()
                     is UiEvent.UpdateCurrentTopVisibleNote -> {
                         topVisibleNote = it.noteId to it.repostId
@@ -253,27 +255,49 @@ class NoteFeedViewModel @AssistedInject constructor(
     }
 
     private fun refreshFeedForVisibility() {
-        viewModelScope.launch(dispatcherProvider.io()) {
-            try {
-                val snapshot = feedRepository.fetchFeedPageSnapshot(
-                    userId = activeAccountStore.activeUserId(),
-                    feedSpec = feedSpec,
-                    limit = INITIAL_PAGE_SIZE,
-                )
-                // Persist the relay snapshot so both newly fetched notes and their interaction
-                // stats become visible immediately after returning from a thread.
-                feedRepository.replaceFeed(
-                    userId = activeAccountStore.activeUserId(),
-                    feedSpec = feedSpec,
-                    snapshot = snapshot,
-                )
-            } catch (error: NetworkException) {
-                Napier.w(throwable = error) { "Automatic feed update failed for feedSpec=$feedSpec" }
-            } catch (error: CancellationException) {
-                throw error
-            } catch (error: Throwable) {
-                Napier.w(throwable = error) { "Automatic feed update failed for feedSpec=$feedSpec" }
-            }
+        viewModelScope.launch(dispatcherProvider.io()) { refreshFeedFromRelays() }
+    }
+
+    /**
+     * Brings the feed up to date and then shows its top, for when the user explicitly asks for the
+     * feed they are already on (picking it again in Orbit).
+     *
+     * The scroll waits for the refresh instead of running alongside it: new notes are inserted above
+     * the note the list is anchored to, so scrolling first would leave the list parked on the old
+     * head of the feed with the new notes above the screen. The delay is the same short settle the
+     * new-notes pill uses between merging notes and scrolling to them.
+     */
+    private fun refreshFeedAndScrollToTop() =
+        viewModelScope.launch {
+            withContext(dispatcherProvider.io()) { refreshFeedFromRelays() }
+
+            delay(187.milliseconds)
+            setState { copy(shouldAnimateScrollToTop = true) }
+
+            delay(1.seconds)
+            setState { copy(shouldAnimateScrollToTop = false) }
+        }
+
+    private suspend fun refreshFeedFromRelays() {
+        try {
+            val snapshot = feedRepository.fetchFeedPageSnapshot(
+                userId = activeAccountStore.activeUserId(),
+                feedSpec = feedSpec,
+                limit = INITIAL_PAGE_SIZE,
+            )
+            // Persist the relay snapshot so both newly fetched notes and their interaction
+            // stats become visible immediately after returning from a thread.
+            feedRepository.replaceFeed(
+                userId = activeAccountStore.activeUserId(),
+                feedSpec = feedSpec,
+                snapshot = snapshot,
+            )
+        } catch (error: NetworkException) {
+            Napier.w(throwable = error) { "Automatic feed update failed for feedSpec=$feedSpec" }
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Throwable) {
+            Napier.w(throwable = error) { "Automatic feed update failed for feedSpec=$feedSpec" }
         }
     }
 

@@ -44,6 +44,7 @@ internal fun NoteFeedsContent(
     selectedFeed: FeedUi? = null,
     shouldAnimateScrollToTop: MutableState<Boolean>,
     scrollToFeed: MutableState<FeedUi?> = remember { mutableStateOf(null) },
+    refreshRequest: MutableState<Boolean> = remember { mutableStateOf(false) },
     snackbarHostState: SnackbarHostState,
     paddingValues: PaddingValues,
     onNewNotesStateChanged: (Boolean) -> Unit = {},
@@ -98,6 +99,8 @@ internal fun NoteFeedsContent(
             showTopZaps = true,
             contentPadding = paddingValues,
             shouldAnimateScrollToTop = shouldAnimateScrollToTop.value,
+            refreshRequested = refreshRequest.isPendingFor(activeFeed),
+            onRefreshHandled = { refreshRequest.value = false },
             onNewNotesStateChanged = onNewNotesStateChanged,
             onUiError = { uiError ->
                 uiScope.launch {
@@ -168,3 +171,10 @@ internal fun NoteFeedTopAppBar(
         homeActions = homeActions,
     )
 }
+
+/**
+ * Whether a refresh request should be handed to the feed list yet. It is held back until the feed
+ * to show has been resolved: while the list still shows the first feed on its way to the selected
+ * one, the request would refresh the wrong feed.
+ */
+private fun MutableState<Boolean>.isPendingFor(resolvedFeed: FeedUi?): Boolean = value && resolvedFeed != null

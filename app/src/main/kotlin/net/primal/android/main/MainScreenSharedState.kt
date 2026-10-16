@@ -28,6 +28,12 @@ internal class MainScreenSharedState(
     val notificationsPagerState: PagerState,
     val homeShouldAnimateScrollToTop: MutableState<Boolean>,
     val homeScrollToFeed: MutableState<FeedUi?>,
+    /**
+     * One-shot request, set when the feed the user picked in Orbit is the one already showing:
+     * there is nothing to switch to, so the pick means "bring it up to date". The home feed list
+     * clears it once it has handed the request to the feed.
+     */
+    val homeRefreshRequest: MutableState<Boolean>,
     val readsShouldAnimateScrollToTop: MutableState<Boolean>,
     val readsScrollToFeed: MutableState<FeedUi?>,
     val notificationsShouldAnimateScrollToTop: MutableState<Boolean>,
@@ -67,6 +73,7 @@ internal fun rememberMainScreenSharedState(
         notificationsPagerState = rememberPagerState(pageCount = { 1 }),
         homeShouldAnimateScrollToTop = remember { mutableStateOf(false) },
         homeScrollToFeed = remember { mutableStateOf(null) },
+        homeRefreshRequest = remember { mutableStateOf(false) },
         readsShouldAnimateScrollToTop = remember { mutableStateOf(false) },
         readsScrollToFeed = remember { mutableStateOf(null) },
         notificationsShouldAnimateScrollToTop = remember { mutableStateOf(false) },

@@ -41,10 +41,12 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -115,6 +117,13 @@ import net.primal.android.stream.player.hideStreamMiniPlayer
 import net.primal.android.theme.AppTheme
 import net.primal.domain.links.EventUriType
 
+/**
+ * Scale, relative to the photo fitted to the screen, above which the photo counts as zoomed in.
+ * A little above 1 so the tiny drift a pinch leaves behind when it is released at "fit" does not
+ * count as zoom and lock the swipe-up gesture.
+ */
+private const val ZOOMED_IN_SCALE_THRESHOLD = 1.05f
+
 @Composable
 fun EventMediaGalleryScreen(
     viewModel: EventMediaGalleryViewModel,
@@ -174,8 +183,7 @@ private fun EventMediaGalleryScreen(
     noteCallbacks: NoteCallbacks,
 ) {
     val context = LocalContext.current
-    val window = LocalActivity.current?.window
-    val immersiveMode = window?.let { rememberImmersiveModeState(window = window) }
+    val immersiveMode = LocalActivity.current?.window?.let { rememberImmersiveModeState(window = it) }
 
     var mediaItemBitmap by remember { mutableStateOf<Bitmap?>(null) }
     val pagerState = rememberPagerState(
@@ -250,12 +258,23 @@ private fun EventMediaGalleryScreen(
                 pagerIndicatorContainerColor = containerColor,
                 onCurrentlyVisibleBitmap = { mediaItemBitmap = it },
                 immersiveMode = immersiveMode,
+                onSwipeUp = commentsOpener(note = note, noteCallbacks = noteCallbacks),
             )
         },
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
         },
     )
+}
+
+/**
+ * What swiping up on the photo does: open the note's thread — the replies themselves, not just the
+ * editor the Reply button leads to. Null (the gesture is off) until the note this gallery belongs
+ * to is known, and when the screen was opened without a way to open a thread.
+ */
+private fun commentsOpener(note: FeedPostUi?, noteCallbacks: NoteCallbacks): (() -> Unit)? {
+    val onNoteClick = noteCallbacks.onNoteClick ?: return null
+    return note?.let { { onNoteClick(it.postId) } }
 }
 
 @Composable
@@ -430,6 +449,7 @@ private fun MediaGalleryContent(
     pagerIndicatorContainerColor: Color,
     immersiveMode: ImmersiveModeState?,
     onCurrentlyVisibleBitmap: ((Bitmap?) -> Unit)? = null,
+    onSwipeUp: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val videoAttachments = remember(attachments) { attachments.filter { it.type == EventUriType.Video } }
@@ -494,8 +514,20 @@ private fun MediaGalleryContent(
         }
     }
 
+    // Which pages are zoomed in, by index. While the visible photo is zoomed an upward drag is the
+    // user moving around the picture, so it must not be read as the swipe that leaves for the
+    // comments.
+    val zoomedPages = remember { mutableStateMapOf<Int, Boolean>() }
+    val swipeUpModifier = rememberSwipeUpModifier(
+        enabled = onSwipeUp != null,
+        isBlocked = { zoomedPages[pagerState.currentPage] == true },
+        onSwipeUp = { onSwipeUp?.invoke() },
+    )
+
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .then(swipeUpModifier),
         contentAlignment = Alignment.Center,
     ) {
         exoPlayer?.let { player ->
@@ -505,6 +537,7 @@ private fun MediaGalleryContent(
                     attachments = attachments,
                     pagerState = pagerState,
                     onCurrentlyVisibleBitmap = onCurrentlyVisibleBitmap,
+                    onPageZoomedChange = { page, zoomed -> zoomedPages[page] = zoomed },
                     immersiveMode = immersiveMode,
                     exoPlayer = player,
                     initialIndex = initialAttachmentIndex,
@@ -659,6 +692,7 @@ private fun AttachmentsHorizontalPager(
     initialIndex: Int = 0,
     initialPositionMs: Long = 0,
     onCurrentlyVisibleBitmap: ((Bitmap?) -> Unit)? = null,
+    onPageZoomedChange: (page: Int, zoomed: Boolean) -> Unit = { _, _ -> },
 ) {
     HorizontalPager(
         modifier = modifier,
@@ -677,6 +711,7 @@ private fun AttachmentsHorizontalPager(
                         modifier = Modifier.fillMaxSize(),
                         attachment = attachment,
                         onImageBitmapLoaded = { onCurrentlyVisibleBitmap?.invoke(it) },
+                        onZoomedChange = { zoomed -> onPageZoomedChange(index, zoomed) },
                         immersiveMode = immersiveMode,
                     )
                 }
@@ -711,6 +746,7 @@ private fun ImageScreen(
     onImageBitmapLoaded: (Bitmap?) -> Unit,
     immersiveMode: ImmersiveModeState?,
     modifier: Modifier = Modifier,
+    onZoomedChange: (Boolean) -> Unit = {},
 ) {
     var loadedBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var error by remember { mutableStateOf<ErrorResult?>(null) }
@@ -745,6 +781,17 @@ private fun ImageScreen(
 
     val zoomState = rememberCoilZoomState().apply {
         zoomable.setKeepTransformWhenSameAspectRatioContentSizeChanged(true)
+    }
+
+    LaunchedEffect(zoomState) {
+        snapshotFlow { zoomState.zoomable.userTransform.scaleX > ZOOMED_IN_SCALE_THRESHOLD }
+            .distinctUntilChanged()
+            .collect(onZoomedChange)
+    }
+    // A page that leaves composition while zoomed (swiped away, or the screen closing) must not
+    // leave the gallery believing it is still zoomed.
+    DisposableEffect(zoomState) {
+        onDispose { onZoomedChange(false) }
     }
 
     CoilZoomAsyncImage(

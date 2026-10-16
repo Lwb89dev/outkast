@@ -9,6 +9,38 @@ the LibreNostr/OUTKAST fork on top of the imported `3.5.25` baseline.
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-10-16
+
+### Added
+
+- Swiping up on a photo or video in the full-screen viewer opens the note's thread, with its
+  replies, rising from the bottom of the screen. The Reply button still opens the editor. The swipe
+  is ignored while the photo is zoomed in, so moving around a magnified picture cannot leave the
+  viewer.
+
+### Fixed
+
+- Swiping between Feed, Discover, Long reads and Inbox failed on phones with gesture navigation:
+  the edge strip lay inside the area Android reserves for the back gesture, which took the swipe.
+  Android lets an app take only 200dp of each edge away from the back gesture, so the edge swipe
+  alone could not fix this: measured on a phone, a swipe from the edge at any other height was read
+  as "back" (second world to the first, first world out of the app). The swipe now also works from
+  anywhere on the screen, like a pager: left for the next world, right for the previous one.
+  Horizontal scrollers keep their own swipes (photo carousels, the sections of Discover and Long
+  reads) and hand the swipe over only when they are on their last page. The edge swipe stays as a
+  shortcut that wins over them, protected from the back gesture in the middle of each edge.
+- The same swipe only ever worked for the first two worlds: the gesture kept the destination it was
+  given when the screen first appeared, so after one move it kept aiming at the same place. It now
+  always uses the world currently showing.
+- The edge strip no longer swallows taps and vertical scrolls that start at the edge of the screen;
+  it takes over only once a finger has clearly started moving inward.
+- Picking, in Orbit, the feed that is already showing (Home → Recent, or Recent with replies) did
+  nothing. It now refreshes that feed and scrolls it to the top.
+- The app crashed when the Feed gallery section of Discover came on screen if the same feed had been
+  received twice (it is fetched from several relays): the list used the feed's identity as its key
+  and refused the duplicate. Duplicates are now dropped before the list is built. Swiping through
+  the sections of Discover reaches this section far more easily than the section picker did.
+
 ## [2.0.0] - 2026-10-13
 
 ### Highlights

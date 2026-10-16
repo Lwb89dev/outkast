@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
@@ -50,6 +49,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -470,6 +470,7 @@ private fun MainScreenContent(
                         selectedFeed = sharedState.homeActiveFeed.value,
                         shouldAnimateScrollToTop = sharedState.homeShouldAnimateScrollToTop,
                         scrollToFeed = sharedState.homeScrollToFeed,
+                        refreshRequest = sharedState.homeRefreshRequest,
                         snackbarHostState = sharedState.snackbarHostState,
                         paddingValues = paddingValues,
                         onNewNotesStateChanged = onHomeNewNotesChanged,
@@ -568,8 +569,49 @@ private fun MainScreenScaffold(
         activeOverlay = if (activeOverlay == overlay) null else overlay
     }
 
+    fun changeDestination(destination: PrimalTopLevelDestination) {
+        orbitVisible = false
+        if (destination == activeTab) onActiveDestinationClick() else onTabChanged(destination)
+    }
+
+    // Picking the feed that is already showing has no feed to switch to. It used to do nothing at
+    // all, so the only way to bring Home up to date from Orbit was to pick the other feed and then
+    // come back; now it refreshes the feed and scrolls to its top, like tapping an active tab.
+    fun selectHomeFeed(feed: FeedUi) {
+        orbitVisible = false
+        val alreadyShowing = feed.spec == sharedState.homeActiveFeed.value?.spec
+        sharedState.homeActiveFeed.value = feed
+        sharedState.homeScrollToFeed.value = feed
+        if (alreadyShowing) {
+            sharedState.homeRefreshRequest.value = true
+            if (activeTab == PrimalTopLevelDestination.Feeds) onActiveDestinationClick()
+        }
+        onTabChanged(PrimalTopLevelDestination.Feeds)
+    }
+
+    val edgeZoneWidth = rememberOutkastEdgeZoneWidth()
+    val stepThroughWorlds: (Int) -> Unit = { step ->
+        val activeIndex = OUTKAST_WORLDS.indexOf(activeTab).coerceAtLeast(0)
+        OUTKAST_WORLDS.getOrNull(activeIndex + step)?.let(::changeDestination)
+    }
+    // Two detectors for the same move, because neither alone is enough: the edge one wins over
+    // whatever is under the finger but only protects the middle of each edge from the system back
+    // gesture; the page one works from anywhere but gives way to scrollers that take the swipe.
+    val edgeSwipeModifier = rememberOutkastEdgeSwipeModifier(
+        edgeZoneWidth = edgeZoneWidth,
+        onSwipe = stepThroughWorlds,
+    )
+    val pageSwipeModifier = rememberOutkastPageSwipeModifier(
+        ignoreChildConsumption = { step -> sharedState.innerPagerOf(activeTab)?.cannotScroll(step) == true },
+        onSwipe = stepThroughWorlds,
+        edgeZoneToLeaveAlone = edgeZoneWidth,
+    )
+
     PrimalMainScaffold(
-        modifier = Modifier.semantics { testTagsAsResourceId = true },
+        modifier = Modifier
+            .semantics { testTagsAsResourceId = true }
+            .then(edgeSwipeModifier)
+            .then(pageSwipeModifier),
         focusModeEnabled = focusModeEnabled,
         topAppBarState = currentTopAppBarState,
         topAppBar = { scrollBehavior ->
@@ -637,6 +679,7 @@ private fun MainScreenScaffold(
         navigationOverlay = {
             OutkastGestureNavigation(
                 activeDestination = activeTab,
+                edgeZoneWidth = edgeZoneWidth,
                 orbitVisible = orbitVisible,
                 badges = mainState.badges.copy(
                     unreadFeedCount = if (homeHasNewNotes) 1 else 0,
@@ -647,22 +690,14 @@ private fun MainScreenScaffold(
                 activeHomeFeed = sharedState.homeActiveFeed.value,
                 onOpenOrbit = { orbitVisible = true },
                 onDismissOrbit = { orbitVisible = false },
-                onDestinationChanged = { destination ->
-                    orbitVisible = false
-                    if (destination == activeTab) onActiveDestinationClick() else onTabChanged(destination)
-                },
+                onDestinationChanged = ::changeDestination,
                 onBookmarksClick = {
                     orbitVisible = false
                     onDrawerDestinationClick(
                         DrawerScreenDestination.Bookmarks(userId = mainState.activeAccountId),
                     )
                 },
-                onFeedSelected = { feed ->
-                    orbitVisible = false
-                    sharedState.homeActiveFeed.value = feed
-                    sharedState.homeScrollToFeed.value = feed
-                    onTabChanged(PrimalTopLevelDestination.Feeds)
-                },
+                onFeedSelected = ::selectHomeFeed,
                 onEditAdvancedSearch = { feedSpec ->
                     orbitVisible = false
                     navController.navigateToAdvancedSearch(editingFeedSpec = feedSpec)
@@ -693,6 +728,25 @@ private fun MainScreenFab(navController: NavController) {
     )
 }
 
+/**
+ * The pager a world scrolls sideways by itself (Discover's sections, Long reads' feeds), if it has
+ * one. A swipe inside such a world turns its pages first; only a swipe it cannot use leaves it.
+ */
+private fun MainScreenSharedState.innerPagerOf(destination: PrimalTopLevelDestination): PagerState? =
+    when (destination) {
+        PrimalTopLevelDestination.Explore -> explorePagerState
+        PrimalTopLevelDestination.Reads -> readsPagerState
+        else -> null
+    }
+
+/** True if the pager has no page left to turn for a swipe [step] through the worlds (+1 forward). */
+private fun PagerState.cannotScroll(step: Int): Boolean =
+    when {
+        step > 0 -> !canScrollForward
+        step < 0 -> !canScrollBackward
+        else -> false
+    }
+
 private val OUTKAST_WORLDS = listOf(
     PrimalTopLevelDestination.Feeds,
     PrimalTopLevelDestination.Explore,
@@ -704,6 +758,7 @@ private val OUTKAST_WORLDS = listOf(
 @Composable
 private fun OutkastGestureNavigation(
     activeDestination: PrimalTopLevelDestination,
+    edgeZoneWidth: Dp,
     orbitVisible: Boolean,
     badges: net.primal.android.user.domain.Badges,
     homeFeeds: List<FeedUi>,
@@ -717,27 +772,12 @@ private fun OutkastGestureNavigation(
     onProfileClick: () -> Unit,
     onSettingsClick: () -> Unit,
 ) {
-    val density = androidx.compose.ui.platform.LocalDensity.current
-    val swipeThreshold = with(density) { 64.dp.toPx() }
     val activeIndex = OUTKAST_WORLDS.indexOf(activeDestination).coerceAtLeast(0)
 
     Box(modifier = Modifier.fillMaxSize()) {
-        OutkastEdgeGesture(
-            modifier = Modifier.align(Alignment.CenterStart),
-            direction = 1f,
-            threshold = swipeThreshold,
-            onTriggered = {
-                OUTKAST_WORLDS.getOrNull(activeIndex - 1)?.let(onDestinationChanged)
-            },
-        )
-        OutkastEdgeGesture(
-            modifier = Modifier.align(Alignment.CenterEnd),
-            direction = -1f,
-            threshold = swipeThreshold,
-            onTriggered = {
-                OUTKAST_WORLDS.getOrNull(activeIndex + 1)?.let(onDestinationChanged)
-            },
-        )
+        // The swipe itself is detected on the scaffold (see rememberOutkastEdgeSwipeModifier); this
+        // only keeps the system back gesture away from the edge strips it starts in.
+        OutkastEdgeGestureExclusion(edgeZoneWidth = edgeZoneWidth)
 
         OutkastPortalHandle(
             modifier = Modifier
@@ -765,35 +805,6 @@ private fun OutkastGestureNavigation(
             onSettingsClick = onSettingsClick,
         )
     }
-}
-
-@Composable
-private fun OutkastEdgeGesture(
-    modifier: Modifier,
-    direction: Float,
-    threshold: Float,
-    onTriggered: () -> Unit,
-) {
-    var accumulatedDrag by remember { mutableStateOf(0f) }
-    Box(
-        modifier = modifier
-            .width(22.dp)
-            .fillMaxHeight()
-            .pointerInput(direction) {
-                detectDragGestures(
-                    onDragStart = { accumulatedDrag = 0f },
-                    onDrag = { change, amount ->
-                        accumulatedDrag += amount.x
-                        change.consume()
-                    },
-                    onDragEnd = {
-                        if (accumulatedDrag * direction > threshold) onTriggered()
-                        accumulatedDrag = 0f
-                    },
-                    onDragCancel = { accumulatedDrag = 0f },
-                )
-            },
-    )
 }
 
 @Composable

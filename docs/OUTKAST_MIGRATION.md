@@ -3,8 +3,14 @@
 ## Navigation model
 
 OUTKAST has no persistent navigation bar. Its four content worlds are ordered as Feed, Discover,
-Long reads and Inbox. An inward swipe from either screen edge moves to the adjacent world with a
-directional transition. The compact bottom portal can be tapped or pulled upward to open Orbit,
+Long reads and Inbox. A horizontal swipe from anywhere on the screen moves to the adjacent world
+with a directional transition (left for the next, right for the previous), like a pager. Content
+that scrolls sideways keeps its own swipes: photo carousels, and the section pagers of Discover and
+Long reads, which hand the swipe over only on their first or last page. An inward swipe from either
+screen edge does the same and takes priority over the content; on phones with gesture navigation
+the middle 200dp of each edge is excluded from the system back gesture (Android's limit) and the
+swipe zone follows the back-gesture width the device reports, while elsewhere along the edge the
+back gesture still works. The compact bottom portal can be tapped or pulled upward to open Orbit,
 an accessible control surface for every world plus Algorithms, Bookmarks, Profile and Settings.
 Selecting Home opens the explicit Recent / Recent with replies choice; selecting Algorithms opens
 the complete feed picker and advanced-search editing inside Orbit. Compose remains globally

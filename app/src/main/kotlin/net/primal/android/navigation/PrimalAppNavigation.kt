@@ -28,6 +28,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NamedNavArgument
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavDeepLink
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -700,7 +701,7 @@ private fun PrimalAppNavigation(
         )
 
         thread(
-            route = "thread/{$NOTE_ID}",
+            route = THREAD_ROUTE,
             arguments = listOf(
                 navArgument(NOTE_ID) {
                     type = NavType.StringType
@@ -1545,10 +1546,16 @@ private fun NavGraphBuilder.thread(
     route = route,
     deepLinks = deepLinks,
     arguments = arguments,
-    enterTransition = { primalSlideInHorizontallyFromEnd },
+    // Opened by swiping up on a photo, the thread comes up from the bottom like the gesture that
+    // opened it, and goes back down the same way. From anywhere else it slides in from the side.
+    enterTransition = {
+        if (initialState.isMediaGallery()) primalSlideInVerticallyFromBottom else primalSlideInHorizontallyFromEnd
+    },
     exitTransition = { primalScaleOut },
     popEnterTransition = { primalScaleIn },
-    popExitTransition = { primalSlideOutHorizontallyToEnd },
+    popExitTransition = {
+        if (targetState.isMediaGallery()) primalSlideOutVerticallyToBottom else primalSlideOutHorizontallyToEnd
+    },
 ) { navBackEntry ->
     val noteId = navBackEntry.arguments?.getString(NOTE_ID).orEmpty()
     val viewModel = hiltViewModel<ThreadViewModel, ThreadViewModel.Factory>(navBackEntry) { factory ->
@@ -1668,9 +1675,29 @@ private fun NavGraphBuilder.media(
         EventMediaGalleryScreen(
             onClose = { navController.navigateUp() },
             viewModel = viewModel,
-            noteCallbacks = noteCallbacksHandler(navController),
+            noteCallbacks = noteCallbacksHandler(navController).copy(
+                onNoteClick = { noteId -> navController.openThreadFromMediaGallery(noteId) },
+            ),
         )
     }
+}
+
+private const val THREAD_ROUTE = "thread/{$NOTE_ID}"
+
+private fun NavBackStackEntry.isMediaGallery() = destination.route?.startsWith("media/") == true
+
+/**
+ * Opens the comments of the note a media gallery belongs to.
+ *
+ * When the gallery was itself opened from that note's thread, the thread is already right behind
+ * it: going back to it is the same as opening it, and does not pile a second copy of it onto the
+ * back stack that the user would then have to leave twice.
+ */
+private fun NavController.openThreadFromMediaGallery(noteId: String) {
+    val previous = previousBackStackEntry
+    val cameFromThisThread = previous?.destination?.route == THREAD_ROUTE &&
+        previous.arguments?.getString(NOTE_ID) == noteId
+    if (cameFromThisThread) navigateUp() else navigateToThread(noteId = noteId)
 }
 
 @OptIn(ExperimentalSharedTransitionApi::class)

@@ -91,6 +91,10 @@ fun ExploreFeeds(
             onRefresh = { eventPublisher(ExploreFeedsContract.UiEvent.RefreshFeeds) },
         )
     } else {
+        // The same feed can arrive twice (it is fetched from several relays). The list key is the
+        // feed's identity, and a second item with the same key made the list throw while measuring
+        // and took the whole app down the moment this section came on screen.
+        val uniqueFeeds = remember(state.feeds) { state.feeds.distinctBy { it.listKey() } }
         LazyColumn(
             modifier = modifier.padding(horizontal = 12.dp),
             contentPadding = paddingValues,
@@ -99,8 +103,8 @@ fun ExploreFeeds(
             item { Spacer(Modifier.height(4.dp)) }
 
             items(
-                items = state.feeds,
-                key = { "${it.data.dvmPubkey}:${it.data.dvmId}" },
+                items = uniqueFeeds,
+                key = { it.listKey() },
             ) { dvmFeed ->
                 DvmFeedListItem(
                     modifier = Modifier.padding(top = 8.dp),
@@ -116,3 +120,5 @@ fun ExploreFeeds(
         }
     }
 }
+
+private fun DvmFeedUi.listKey() = "${data.dvmPubkey}:${data.dvmId}"

@@ -80,6 +80,8 @@ fun NoteFeedList(
     noContentVerticalArrangement: Arrangement.Vertical = Arrangement.Center,
     noContentPaddingValues: PaddingValues = PaddingValues(all = 0.dp),
     shouldAnimateScrollToTop: Boolean = false,
+    refreshRequested: Boolean = false,
+    onRefreshHandled: () -> Unit = {},
     onNewNotesStateChanged: ((Boolean) -> Unit)? = null,
     onUiError: ((UiError) -> Unit)? = null,
     header: @Composable (LazyItemScope.() -> Unit)? = null,
@@ -116,6 +118,14 @@ fun NoteFeedList(
             Lifecycle.Event.ON_STOP -> started = false
             else -> Unit
         }
+    }
+
+    // Keyed on the view model as well: a request that arrives while the list is still switching
+    // to this feed must reach this feed's view model, not the one it is switching away from.
+    LaunchedEffect(viewModel, refreshRequested) {
+        if (!refreshRequested) return@LaunchedEffect
+        viewModel.setEvent(UiEvent.RefreshFeedAndScrollToTop)
+        onRefreshHandled()
     }
 
     val isPolling by remember(started, pollingEnabled) { mutableStateOf(started && pollingEnabled) }
