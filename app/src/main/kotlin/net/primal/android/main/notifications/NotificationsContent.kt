@@ -13,8 +13,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.background
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarScrollBehavior
@@ -31,9 +29,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -84,7 +80,6 @@ internal fun NotificationsContent(
     paddingValues: PaddingValues,
     noteCallbacks: NoteCallbacks,
     shouldAnimateScrollToTop: MutableState<Boolean>,
-    onMessagesClick: () -> Unit = {},
 ) {
     val noteViewModel = hiltViewModel<NoteViewModel, NoteViewModel.Factory> { it.create() }
 
@@ -112,7 +107,6 @@ internal fun NotificationsContent(
         noteCallbacks = noteCallbacks,
         shouldAnimateScrollToTop = shouldAnimateScrollToTop,
         onMarkAllRead = { onNotificationsSeen(currentGroup) },
-        onMessagesClick = onMessagesClick,
     )
 }
 
@@ -130,7 +124,6 @@ private fun NotificationPage(
     noteCallbacks: NoteCallbacks,
     shouldAnimateScrollToTop: MutableState<Boolean>,
     onMarkAllRead: () -> Unit,
-    onMessagesClick: () -> Unit,
 ) {
     val seenPagingItems = remember(group) {
         seenNotificationsProvider(group)
@@ -196,7 +189,6 @@ private fun NotificationPage(
         paddingValues = paddingValues,
         noteCallbacks = noteCallbacks,
         onMarkAllRead = onMarkAllRead,
-        onMessagesClick = onMessagesClick,
         onPostLikeClick = {
             noteEventPublisher(
                 if (it.stats.userLiked) {
@@ -259,7 +251,6 @@ private fun NotificationsList(
     onPostQuoteClick: (FeedPostUi) -> Unit,
     onBookmarkClick: (FeedPostUi) -> Unit,
     onMarkAllRead: () -> Unit,
-    onMessagesClick: () -> Unit,
 ) {
     val zappingState = LocalZappingState.current
     var repostQuotePostConfirmation by remember { mutableStateOf<FeedPostUi?>(null) }
@@ -311,41 +302,6 @@ private fun NotificationsList(
         state = listState,
         userScrollEnabled = true,
     ) {
-        item(key = "inbox_modes", contentType = "InboxModes") {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 10.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(AppTheme.extraColorScheme.surfaceVariantAlt2)
-                    .padding(4.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                Text(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(AppTheme.colorScheme.primary)
-                        .padding(vertical = 10.dp),
-                    text = stringResource(R.string.inbox_activity_tab),
-                    color = AppTheme.colorScheme.onPrimary,
-                    style = AppTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                )
-                Text(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clip(RoundedCornerShape(12.dp))
-                        .clickable(onClick = onMessagesClick)
-                        .padding(vertical = 10.dp),
-                    text = stringResource(R.string.inbox_messages_tab),
-                    color = AppTheme.colorScheme.onSurface,
-                    style = AppTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                )
-            }
-        }
-
         item(key = "mark_all_notifications_read", contentType = "MarkAllRead") {
             Row(
                 modifier = Modifier

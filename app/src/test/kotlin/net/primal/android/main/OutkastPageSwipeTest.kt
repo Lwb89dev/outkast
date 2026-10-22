@@ -189,6 +189,42 @@ class OutkastPageSwipeTest {
     }
 
     @Test
+    fun swipeThatStartsInTheEdgeStripOfTheUpperHalfIsHandledHere() {
+        // The edge swipe only exists in the lower half of the screen, so nothing else would take a
+        // swipe that starts at the edge higher up.
+        composeRule.setContent {
+            val page = rememberOutkastPageSwipeModifier(
+                ignoreChildConsumption = { false },
+                onSwipe = { steps += it },
+                edgeZoneToLeaveAlone = 28.dp,
+            )
+            Box(modifier = Modifier.size(420.dp, 700.dp).then(page))
+        }
+
+        swipe(start = Offset(416f, 100f), end = Offset(216f, 100f))
+
+        steps shouldBe listOf(1)
+    }
+
+    @Test
+    fun gestureTheChildTookForItselfIsLeftAlone() {
+        // The portal at the bottom of the screen scrubs through the worlds itself; if this also
+        // stepped, a pager on its last page (which is ignored on purpose) would change world twice.
+        composeRule.setContent {
+            val page = rememberOutkastPageSwipeModifier(
+                ignoreChildConsumption = { true },
+                onSwipe = { steps += it },
+                gestureTakenByChild = { true },
+            )
+            Box(modifier = Modifier.size(420.dp, 700.dp).then(page)) { SidewaysScroller() }
+        }
+
+        swipe(start = Offset(300f, 350f), end = Offset(100f, 350f))
+
+        steps.shouldBeEmpty()
+    }
+
+    @Test
     fun edgeAndPageSwipesTogetherReportASwipeFromTheEdgeOnlyOnce() {
         // The regression: with a pager on its last page, the page swipe ignores the consumption of
         // the sideways drag on purpose, so it also reported the swipe the edge swipe had already

@@ -34,21 +34,27 @@ val primalScaleOut = scaleOut(animationSpec = tween(), targetScale = 0.9f)
 internal const val CURRENT_MAIN_TAB_KEY = "currentMainTab"
 
 /**
- * Left-to-right order of the bottom nav's tab-switch destinations, used to pick a consistent
- * slide direction between them. Deliberately excludes "profile": that route also serves as the
+ * Left-to-right order of the tab-switch destinations, used to pick a consistent slide direction
+ * between them. It follows the order of the tiles in the Orbit menu read row by row: the four
+ * worlds that share the "main" route (the same order a swipe runs through them), then Messages,
+ * then Settings. Deliberately excludes "profile": that route also serves as the
  * generic "view any user's profile" screen reached by drilling into a note, and retrofitting
  * tab-position awareness onto it would misfire for that far more common case — profile keeps its
  * existing forward-navigation transitions untouched.
  */
 private const val TAB_INDEX_HOME = 0
-private const val TAB_INDEX_MESSAGES = 1
-private const val TAB_INDEX_NOTIFICATIONS = 2
-private const val TAB_INDEX_SETTINGS = 3
+private const val TAB_INDEX_NOTIFICATIONS = 1
+private const val TAB_INDEX_READS = 2
+private const val TAB_INDEX_EXPLORE = 3
+private const val TAB_INDEX_MESSAGES = 4
+private const val TAB_INDEX_SETTINGS = 5
 
 private fun NavBackStackEntry.primaryTabIndex(): Int? =
     when (destination.route) {
         "main" -> when (savedStateHandle.get<String>(CURRENT_MAIN_TAB_KEY)) {
             PrimalTopLevelDestination.Alerts.name -> TAB_INDEX_NOTIFICATIONS
+            PrimalTopLevelDestination.Reads.name -> TAB_INDEX_READS
+            PrimalTopLevelDestination.Explore.name -> TAB_INDEX_EXPLORE
             else -> TAB_INDEX_HOME
         }
         "messages" -> TAB_INDEX_MESSAGES

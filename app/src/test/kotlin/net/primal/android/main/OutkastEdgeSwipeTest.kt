@@ -90,6 +90,19 @@ class OutkastEdgeSwipeTest {
     }
 
     @Test
+    fun swipeThatStartsOnTheEdgeOfTheUpperHalfIsLeftToTheSystem() {
+        // The upper half of the screen belongs to the system gestures; the dedicated edge area is
+        // the lower half only.
+        val steps = mutableListOf<Int>()
+        setSwipeContent(onSwipe = { steps += it })
+
+        swipeFrom(start = Offset(4f, 100f), end = Offset(204f, 100f))
+        swipeFrom(start = Offset(screenWidthPx - 4f, 100f), end = Offset(screenWidthPx - 204f, 100f))
+
+        steps.shouldBeEmpty()
+    }
+
+    @Test
     fun swipeTowardsTheEdgeIsIgnored() {
         val steps = mutableListOf<Int>()
         setSwipeContent(onSwipe = { steps += it })

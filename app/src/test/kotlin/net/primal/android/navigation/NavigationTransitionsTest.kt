@@ -11,9 +11,10 @@ import net.primal.android.core.compose.PrimalTopLevelDestination
 import org.junit.Test
 
 /**
- * Home/Messages/Notifications/Settings are the four bottom-nav destinations this app currently
- * gives a consistent, position-aware slide direction to (left-to-right visual order: Home,
- * Messages, Notifications, Settings) — see slidesRightToLeft's doc for why Profile is excluded.
+ * The worlds of "main", Messages and Settings are the destinations this app gives a consistent,
+ * position-aware slide direction to. Left-to-right order, the same as the Orbit menu read row by
+ * row: Home, Notifications, Reads, Discover, Messages, Settings — see slidesRightToLeft's doc for
+ * why Profile is excluded.
  */
 class NavigationTransitionsTest {
 
@@ -32,17 +33,27 @@ class NavigationTransitionsTest {
     }
 
     @Test
-    fun `moving from main(Notifications) to messages slides left-to-right`() {
+    fun `moving from main(Notifications) to messages slides right-to-left`() {
         val from = entryFor(route = "main", currentMainTab = PrimalTopLevelDestination.Alerts)
         val to = entryFor(route = "messages")
+        slidesRightToLeft(from, to) shouldBe true
+    }
+
+    @Test
+    fun `moving from messages to main(Notifications) slides left-to-right`() {
+        val from = entryFor(route = "messages")
+        val to = entryFor(route = "main", currentMainTab = PrimalTopLevelDestination.Alerts)
         slidesRightToLeft(from, to) shouldBe false
     }
 
     @Test
-    fun `moving from messages to main(Notifications) slides right-to-left`() {
-        val from = entryFor(route = "messages")
-        val to = entryFor(route = "main", currentMainTab = PrimalTopLevelDestination.Alerts)
-        slidesRightToLeft(from, to) shouldBe true
+    fun `messages comes after every world of main`() {
+        listOf(PrimalTopLevelDestination.Reads, PrimalTopLevelDestination.Explore).forEach { world ->
+            val main = entryFor(route = "main", currentMainTab = world)
+            val messages = entryFor(route = "messages")
+            slidesRightToLeft(main, messages) shouldBe true
+            slidesRightToLeft(messages, main) shouldBe false
+        }
     }
 
     @Test

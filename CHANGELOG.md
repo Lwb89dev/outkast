@@ -9,6 +9,36 @@ the LibreNostr/OUTKAST fork on top of the imported `3.5.25` baseline.
 
 ## [Unreleased]
 
+## [2.1.1] - 2026-10-22
+
+### Added
+
+- Dragging sideways along the portal (the pill at the bottom of the screen that opens Orbit) runs
+  through the worlds while the finger is still down, one world every 36dp, so a single stroke can
+  cross all of them. The finger moving left goes to the next world, right to the previous one, like
+  the swipe on the content. Dragging up still opens Orbit and a tap still opens it too; a short
+  stroke that ends on the portal no longer opens Orbit by accident.
+
+### Changed
+
+- Orbit is reorganized. The tiles now read Feed, Inbox, Long reads, Discover, Messages, Bookmarks,
+  You, Settings. The Algorithms and Discover tiles, which both read as "the algorithm place", are
+  merged into one: it opens a panel with an entry into the Discover world and, below it, your own
+  feed list as before.
+- Messages has its own Orbit tile with its own unread badge. The Activity/Messages switch at the top
+  of Inbox is gone, and the Inbox tile now counts notifications only.
+- Swiping between worlds follows the order of the Orbit menu: Feed, Inbox, Long reads, Discover. It
+  used to be Feed, Discover, Long reads, Inbox. The slide towards Messages and Settings follows the
+  same order, with Messages after every world (it used to sit between Feed and Inbox).
+- The swipe from the screen edge now belongs to the lower half of the screen, where the thumb is,
+  and the upper half is left to the system back gesture. The band where the back gesture is turned
+  off moved from the middle of each edge to the bottom. Android allows at most 200dp of it per edge,
+  so on a tall phone it does not cover the whole lower half; above it, a swipe that starts a little
+  inside the edge still changes world.
+
+### Removed
+
+- The Create (+) button on the Settings screens, where there is nothing to post from.
 ## [2.1.0] - 2026-10-16
 
 ### Added

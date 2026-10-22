@@ -419,11 +419,10 @@ private fun PrimalAppNavigation(
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = currentBackStackEntry?.destination
     val isMessages = currentDestination?.hierarchy?.any { it.route == "messages" } == true
-    val isSettings = currentDestination?.hierarchy?.any { it.route == "settings" } == true
     val isProfile = currentDestination?.hierarchy?.any {
         it.route?.startsWith("profile?") == true || it.route?.startsWith("profile/") == true
     } == true
-    val persistentBarVisible = isMessages || isSettings || isProfile
+    val persistentBarVisible = isMessages || isProfile
 
     PrimalScaffold(
         contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0),

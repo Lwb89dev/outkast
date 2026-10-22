@@ -184,13 +184,10 @@
     <string name="primary_destination_post_label">Create</string>
     <string name="primary_destination_explore_label">Discover</string>
     <string name="primary_destination_you_label">You</string>
-    <string name="inbox_activity_tab">Activity</string>
-    <string name="inbox_messages_tab">Messages</string>
     <string name="algorithm_title">Discover</string>
     <string name="algorithm_subtitle">People, posts, topics and long reads</string>
     <string name="home_search_placeholder">Search everything</string>
     <string name="home_wordmark_subtitle">Own your social</string>
-    <string name="home_quick_algorithms">Algorithms</string>
     <string name="home_quick_reads">Long reads</string>
     <string name="home_quick_bookmarks">Bookmarks</string>
     <string name="follow_set_picker_title">Your lists</string>

@@ -58,6 +58,14 @@ private const val PAGE_SWIPE_HORIZONTAL_DOMINANCE = 1.5f
  */
 private val SYSTEM_GESTURE_EXCLUSION_MAX_HEIGHT = 200.dp
 
+/**
+ * Where the dedicated edge area starts, as a fraction of the screen height measured from the top:
+ * the lower half belongs to the swipe between worlds (the half the thumb reaches), the upper half
+ * is left to the system gestures, so the back gesture keeps working there. A touch that lands
+ * above this line is never an edge swipe, and the page swipe treats it like any other touch.
+ */
+private const val EDGE_AREA_TOP_FRACTION = 0.5f
+
 /** Which edge of the screen a swipe started on. [inward] is the sign of a horizontal drag away from it. */
 private enum class ScreenEdge(val inward: Float) {
     Start(inward = 1f),
@@ -89,7 +97,8 @@ internal fun rememberOutkastEdgeZoneWidth(): Dp {
 /**
  * Detects a horizontal swipe that starts in one of the two edge strips and moves inward, and
  * reports it as a step through the list of worlds: -1 for the swipe from the start edge (towards
- * the previous world), +1 for the swipe from the end edge (towards the next one).
+ * the previous world), +1 for the swipe from the end edge (towards the next one). The strips only
+ * exist in the lower half of the screen; the upper half is left to the system gestures.
  *
  * This is a modifier on the container of the content instead of a strip laid over it, for two
  * reasons. A strip laid over the content takes every touch that lands on it, so taps on whatever
@@ -112,8 +121,13 @@ internal fun rememberOutkastEdgeSwipeModifier(edgeZoneWidth: Dp, onSwipe: (step:
     return Modifier.pointerInput(zonePx, commitDistancePx) {
         awaitEachGesture {
             val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
-            val edge = edgeOf(x = down.position.x, width = size.width.toFloat(), zonePx = zonePx)
-                ?: return@awaitEachGesture
+            val edge = edgeOf(
+                x = down.position.x,
+                y = down.position.y,
+                width = size.width.toFloat(),
+                height = size.height.toFloat(),
+                zonePx = zonePx,
+            ) ?: return@awaitEachGesture
             if (awaitInwardSwipe(down.id, edge, commitDistancePx)) {
                 latestOnSwipe(if (edge == ScreenEdge.Start) -1 else 1)
             }
@@ -121,9 +135,10 @@ internal fun rememberOutkastEdgeSwipeModifier(edgeZoneWidth: Dp, onSwipe: (step:
     }
 }
 
-private fun edgeOf(x: Float, width: Float, zonePx: Float): ScreenEdge? =
+private fun edgeOf(x: Float, y: Float, width: Float, height: Float, zonePx: Float): ScreenEdge? =
     when {
         zonePx <= 0f -> null
+        y < height * EDGE_AREA_TOP_FRACTION -> null
         x <= zonePx -> ScreenEdge.Start
         x >= width - zonePx -> ScreenEdge.End
         else -> null
@@ -202,28 +217,42 @@ private fun judgeMovement(travelledX: Float, travelledY: Float, edge: ScreenEdge
  * A swipe that starts inside the edge strips of width [edgeZoneToLeaveAlone] is not handled here:
  * it belongs to the edge swipe. Without this, on that last page both detectors would report the
  * same swipe — the edge one because it consumed the events first, this one because it ignores
- * that consumption on purpose — and the user would skip two worlds instead of one.
+ * that consumption on purpose — and the user would skip two worlds instead of one. The strips only
+ * exist in the lower half of the screen, so a swipe that starts at the edge of the upper half is
+ * handled here like any other.
+ *
+ * A gesture that [gestureTakenByChild] says belongs to something drawn over the content, which
+ * runs its own swipe and consumes it (the portal at the bottom of the screen), is not handled here
+ * either. Consumption alone cannot express that: it is ignored on purpose on the last page of
+ * Discover and Long reads, and the world would change twice, once by the child and once here.
  */
 @Composable
 internal fun rememberOutkastPageSwipeModifier(
     ignoreChildConsumption: (step: Int) -> Boolean,
     onSwipe: (step: Int) -> Unit,
     edgeZoneToLeaveAlone: Dp = 0.dp,
+    gestureTakenByChild: () -> Boolean = { false },
 ): Modifier {
     val density = LocalDensity.current
     // Read through State so the gesture coroutine, started once, calls the lambdas of the latest
     // composition (see rememberOutkastEdgeSwipeModifier).
     val latestOnSwipe by rememberUpdatedState(onSwipe)
     val latestIgnoreChildConsumption by rememberUpdatedState(ignoreChildConsumption)
+    val latestGestureTakenByChild by rememberUpdatedState(gestureTakenByChild)
     val commitDistancePx = with(density) { PAGE_SWIPE_COMMIT_DISTANCE.toPx() }
     val edgeZonePx = with(density) { edgeZoneToLeaveAlone.toPx() }
 
     return Modifier.pointerInput(commitDistancePx, edgeZonePx) {
         awaitEachGesture {
             val down = awaitFirstDown(requireUnconsumed = false)
-            if (edgeOf(x = down.position.x, width = size.width.toFloat(), zonePx = edgeZonePx) != null) {
-                return@awaitEachGesture
-            }
+            val startsInEdgeArea = edgeOf(
+                x = down.position.x,
+                y = down.position.y,
+                width = size.width.toFloat(),
+                height = size.height.toFloat(),
+                zonePx = edgeZonePx,
+            ) != null
+            if (startsInEdgeArea || latestGestureTakenByChild()) return@awaitEachGesture
             val step = awaitPageSwipe(down.id, commitDistancePx) { latestIgnoreChildConsumption(it) }
             if (step != 0) latestOnSwipe(step)
         }
@@ -287,8 +316,13 @@ private fun judgePageMovement(travelledX: Float, travelledY: Float, touchSlop: F
 }
 
 /**
- * Keeps the system back gesture away from the middle of each edge strip, so that a swipe starting
+ * Keeps the system back gesture away from the bottom of each edge strip, so that a swipe starting
  * there reaches [rememberOutkastEdgeSwipeModifier] instead of being taken as "back".
+ *
+ * The band sits at the bottom of the screen, in the half that is dedicated to the swipe between
+ * worlds. Android takes at most 200dp of exclusion per edge, so it cannot cover that whole half on
+ * a tall phone; the part of the lower half above the band is still covered by the page swipe,
+ * which starts a little inside the edge where the system never takes the touch.
  *
  * Draws nothing and takes no touches: it only tells the system where the app wants the edge.
  * Outside this band the back gesture keeps working as usual, which is also how the user leaves
@@ -298,11 +332,11 @@ private fun judgePageMovement(travelledX: Float, travelledY: Float, touchSlop: F
 internal fun OutkastEdgeGestureExclusion(edgeZoneWidth: Dp, modifier: Modifier = Modifier) {
     Box(modifier = modifier.fillMaxSize()) {
         EdgeExclusionBand(
-            modifier = Modifier.align(Alignment.CenterStart),
+            modifier = Modifier.align(Alignment.BottomStart),
             width = edgeZoneWidth,
         )
         EdgeExclusionBand(
-            modifier = Modifier.align(Alignment.CenterEnd),
+            modifier = Modifier.align(Alignment.BottomEnd),
             width = edgeZoneWidth,
         )
     }

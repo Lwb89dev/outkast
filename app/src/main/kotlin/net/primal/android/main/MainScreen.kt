@@ -9,7 +9,6 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -36,6 +35,7 @@ import androidx.compose.material3.TopAppBarState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,7 +48,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
@@ -517,7 +516,6 @@ private fun MainScreenContent(
                         paddingValues = paddingValues,
                         noteCallbacks = noteCallbacks,
                         shouldAnimateScrollToTop = sharedState.notificationsShouldAnimateScrollToTop,
-                        onMessagesClick = { navController.navigateToMessages() },
                     )
 
                     PrimalTopLevelDestination.You,
@@ -594,9 +592,21 @@ private fun MainScreenScaffold(
         val activeIndex = OUTKAST_WORLDS.indexOf(activeTab).coerceAtLeast(0)
         OUTKAST_WORLDS.getOrNull(activeIndex + step)?.let(::changeDestination)
     }
+    // Set while a finger that went down on the portal is still down: that gesture is the portal's,
+    // and the swipe from anywhere must not turn it into a second change of world.
+    val portalGestureActive = remember { mutableStateOf(false) }
+    // Unlike stepping, scrubbing asks for an absolute world, and asking for the one that is already
+    // showing must do nothing. So it goes straight to onTabChanged, which compares with the live
+    // state, and not through changeDestination: that would treat it as a tap on the active tab and
+    // scroll the world to the top, and it compares with the activeTab of the last composition, which
+    // is stale when a fast stroke crosses back to a world before the next frame.
+    val scrubToWorld: (Int) -> Unit = { index ->
+        OUTKAST_WORLDS.getOrNull(index)?.let(onTabChanged)
+    }
     // Two detectors for the same move, because neither alone is enough: the edge one wins over
-    // whatever is under the finger but only protects the middle of each edge from the system back
-    // gesture; the page one works from anywhere but gives way to scrollers that take the swipe.
+    // whatever is under the finger but only protects the bottom of each edge (in the lower half of
+    // the screen) from the system back gesture; the page one works from anywhere but gives way to
+    // scrollers that take the swipe.
     val edgeSwipeModifier = rememberOutkastEdgeSwipeModifier(
         edgeZoneWidth = edgeZoneWidth,
         onSwipe = stepThroughWorlds,
@@ -605,6 +615,7 @@ private fun MainScreenScaffold(
         ignoreChildConsumption = { step -> sharedState.innerPagerOf(activeTab)?.cannotScroll(step) == true },
         onSwipe = stepThroughWorlds,
         edgeZoneToLeaveAlone = edgeZoneWidth,
+        gestureTakenByChild = { portalGestureActive.value },
     )
 
     PrimalMainScaffold(
@@ -681,6 +692,8 @@ private fun MainScreenScaffold(
                 activeDestination = activeTab,
                 edgeZoneWidth = edgeZoneWidth,
                 orbitVisible = orbitVisible,
+                portalGestureActive = portalGestureActive,
+                onScrubToWorld = scrubToWorld,
                 badges = mainState.badges.copy(
                     unreadFeedCount = if (homeHasNewNotes) 1 else 0,
                 ),
@@ -691,6 +704,10 @@ private fun MainScreenScaffold(
                 onOpenOrbit = { orbitVisible = true },
                 onDismissOrbit = { orbitVisible = false },
                 onDestinationChanged = ::changeDestination,
+                onMessagesClick = {
+                    orbitVisible = false
+                    navController.navigateToMessages()
+                },
                 onBookmarksClick = {
                     orbitVisible = false
                     onDrawerDestinationClick(
@@ -747,11 +764,18 @@ private fun PagerState.cannotScroll(step: Int): Boolean =
         else -> false
     }
 
+/**
+ * The worlds in the order a swipe (or a stroke on the portal) runs through them. It is the order of
+ * the tiles in Orbit read row by row, Home, Notifications, Reads, Algorithm, so that swiping and
+ * the menu never disagree. Change one and the other has to follow: the tiles are in
+ * [OrbitMainSection], and the slide direction towards Messages and Settings is in
+ * NavigationTransitions.
+ */
 private val OUTKAST_WORLDS = listOf(
     PrimalTopLevelDestination.Feeds,
-    PrimalTopLevelDestination.Explore,
-    PrimalTopLevelDestination.Reads,
     PrimalTopLevelDestination.Alerts,
+    PrimalTopLevelDestination.Reads,
+    PrimalTopLevelDestination.Explore,
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -760,12 +784,15 @@ private fun OutkastGestureNavigation(
     activeDestination: PrimalTopLevelDestination,
     edgeZoneWidth: Dp,
     orbitVisible: Boolean,
+    portalGestureActive: MutableState<Boolean>,
+    onScrubToWorld: (Int) -> Unit,
     badges: net.primal.android.user.domain.Badges,
     homeFeeds: List<FeedUi>,
     activeHomeFeed: FeedUi?,
     onOpenOrbit: () -> Unit,
     onDismissOrbit: () -> Unit,
     onDestinationChanged: (PrimalTopLevelDestination) -> Unit,
+    onMessagesClick: () -> Unit,
     onBookmarksClick: () -> Unit,
     onFeedSelected: (FeedUi) -> Unit,
     onEditAdvancedSearch: (String) -> Unit,
@@ -786,6 +813,8 @@ private fun OutkastGestureNavigation(
                 .padding(bottom = 12.dp),
             activeDestination = activeDestination,
             pageIndex = activeIndex,
+            gestureActive = portalGestureActive,
+            onScrubToWorld = onScrubToWorld,
             onOpenOrbit = onOpenOrbit,
         )
     }
@@ -798,6 +827,7 @@ private fun OutkastGestureNavigation(
             activeHomeFeed = activeHomeFeed,
             onDismiss = onDismissOrbit,
             onDestinationChanged = onDestinationChanged,
+            onMessagesClick = onMessagesClick,
             onBookmarksClick = onBookmarksClick,
             onFeedSelected = onFeedSelected,
             onEditAdvancedSearch = onEditAdvancedSearch,
@@ -812,25 +842,22 @@ private fun OutkastPortalHandle(
     modifier: Modifier,
     activeDestination: PrimalTopLevelDestination,
     pageIndex: Int,
+    gestureActive: MutableState<Boolean>,
+    onScrubToWorld: (Int) -> Unit,
     onOpenOrbit: () -> Unit,
 ) {
     val tokens = AppTheme.outkastTokens
-    var verticalDrag by remember { mutableStateOf(0f) }
+    // Dragging along the portal runs through the worlds for fast navigation, dragging up opens
+    // Orbit, a tap opens it too (the click below).
+    val portalSwipeModifier = rememberOutkastPortalSwipeModifier(
+        activeIndex = pageIndex,
+        lastIndex = OUTKAST_WORLDS.lastIndex,
+        gestureActive = gestureActive,
+        onScrubToWorld = onScrubToWorld,
+        onOpenOrbit = onOpenOrbit,
+    )
     Surface(
-        modifier = modifier
-            .pointerInput(Unit) {
-                detectDragGestures(
-                    onDragStart = { verticalDrag = 0f },
-                    onDrag = { change, amount ->
-                        verticalDrag += amount.y
-                        change.consume()
-                    },
-                    onDragEnd = {
-                        if (verticalDrag < -32.dp.toPx()) onOpenOrbit()
-                        verticalDrag = 0f
-                    },
-                )
-            },
+        modifier = modifier.then(portalSwipeModifier),
         onClick = onOpenOrbit,
         shape = RoundedCornerShape(50),
         color = tokens.dockSurface.copy(alpha = 0.94f),
@@ -870,6 +897,7 @@ private fun OutkastOrbitSheet(
     activeHomeFeed: FeedUi?,
     onDismiss: () -> Unit,
     onDestinationChanged: (PrimalTopLevelDestination) -> Unit,
+    onMessagesClick: () -> Unit,
     onBookmarksClick: () -> Unit,
     onFeedSelected: (FeedUi) -> Unit,
     onEditAdvancedSearch: (String) -> Unit,
@@ -895,6 +923,7 @@ private fun OutkastOrbitSheet(
                     onHomeClick = { section = OrbitSection.Home },
                     onAlgorithmsClick = { section = OrbitSection.Algorithms },
                     onDestinationChanged = onDestinationChanged,
+                    onMessagesClick = onMessagesClick,
                     onBookmarksClick = onBookmarksClick,
                     onProfileClick = onProfileClick,
                     onSettingsClick = onSettingsClick,
@@ -912,24 +941,14 @@ private fun OutkastOrbitSheet(
                         )
                     }
                 }
-                OrbitSection.Algorithms -> {
-                    OrbitSectionHeader(
-                        title = stringResource(id = R.string.home_quick_algorithms),
-                        onBack = { section = OrbitSection.Main },
-                    )
-                    if (fallbackActiveFeed != null) {
-                        Box(modifier = Modifier.fillMaxWidth().height(420.dp)) {
-                            FeedListOverlayContent(
-                                activeFeed = fallbackActiveFeed,
-                                feedSpecKind = FeedSpecKind.Notes,
-                                onFeedClick = onFeedSelected,
-                                onDismiss = { section = OrbitSection.Main },
-                                onEditAdvancedSearchFeedClick = onEditAdvancedSearch,
-                                applyNavigationBarsPadding = false,
-                            )
-                        }
-                    }
-                }
+                OrbitSection.Algorithms -> OrbitAlgorithmsSection(
+                    discoverSelected = activeDestination == PrimalTopLevelDestination.Explore,
+                    activeFeed = fallbackActiveFeed,
+                    onBack = { section = OrbitSection.Main },
+                    onDiscoverClick = { onDestinationChanged(PrimalTopLevelDestination.Explore) },
+                    onFeedSelected = onFeedSelected,
+                    onEditAdvancedSearch = onEditAdvancedSearch,
+                )
             }
             Spacer(modifier = Modifier.height(20.dp))
         }
@@ -982,6 +1001,7 @@ private fun OrbitMainSection(
     onHomeClick: () -> Unit,
     onAlgorithmsClick: () -> Unit,
     onDestinationChanged: (PrimalTopLevelDestination) -> Unit,
+    onMessagesClick: () -> Unit,
     onBookmarksClick: () -> Unit,
     onProfileClick: () -> Unit,
     onSettingsClick: () -> Unit,
@@ -1006,9 +1026,11 @@ private fun OrbitMainSection(
             onHomeClick,
         ),
         second = OrbitTileData(
-            OutkastNavigationIcons.Algorithm,
-            stringResource(id = R.string.home_quick_algorithms),
-            onClick = onAlgorithmsClick,
+            OutkastNavigationIcons.Notifications,
+            stringResource(id = R.string.primary_destination_notifications_label),
+            activeDestination == PrimalTopLevelDestination.Alerts,
+            badges.unreadNotificationsCount,
+            onClick = { onDestinationChanged(PrimalTopLevelDestination.Alerts) },
         ),
     )
     OrbitTileRow(
@@ -1018,20 +1040,23 @@ private fun OrbitMainSection(
             activeDestination == PrimalTopLevelDestination.Reads,
             onClick = { onDestinationChanged(PrimalTopLevelDestination.Reads) },
         ),
+        // One tile for everything algorithm-related: it opens a panel with the user's own feeds and
+        // a way into the Discover world, which used to be a second, near-identical tile.
         second = OrbitTileData(
             OutkastNavigationIcons.Algorithm,
             stringResource(id = R.string.primary_destination_explore_label),
             activeDestination == PrimalTopLevelDestination.Explore,
-            onClick = { onDestinationChanged(PrimalTopLevelDestination.Explore) },
+            onClick = onAlgorithmsClick,
         ),
     )
     OrbitTileRow(
+        // Messages have their own tile rather than a switch inside Notifications, so the unread
+        // messages count lives here and the Notifications tile only counts notifications.
         first = OrbitTileData(
-            OutkastNavigationIcons.Notifications,
-            stringResource(id = R.string.primary_destination_notifications_label),
-            activeDestination == PrimalTopLevelDestination.Alerts,
-            badges.unreadNotificationsCount + badges.unreadMessagesCount,
-            onClick = { onDestinationChanged(PrimalTopLevelDestination.Alerts) },
+            OutkastNavigationIcons.Envelope,
+            stringResource(id = R.string.primary_destination_messages_label),
+            badge = badges.unreadMessagesCount,
+            onClick = onMessagesClick,
         ),
         second = OrbitTileData(
             PrimalIcons.Bookmarks,
@@ -1092,6 +1117,63 @@ private fun OrbitSectionHeader(title: String, onBack: () -> Unit) {
         }
         Spacer(modifier = Modifier.width(12.dp))
         Text(text = title, style = AppTheme.typography.headlineSmall)
+    }
+}
+
+/**
+ * The single algorithm panel of Orbit: the user's own feed list (pick, reorder, add from the
+ * marketplace) plus an entry into the Discover world. These used to be two separate tiles, one for
+ * each, that both read as "the algorithm place".
+ */
+@Composable
+private fun OrbitAlgorithmsSection(
+    discoverSelected: Boolean,
+    activeFeed: FeedUi?,
+    onBack: () -> Unit,
+    onDiscoverClick: () -> Unit,
+    onFeedSelected: (FeedUi) -> Unit,
+    onEditAdvancedSearch: (String) -> Unit,
+) {
+    OrbitSectionHeader(
+        title = stringResource(id = R.string.primary_destination_explore_label),
+        onBack = onBack,
+    )
+    OrbitDiscoverEntry(selected = discoverSelected, onClick = onDiscoverClick)
+    if (activeFeed == null) return
+
+    // The list is a scrollable pane that needs a bounded height.
+    Box(modifier = Modifier.fillMaxWidth().height(420.dp)) {
+        FeedListOverlayContent(
+            activeFeed = activeFeed,
+            feedSpecKind = FeedSpecKind.Notes,
+            onFeedClick = onFeedSelected,
+            onDismiss = onBack,
+            onEditAdvancedSearchFeedClick = onEditAdvancedSearch,
+            applyNavigationBarsPadding = false,
+        )
+    }
+}
+
+/** Entry that opens the Discover world, headed like the world itself so it is recognisable. */
+@Composable
+private fun OrbitDiscoverEntry(selected: Boolean, onClick: () -> Unit) {
+    val tokens = AppTheme.outkastTokens
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        onClick = onClick,
+        shape = RoundedCornerShape(20.dp),
+        color = if (selected) tokens.accentSubtle else AppTheme.colorScheme.surfaceVariant,
+        border = if (selected) BorderStroke(1.dp, tokens.accent) else null,
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(text = stringResource(id = R.string.algorithm_title), style = AppTheme.typography.titleMedium)
+            Text(
+                modifier = Modifier.padding(top = 3.dp),
+                text = stringResource(id = R.string.algorithm_subtitle),
+                style = AppTheme.typography.bodySmall,
+                color = AppTheme.colorScheme.onSurface.copy(alpha = 0.62f),
+            )
+        }
     }
 }
 
