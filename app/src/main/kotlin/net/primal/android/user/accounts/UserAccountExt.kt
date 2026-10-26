@@ -28,15 +28,19 @@ fun UserAccount.copyProfileIfNotNull(profile: UserAccount?): UserAccount {
 }
 
 fun UserAccount.copyFollowListIfNotNull(followList: UserAccount?): UserAccount {
-    return if (followList != null) {
-        copy(
-            following = followList.following,
-            interests = followList.interests,
-            followListEventContent = followList.followListEventContent,
-        )
-    } else {
-        this
-    }
+    if (followList == null) return this
+    // A follow list is a replaceable event: the newest one wins everywhere. Relays that missed our
+    // latest publish still serve the previous one, and adopting it here undid the user's last
+    // follow or unfollow, which looked exactly like the button not working.
+    val heldAt = followListCreatedAt
+    val offeredAt = followList.followListCreatedAt
+    if (heldAt != null && offeredAt != null && offeredAt < heldAt) return this
+    return copy(
+        following = followList.following,
+        interests = followList.interests,
+        followListEventContent = followList.followListEventContent,
+        followListCreatedAt = offeredAt ?: heldAt,
+    )
 }
 
 fun UserAccount.copyStatsIfNotNull(stats: UserAccount?): UserAccount {

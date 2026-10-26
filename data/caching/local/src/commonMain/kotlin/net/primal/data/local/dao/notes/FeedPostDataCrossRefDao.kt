@@ -35,6 +35,36 @@ interface FeedPostDataCrossRefDao {
     @Query("DELETE FROM FeedPostDataCrossRef WHERE ownerId = :ownerId")
     suspend fun deleteConnections(ownerId: String)
 
+    /**
+     * Takes the notes written, and the reposts made, by [authorIds] out of the "latest" feeds of
+     * [ownerId] (the following feed, with and without replies).
+     *
+     * A feed row is a stored membership, not a live filter on who the user follows, so unfollowing
+     * somebody did not remove what was already in the home feed: their notes stayed there until the
+     * next full refresh. The "latest" ids are matched with `LIKE` because the spec is stored as the
+     * JSON string the feed was opened with, whose whitespace and key order are not fixed.
+     */
+    @Query(
+        """
+        DELETE FROM FeedPostDataCrossRef
+        WHERE ownerId = :ownerId
+          AND feedSpec LIKE '%"id":"latest"%' AND feedSpec LIKE '%"kind":"notes"%'
+          AND (
+              eventId IN (SELECT postId FROM PostData WHERE authorId IN (:authorIds))
+              OR eventId IN (SELECT repostId FROM RepostData WHERE authorId IN (:authorIds))
+          )
+        """,
+    )
+    suspend fun deleteLatestFeedRowsOfAuthors(ownerId: String, authorIds: List<String>)
+
+    @Query(
+        """
+        SELECT DISTINCT feedSpec FROM FeedPostDataCrossRef
+        WHERE ownerId = :ownerId AND feedSpec LIKE '%"id":"latest"%' AND feedSpec LIKE '%"kind":"notes"%'
+        """,
+    )
+    suspend fun findLatestFeedSpecs(ownerId: String): List<String>
+
     @Query("DELETE FROM FeedPostDataCrossRef WHERE eventId = :eventId")
     suspend fun deletePostConnections(eventId: String)
 

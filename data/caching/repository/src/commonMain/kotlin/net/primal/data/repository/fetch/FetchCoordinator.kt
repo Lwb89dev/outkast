@@ -178,6 +178,21 @@ internal class FetchCoordinator(
         return events
     }
 
+    /**
+     * Replaces the cached follow list of [pubkey] with [event], the one this device has just signed
+     * and published.
+     *
+     * The cache otherwise lives for [FOLLOW_LIST_TTL_SECONDS] and every feed that asks for the list
+     * within that time gets the one fetched before the change, so an unfollowed person kept feeding
+     * the home feed for up to five minutes and a new follow took as long to appear. The event that
+     * was just published is the newest one there is, so it goes in directly instead of asking the
+     * relays, which might still hand back the previous version for a moment.
+     */
+    suspend fun rememberPublishedFollowList(pubkey: String, event: NostrEvent) =
+        mutex.withLock {
+            followListCache[pubkey] = CachedFollowList(events = listOf(event), fetchedAtSeconds = nowSeconds())
+        }
+
     /** What the coordinator has done so far. Counters only; no filters, no event content. */
     suspend fun stats(): FetchStats = mutex.withLock { stats }
 

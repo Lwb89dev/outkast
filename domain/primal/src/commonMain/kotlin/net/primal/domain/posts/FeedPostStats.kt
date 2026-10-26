@@ -8,6 +8,8 @@ data class FeedPostStats(
     val userZapped: Boolean = false,
     val likesCount: Long = 0,
     val userLiked: Boolean = false,
+    /** What the user reacted with ("+" or an emoji); null for no reaction or an old plain like. */
+    val userReaction: String? = null,
     val repostsCount: Long = 0,
     val userReposted: Boolean = false,
     /** How many notes quote this one. */

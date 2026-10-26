@@ -32,12 +32,13 @@ internal class EventStatsUpdater(
             ?: EventUserStats(eventId = eventId, userId = userId)
     }
 
-    suspend fun increaseLikeStats() {
+    /** One like more, and remember [reaction] (the content of the kind 7 event) as what the user gave. */
+    suspend fun increaseLikeStats(reaction: String = PLAIN_LIKE) {
         val eventStats = resolveEventStats().rememberAsBefore()
         val eventUserStats = resolveEventUserStats().rememberAsBefore()
         database.withTransaction {
             database.eventStats().upsert(data = eventStats.copy(likes = eventStats.likes + 1))
-            database.eventUserStats().upsert(data = eventUserStats.copy(liked = true))
+            database.eventUserStats().upsert(data = eventUserStats.copy(liked = true, reaction = reaction))
         }
     }
 
@@ -47,7 +48,7 @@ internal class EventStatsUpdater(
         val eventUserStats = resolveEventUserStats().rememberAsBefore()
         database.withTransaction {
             database.eventStats().upsert(data = eventStats.copy(likes = (eventStats.likes - 1).coerceAtLeast(0)))
-            database.eventUserStats().upsert(data = eventUserStats.copy(liked = false))
+            database.eventUserStats().upsert(data = eventUserStats.copy(liked = false, reaction = null))
         }
     }
 
@@ -111,5 +112,10 @@ internal class EventStatsUpdater(
                 timestamp = timestamp,
             )
         }
+    }
+
+    private companion object {
+        /** NIP-25's content for an ordinary like. */
+        const val PLAIN_LIKE = "+"
     }
 }

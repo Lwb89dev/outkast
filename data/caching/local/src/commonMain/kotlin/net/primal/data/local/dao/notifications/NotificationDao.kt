@@ -14,6 +14,12 @@ import net.primal.data.local.db.NotificationPagingSourceDaoReturnTypeConverter
 @DaoReturnTypeConverters(NotificationPagingSourceDaoReturnTypeConverter::class)
 interface NotificationDao {
 
+    // Both notification lists below (seen, unseen) leave out whatever was done by a user the owner
+    // muted. The mute list used to be applied to feeds and threads only, so a muted person kept
+    // appearing in Notifications with every reply, mention, reaction and zap, which is the place a
+    // muted person is most visible to the one who muted them. NOT EXISTS rather than NOT IN so a
+    // notification with no actor (a null actionUserId) is still shown instead of silently dropped.
+
     /**
      * The seen feed, with follows collapsed to one row per local day.
      *
@@ -40,6 +46,10 @@ interface NotificationDao {
               AND g.groupKey = :groupKey
               AND n.seenGloballyAt IS NOT NULL
               AND (:showFollows OR n.type != 'NEW_USER_FOLLOWED_YOU')
+              AND NOT EXISTS (
+                  SELECT 1 FROM MutedItemData m
+                  WHERE m.ownerId = n.ownerId AND m.type = 'User' AND m.item = n.actionUserId
+              )
             GROUP BY CASE
                 WHEN n.type = 'NEW_USER_FOLLOWED_YOU'
                     THEN 'follow-day-' || ((n.createdAt + :utcOffsetSeconds) / 86400)
@@ -65,6 +75,10 @@ interface NotificationDao {
               AND g.groupKey = :groupKey
               AND n.seenGloballyAt IS NULL
               AND (:showFollows OR n.type != 'NEW_USER_FOLLOWED_YOU')
+              AND NOT EXISTS (
+                  SELECT 1 FROM MutedItemData m
+                  WHERE m.ownerId = n.ownerId AND m.type = 'User' AND m.item = n.actionUserId
+              )
             ORDER BY n.createdAt DESC, n.notificationId DESC
         """,
     )

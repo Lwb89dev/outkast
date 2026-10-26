@@ -23,6 +23,14 @@ class FeedPostUiStatsTest {
         )
 
     @Test
+    fun `the reaction the user gave reaches the UI`() {
+        val ui = post(FeedPostStats(userLiked = true, userReaction = "\uD83E\uDDE1")).asFeedPostUi()
+
+        ui.stats.userReaction shouldBe "\uD83E\uDDE1"
+        ui.stats.userReactionEmoji shouldBe "\uD83E\uDDE1"
+    }
+
+    @Test
     fun `every counter of a post reaches the UI, quotes included`() {
         val ui = post(
             FeedPostStats(

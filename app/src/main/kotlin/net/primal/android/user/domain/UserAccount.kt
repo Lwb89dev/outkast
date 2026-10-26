@@ -24,6 +24,13 @@ data class UserAccount(
     val following: Set<String> = emptySet(),
     val interests: List<String> = emptyList(),
     val followListEventContent: String? = null,
+    /**
+     * `created_at` of the kind 3 event [following] was read from or published as. A relay that
+     * has not seen our latest follow list answers with an older one; without this the local list
+     * went back to it, and an unfollow (or a follow) silently reverted. Null for accounts stored
+     * before this field existed, which accept the first list they are given.
+     */
+    val followListCreatedAt: Long? = null,
     val cachingProxyEnabled: Boolean = false,
     val lastBuyPremiumTimestampInMillis: Long? = null,
     val primalLegendProfile: PrimalLegendProfile? = null,

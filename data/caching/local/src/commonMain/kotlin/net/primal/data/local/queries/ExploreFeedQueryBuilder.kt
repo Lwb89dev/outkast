@@ -22,6 +22,7 @@ class ExploreFeedQueryBuilder(
                 NULL AS repostId,
                 NULL AS repostAuthorId,
                 EventUserStats.liked AS userLiked,
+                EventUserStats.reaction AS userReaction,
                 EventUserStats.replied AS userReplied,
                 EventUserStats.reposted AS userReposted,
                 EventUserStats.zapped AS userZapped,

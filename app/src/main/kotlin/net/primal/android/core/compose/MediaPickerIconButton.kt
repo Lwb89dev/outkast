@@ -30,6 +30,7 @@ import java.util.Date
 import java.util.Locale
 import net.primal.android.BuildConfig
 import net.primal.android.core.compose.icons.OutkastNavigationIcons
+import net.primal.android.imageedit.ui.rememberPhotoEditGate
 import net.primal.android.theme.AppTheme
 
 @Composable
@@ -42,13 +43,16 @@ fun MediaPickerIconButton(
     val context = LocalContext.current
     var pickerVisible by remember { mutableStateOf(false) }
     var pendingCameraUri by remember { mutableStateOf<Uri?>(null) }
+    // Photos (from the gallery or the camera) go through the photo editor before they are attached; videos and
+    // animations pass straight through. See rememberPhotoEditGate.
+    val attach = rememberPhotoEditGate(onReady = onMediaSelected)
     val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         pickerVisible = false
-        if (uri != null) onMediaSelected(listOf(uri))
+        if (uri != null) attach(listOf(uri))
     }
     val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { captured ->
         pickerVisible = false
-        pendingCameraUri?.takeIf { captured }?.let { onMediaSelected(listOf(it)) }
+        pendingCameraUri?.takeIf { captured }?.let { attach(listOf(it)) }
     }
     val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (granted) pendingCameraUri?.let(cameraLauncher::launch)

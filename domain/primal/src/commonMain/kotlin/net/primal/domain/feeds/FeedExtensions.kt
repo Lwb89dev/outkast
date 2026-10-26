@@ -120,7 +120,7 @@ fun String.isProfileAuthoredMediaFeedSpec(): Boolean {
 fun String.isRelayServableNotesFeedSpec(): Boolean {
     return isFollowingNotesFeedSpec() || isFollowSetFeedSpec() ||
         isProfileAuthoredNotesFeedSpec() || isProfileAuthoredNoteRepliesFeedSpec() ||
-        isProfileAuthoredMediaFeedSpec() || isNotesBookmarkFeedSpec()
+        isProfileAuthoredMediaFeedSpec() || isNotesBookmarkFeedSpec() || isNetworkNotesFeedSpec()
 }
 
 fun String.supportsUpwardsNotesPagination(): Boolean {
@@ -139,6 +139,19 @@ fun String.isNotesBookmarkFeedSpec(): Boolean {
         suffix = "}",
     )
 }
+
+/**
+ * The network feed: notes written by people the user does not follow that people the user does follow
+ * reacted to or reposted, i.e. what the user's friends found worth a second look. It is how a user
+ * finds the friends of their friends.
+ *
+ * The spec carries no pubkey on purpose. Whose network it is comes from the feed's owner, which every
+ * cached feed row already records, and a constant spec can be opened from a screen that does not know
+ * the user's id (a page of the Explore pager), like [exploreMediaFeedSpec].
+ */
+const val networkNotesFeedSpec = """{"id":"feed","kind":"notes","notes":"network"}"""
+
+fun String.isNetworkNotesFeedSpec(): Boolean = replaceWhitespace() == networkNotesFeedSpec
 
 fun buildArticleBookmarksFeedSpec(userId: String): String =
     "{\"id\":\"feed\",\"kind\":\"notes\",\"kinds\":[30023],\"notes\":\"bookmarks\",\"pubkey\":\"$userId\"}"

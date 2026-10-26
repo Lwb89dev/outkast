@@ -14,7 +14,19 @@ import net.primal.domain.messages.ConversationRelation
 @DaoReturnTypeConverters(PagingSourceDaoReturnTypeConverter::class)
 interface MessageConversationDao {
 
-    @Query("SELECT COALESCE(SUM(unreadMessagesCount), 0) FROM MessageConversationData WHERE ownerId = :ownerId")
+    // Conversations with a user the owner muted are left out of the list and out of the unread
+    // count. Muting used to touch feeds and threads only, so a muted person could still message
+    // the one who muted them and keep a badge lit on the Messages tile.
+    @Query(
+        """
+        SELECT COALESCE(SUM(c.unreadMessagesCount), 0) FROM MessageConversationData c
+        WHERE c.ownerId = :ownerId
+          AND NOT EXISTS (
+              SELECT 1 FROM MutedItemData m
+              WHERE m.ownerId = c.ownerId AND m.type = 'User' AND m.item = c.participantId
+          )
+        """,
+    )
     fun observeUnreadMessagesCount(ownerId: String): kotlinx.coroutines.flow.Flow<Int>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -23,9 +35,13 @@ interface MessageConversationDao {
     @Transaction
     @Query(
         """
-           SELECT * FROM MessageConversationData
-           WHERE ownerId = :ownerId AND relation = :relation
-           ORDER BY lastMessageAt DESC
+           SELECT c.* FROM MessageConversationData c
+           WHERE c.ownerId = :ownerId AND c.relation = :relation
+             AND NOT EXISTS (
+                 SELECT 1 FROM MutedItemData m
+                 WHERE m.ownerId = c.ownerId AND m.type = 'User' AND m.item = c.participantId
+             )
+           ORDER BY c.lastMessageAt DESC
        """,
     )
     fun newestConversationsPagedByOwnerId(

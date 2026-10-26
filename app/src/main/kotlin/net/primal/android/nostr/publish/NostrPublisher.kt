@@ -75,11 +75,13 @@ class NostrPublisher @Inject constructor(
         userId: String,
         contacts: Set<String>,
         content: String,
+        interests: List<String> = emptyList(),
     ): NostrEvent {
         val signedNostrEvent = nostrNotary.signFollowListNostrEvent(
             userId = userId,
             contacts = contacts,
             content = content,
+            interests = interests,
         ).unwrapOrThrow()
 
         publishAndImportEvent(signedNostrEvent)

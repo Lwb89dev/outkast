@@ -13,6 +13,7 @@ import net.primal.data.remote.api.importing.PrimalImportApi
 import net.primal.data.remote.mapper.flatMapNotNullAsCdnResource
 import net.primal.data.remote.mapper.mapAsMapPubkeyToListOfBlossomServers
 import net.primal.data.repository.feed.paging.FeedSpecInvalidationTracker
+import net.primal.data.repository.feed.processors.healUnresolvedMentionHandles
 import net.primal.data.repository.mappers.remote.flatMapPostsAsEventUriPO
 import net.primal.data.repository.mappers.remote.flatMapPostsAsReferencedNostrUriDO
 import net.primal.data.repository.mappers.remote.mapAsPostDataPO
@@ -112,6 +113,7 @@ internal class CachingImportRepositoryImpl(
             )
         if (profilesPO.isNotEmpty()) {
             database.profiles().insertOrUpdateAll(data = profilesPO)
+            database.healUnresolvedMentionHandles(profiles = profilesPO)
         }
     }
 

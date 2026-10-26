@@ -9,6 +9,63 @@ the LibreNostr/OUTKAST fork on top of the imported `3.5.25` baseline.
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-10-26
+
+### Added
+
+- **Photo editor before upload.** A photo picked from the gallery or taken with the camera, for a note,
+  a reply or a profile picture or banner, now opens in an editor before it is attached: crop (free,
+  original, square, 4:3, 3:2, 16:9), rotate, flip, straighten, vertical and horizontal perspective,
+  exposure, brightness, contrast, highlights, shadows, black point, saturation, vibrance, temperature,
+  tint, sharpness, vignette, eight filters with an adjustable strength, and an Auto button that proposes
+  the sliders from the picture. Hold the picture to see the original. Done with nothing changed attaches
+  the photo exactly as it was, untouched; Done with edits draws them at full size (up to 12 megapixels)
+  into a new JPEG with no metadata at all, so the location and camera details of the original do not
+  travel with the edited copy. Videos, GIFs, SVGs and animated WebPs skip the editor. The engine is the
+  one from the eikon gallery (MIT), with its tests. The labels exist in English and Italian; other
+  languages fall back to English for now.
+- **Network, a new section of Discover.** Notes by people you do not follow that people you do follow
+  liked or reposted in the last 48 hours, newest first. Everything is computed on the phone from your
+  follow list and your friends' reactions, in a handful of relay requests and with no ranking server;
+  a note needs two friends behind it when you follow 40 people or more. This is the nearest honest
+  version of "popular among friends of friends": nostrich.org's Explore, which was the model, does not
+  work that way, it shows global trending notes ranked by an external index.
+
+### Fixed
+
+- **Mute did not stick, and did not reach everything.** Opening any profile or the muted accounts screen
+  while the relays were slow replaced the stored mute list with an empty one (a relay answering nothing
+  was taken for "you muted nobody"), so muted people came straight back into the feeds. A relay that
+  returns no mute list now leaves the stored one alone, while a list that is really empty still empties
+  it. A mute now shows at once and is taken back if it cannot be published, instead of looking
+  unresponsive for the several seconds the relays need. Muted people are also left out of Notifications
+  (replies, mentions, reactions, zaps) and Messages (the conversation and its unread badge), which the
+  mute list never reached, and a muted account whose profile was never fetched is listed in the muted
+  accounts screen so it can be unmuted.
+- **Unfollow did nothing visible.** Unfollowing changed the button only: the person kept feeding the home
+  feed for up to five minutes because the follow list the feeds read is cached for that long, and their
+  notes already in the feed were never removed. The newly published list now replaces the cache and the
+  unfollowed person's notes leave the following feed. A relay that had not received the latest list could
+  also hand back an older one, which silently undid the last follow or unfollow; the newest list wins now,
+  both when reading it and when building the next change on it. Following or unfollowing no longer
+  deletes the hashtags you follow from your follow list either.
+- **A custom reaction came back as the red heart.** The orange heart, the thumbs up or any other emoji you
+  react with now stays on the note you reacted to, for you, instead of the stock heart. It is remembered
+  per note and also read back from the relays for reactions made on another device or client.
+- **Tagged people showed as an npub.** A mention was saved with the person's name only if that person's
+  profile was part of the same relay response as the note; profiles fetched on an earlier page, which is
+  most of them, left the shortened npub in the note for good. Mentions are now resolved against every
+  profile already stored, mentions written only in the text (no `p` tag) get their profile fetched too,
+  and notes saved earlier with an npub are rewritten as soon as the name arrives.
+- **"Rispondi" was cut to "Rispo".** The six tool icons under the reply field took the room of the button.
+  The button is measured first now, the icons are 40dp wide instead of 48dp and scroll sideways if the
+  screen is still too narrow. The label is one line in every language.
+
+### Changed
+
+- The local database moves to version 7 (the user's own reaction is stored per note); the update is
+  automatic and keeps everything.
+
 ## [2.1.1] - 2026-10-22
 
 ### Added

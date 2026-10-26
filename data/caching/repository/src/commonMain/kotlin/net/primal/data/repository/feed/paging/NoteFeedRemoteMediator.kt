@@ -38,6 +38,7 @@ import net.primal.data.repository.fetch.RelaysUnreachableException
 import net.primal.data.repository.utils.cacheAvatarUrls
 import net.primal.domain.common.exception.NetworkException
 import net.primal.domain.feeds.isAdvancedSearchFeedSpec
+import net.primal.domain.feeds.isNetworkNotesFeedSpec
 import net.primal.domain.feeds.isNotesBookmarkFeedSpec
 import net.primal.domain.feeds.isProfileAuthoredMediaFeedSpec
 import net.primal.domain.feeds.isProfileAuthoredNoteRepliesFeedSpec
@@ -188,6 +189,9 @@ internal class NoteFeedRemoteMediator(
             // can appear stale even though the relay fetch completed.
             feedSpec.isAdvancedSearchFeedSpec() -> true
             feedSpec.isNotesBookmarkFeedSpec() -> true
+            // Rebuilt every time it is opened: what friends engaged with changes by the minute, and the
+            // fetcher keeps its own short-lived tally so reopening is cheap.
+            feedSpec.isNetworkNotesFeedSpec() -> true
             feedSpec.isProfileAuthoredNotesFeedSpec() -> true
             feedSpec.isProfileAuthoredNoteRepliesFeedSpec() -> true
             feedSpec.isProfileAuthoredMediaFeedSpec() -> true

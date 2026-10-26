@@ -56,11 +56,17 @@ internal class RelayEventStatsFetcher(
         val userStats = ids.mapNotNull { eventId ->
             val events = eventsByTarget[eventId].orEmpty().filter { it.pubKey == userId }
             if (events.isEmpty()) return@mapNotNull null
+            // The user's newest reaction is the one that stands (an emoji replaces the previous one),
+            // and its content is what the note should show in place of the heart.
+            val ownReaction = events
+                .filter { it.kind == NostrEventKind.Reaction.value }
+                .maxByOrNull { it.createdAt }
             EventUserStats(
                 eventId = eventId,
                 userId = userId,
                 replied = events.any { it.isReplyTo(eventId) },
-                liked = events.any { it.kind == NostrEventKind.Reaction.value },
+                liked = ownReaction != null,
+                reaction = ownReaction?.content,
                 reposted = events.any { it.kind == NostrEventKind.ShortTextNoteRepost.value },
                 zapped = events.any { it.kind == NostrEventKind.Zap.value },
             )

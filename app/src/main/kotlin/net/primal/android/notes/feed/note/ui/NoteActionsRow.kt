@@ -139,6 +139,9 @@ fun FeedNoteActionsRow(
             // Haptic, chime and flourish are for a reaction being given, not for taking one back.
             celebrateOnClick = !eventStats.userLiked,
             onActivated = if (eventStats.userLiked) null else likeFeedback,
+            // The reaction the user gave replaces the heart: an orange heart or a thumbs up must not
+            // come back as the stock red heart on the very note they reacted to.
+            highlightedEmoji = eventStats.userReactionEmoji,
             iconContentDescription = stringResource(id = R.string.accessibility_likes_count),
         )
 
@@ -198,6 +201,8 @@ fun SingleEventStat(
     unhighlightedColor: Color = AppTheme.extraColorScheme.onSurfaceVariantAlt4,
     celebrateOnClick: Boolean = false,
     onActivated: (() -> Unit)? = null,
+    /** Drawn instead of the highlighted icon while [highlighted], e.g. the reaction the user gave. */
+    highlightedEmoji: String? = null,
 ) {
     val motionState = rememberEventStatMotionState(celebrate = celebrateOnClick)
 
@@ -217,6 +222,7 @@ fun SingleEventStat(
                 onLongClick = onLongClick,
             ),
         leadingIcon = if (!highlighted) iconVector else iconVectorHighlight,
+        leadingEmoji = highlightedEmoji.takeIf { highlighted },
         leadingIconContentDescription = iconContentDescription,
         leadingIconTintColor = if (!highlighted) {
             unhighlightedColor

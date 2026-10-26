@@ -15,6 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
 import androidx.compose.ui.text.TextLayoutResult
@@ -35,6 +37,12 @@ fun IconText(
     text: String,
     modifier: Modifier = Modifier,
     leadingIcon: ImageVector? = null,
+    /**
+     * A character (typically an emoji) drawn in the leading slot instead of [leadingIcon]. It takes
+     * the icon's place and size, so a stat can show, say, the reaction the user gave in the spot where
+     * the heart normally is.
+     */
+    leadingEmoji: String? = null,
     trailingIcon: ImageVector? = null,
     iconSize: TextUnit = 24.sp,
     color: Color = LocalContentColor.current,
@@ -56,8 +64,9 @@ fun IconText(
     onTextLayout: (TextLayoutResult) -> Unit = {},
     style: TextStyle = LocalTextStyle.current,
 ) {
+    val hasLeading = leadingIcon != null || leadingEmoji != null
     val contentText = buildAnnotatedString {
-        if (leadingIcon != null) {
+        if (hasLeading) {
             appendInlineContent("leadingIcon", "[leadingIcon]")
             append(" ")
         }
@@ -69,7 +78,13 @@ fun IconText(
     }
 
     val inlineContent = mutableMapOf<String, InlineTextContent>().apply {
-        if (leadingIcon != null) {
+        if (leadingEmoji != null) {
+            this["leadingIcon"] = buildEmojiInlineTextContent(
+                iconSize = iconSize,
+                emoji = leadingEmoji,
+                description = leadingIconContentDescription,
+            )
+        } else if (leadingIcon != null) {
             this["leadingIcon"] = buildIconInlineTextContent(
                 iconSize = iconSize,
                 icon = leadingIcon,
@@ -137,3 +152,34 @@ private fun buildIconInlineTextContent(
         )
     }
 }
+
+/**
+ * An emoji sized like an icon. The emoji is drawn a little smaller than the placeholder because a
+ * glyph at the full icon size sits taller than the vector icons do and would push the line apart.
+ */
+@Composable
+private fun buildEmojiInlineTextContent(
+    iconSize: TextUnit,
+    emoji: String,
+    description: String? = null,
+) = InlineTextContent(
+    placeholder = Placeholder(
+        iconSize,
+        iconSize,
+        PlaceholderVerticalAlign.TextCenter,
+    ),
+) {
+    Box(
+        modifier = Modifier.fillMaxSize().semantics { description?.let { contentDescription = it } },
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = emoji,
+            fontSize = iconSize * EMOJI_TO_ICON_RATIO,
+            maxLines = 1,
+            softWrap = false,
+        )
+    }
+}
+
+private const val EMOJI_TO_ICON_RATIO = 0.85f

@@ -471,6 +471,9 @@
     <string name="explore_section_zaps_subtitle">Top zaps on Nostr today</string>
     <string name="explore_section_media_title">Media</string>
     <string name="explore_section_media_subtitle">Top images and videos on Nostr today</string>
+    <string name="explore_section_network_title">Network</string>
+    <string name="explore_section_network_subtitle">What your friends engaged with, from people you don\'t follow</string>
+    <string name="explore_network_no_content">Nothing from your friends\' friends yet. Follow more people and check back: this list shows notes by people you don\'t follow that the people you follow liked or reposted.</string>
     <string name="explore_search_bar_hint">Search…</string>
     <string name="explore_landing_recent_users_title">Recent Users</string>
     <string name="explore_landing_recent_searches_title">Recent Searches</string>
@@ -1371,4 +1374,54 @@
         <item quantity="one">%d emoji</item>
         <item quantity="other">%d emoji</item>
     </plurals>
+
+    <!-- Photo editor: opens after a photo is picked for a note, before it is uploaded -->
+    <string name="photo_edit_title">Edit photo</string>
+    <string name="photo_edit_cancel">Cancel</string>
+    <string name="photo_edit_done">Done</string>
+    <string name="photo_edit_reset">Reset</string>
+    <string name="photo_edit_original">Original</string>
+    <string name="photo_edit_failed">Couldn\'t prepare the edited photo. Try again, or cancel.</string>
+    <string name="photo_edit_discard_title">Discard edits?</string>
+    <string name="photo_edit_discard_message">The changes you made to this photo will be lost.</string>
+    <string name="photo_edit_discard">Discard</string>
+    <string name="photo_edit_keep_editing">Keep editing</string>
+    <string name="photo_edit_slider_reset">Reset to neutral</string>
+    <string name="photo_edit_tool_auto">Auto</string>
+    <string name="photo_edit_tool_light">Light</string>
+    <string name="photo_edit_tool_color">Color</string>
+    <string name="photo_edit_tool_detail">Detail</string>
+    <string name="photo_edit_tool_filters">Filters</string>
+    <string name="photo_edit_tool_crop">Crop</string>
+    <string name="photo_edit_adj_exposure">Exposure</string>
+    <string name="photo_edit_adj_brightness">Brightness</string>
+    <string name="photo_edit_adj_contrast">Contrast</string>
+    <string name="photo_edit_adj_highlights">Highlights</string>
+    <string name="photo_edit_adj_shadows">Shadows</string>
+    <string name="photo_edit_adj_black_point">Black point</string>
+    <string name="photo_edit_adj_saturation">Saturation</string>
+    <string name="photo_edit_adj_vibrance">Vibrance</string>
+    <string name="photo_edit_adj_temperature">Temperature</string>
+    <string name="photo_edit_adj_tint">Tint</string>
+    <string name="photo_edit_adj_sharpness">Sharpness</string>
+    <string name="photo_edit_adj_vignette">Vignette</string>
+    <string name="photo_edit_filter_none">None</string>
+    <string name="photo_edit_filter_vivid">Vivid</string>
+    <string name="photo_edit_filter_warm">Warm</string>
+    <string name="photo_edit_filter_cool">Cool</string>
+    <string name="photo_edit_filter_mono">Mono</string>
+    <string name="photo_edit_filter_noir">Noir</string>
+    <string name="photo_edit_filter_fade">Fade</string>
+    <string name="photo_edit_filter_chrome">Chrome</string>
+    <string name="photo_edit_filter_sepia">Sepia</string>
+    <string name="photo_edit_filter_amount">Strength</string>
+    <string name="photo_edit_crop_rotate">Rotate</string>
+    <string name="photo_edit_crop_flip">Flip</string>
+    <string name="photo_edit_shape_free">Free</string>
+    <string name="photo_edit_shape_original">Original</string>
+    <string name="photo_edit_shape_square">Square</string>
+    <string name="photo_edit_geo_straighten">Straighten</string>
+    <string name="photo_edit_geo_perspective_vertical">Vertical perspective</string>
+    <string name="photo_edit_geo_perspective_horizontal">Horizontal perspective</string>
+    <string name="photo_edit_crop_area">Crop area, %1$d%% to %2$d%% across and %3$d%% to %4$d%% down</string>
 </resources>

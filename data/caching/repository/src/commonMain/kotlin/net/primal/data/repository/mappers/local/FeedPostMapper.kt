@@ -113,6 +113,7 @@ private fun buildFeedPostStats(eventStats: EventStats?, feedPostUserStats: FeedP
         userZapped = feedPostUserStats?.userZapped == true,
         likesCount = eventStats?.likes ?: 0,
         userLiked = feedPostUserStats?.userLiked == true,
+        userReaction = feedPostUserStats?.userReaction,
         repostsCount = eventStats?.reposts ?: 0,
         userReposted = feedPostUserStats?.userReposted == true,
         // `mentions` is the stats table's column for "notes that quote this one", see RelayEventStatsFetcher.

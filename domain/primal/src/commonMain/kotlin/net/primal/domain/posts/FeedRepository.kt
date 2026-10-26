@@ -47,6 +47,17 @@ interface FeedRepository {
     suspend fun removeFeedSpec(userId: String, feedSpec: String)
 
     /**
+     * Brings the feeds in line with a follow list the user has just published ([followListEvent]),
+     * where [unfollowedIds] are the people who were on the previous list and are not on this one.
+     *
+     * The list the feeds read their authors from is cached for a few minutes, and the notes of an
+     * unfollowed person are stored feed memberships rather than a live filter, so without this an
+     * unfollow changed the button and nothing else: the person kept appearing in the following feed
+     * until a full refresh, and refreshing within the cache window brought them back as well.
+     */
+    suspend fun onFollowListPublished(userId: String, followListEvent: NostrEvent, unfollowedIds: Set<String>)
+
+    /**
      * Manually resumes older-notes pagination after the feed's RemoteMediator has deliberately
      * given up on APPEND (a bounded run of consecutive empty relay batches — not necessarily
      * "no more history exists", just nothing found in the spans probed so far). No scroll jump:

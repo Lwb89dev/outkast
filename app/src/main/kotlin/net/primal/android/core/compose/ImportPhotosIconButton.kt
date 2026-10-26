@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import io.github.aakira.napier.Napier
+import net.primal.android.imageedit.ui.rememberPhotoEditGate
 
 @Composable
 fun ImportPhotosIconButton(
@@ -19,11 +20,13 @@ fun ImportPhotosIconButton(
     tint: Color = LocalContentColor.current,
     onPhotosImported: (List<Uri>) -> Unit,
 ) {
+    // A photo goes through the photo editor before it is handed on; a video passes straight through.
+    val attach = rememberPhotoEditGate(onReady = onPhotosImported)
     val multiplePhotosImportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
     ) { uri ->
         Napier.e("uri = $uri")
-        if (uri != null) onPhotosImported(listOf(uri))
+        if (uri != null) attach(listOf(uri))
     }
 
     IconButton(

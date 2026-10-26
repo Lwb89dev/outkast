@@ -7,6 +7,7 @@ import androidx.room3.RoomDatabase
 import androidx.room3.RoomRawQuery
 import androidx.room3.paging.PagingSourceDaoReturnTypeConverter
 import net.primal.data.local.dao.events.EventUserStats
+import net.primal.data.local.dao.mutes.MutedItemData
 import net.primal.data.local.dao.notifications.NotificationData
 import net.primal.data.local.dao.notifications.NotificationGroupCrossRef
 
@@ -25,7 +26,9 @@ import net.primal.data.local.dao.notifications.NotificationGroupCrossRef
  *  - [NotificationData] — new notifications and seen-state updates,
  *  - [NotificationGroupCrossRef] — group membership (the paged query's join table),
  *  - [EventUserStats] — the user's own interaction flags (liked/replied/reposted/zapped) rendered
- *    on the notification's embedded note.
+ *    on the notification's embedded note,
+ *  - [MutedItemData] — the query leaves out notifications caused by muted users, so muting (or
+ *    unmuting) someone has to reach an already-open list.
  *
  * Everything else the relations read is refreshed on the next structural invalidation instead of
  * live. Behavior is pinned by `NotificationPagingSourceInvalidationTest` in
@@ -56,6 +59,7 @@ class NotificationPagingSourceDaoReturnTypeConverter {
                 NotificationData::class,
                 NotificationGroupCrossRef::class,
                 EventUserStats::class,
+                MutedItemData::class,
             )
                 .map { requireNotNull(it.simpleName) }
                 .toTypedArray()

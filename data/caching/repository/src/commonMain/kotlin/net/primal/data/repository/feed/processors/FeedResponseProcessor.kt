@@ -121,11 +121,20 @@ internal suspend inline fun FeedResponse.persistToDatabase(userId: String, datab
         .associate { it.eventId to it.votedForOption }
 
     val postIdToPostDataMap = allPosts.associateBy { it.postId }
+    // A mention is stored as a snapshot of the mentioned person's handle, so it has to be resolved
+    // against everything we know, not only the profiles this response happens to carry: the relay
+    // fetchers ask for a given profile once per session, so a note on a later page usually mentions
+    // someone whose profile arrived (and was stored) with an earlier one. See profilesForMentions.
+    val profilesForMentions = database.profilesForMentions(
+        posts = allPosts,
+        fromResponse = profileIdToProfileDataMap,
+        quotedPosts = postIdToPostDataMap,
+    )
     val noteNostrUris = allPosts.flatMapPostsAsReferencedNostrUriDO(
         eventIdToNostrEvent = refEvents.associateBy { it.id },
         postIdToPostDataMap = postIdToPostDataMap,
         articleIdToArticle = allArticles.associateBy { it.articleId },
-        profileIdToProfileDataMap = profileIdToProfileDataMap,
+        profileIdToProfileDataMap = profilesForMentions,
         cdnResources = cdnResources,
         videoThumbnails = videoThumbnails,
         linkPreviews = linkPreviews,
@@ -134,6 +143,8 @@ internal suspend inline fun FeedResponse.persistToDatabase(userId: String, datab
     ).mapReferencedNostrUriAsEventUriNostrPO()
 
     database.profiles().insertOrUpdateAll(data = profiles)
+    // Mentions of these people stored earlier, before their names were known, still hold the npub.
+    database.healUnresolvedMentionHandles(profiles = profiles)
     database.posts().upsertAll(data = allPosts)
     database.polls().upsertAll(data = pollDataWithStats)
     database.polls().insertAllOrIgnore(data = pollDataWithoutStats)

@@ -139,7 +139,11 @@ internal class RelayThreadFetcher(
     suspend fun fetchMetadataFor(events: ThreadEvents): List<NostrEvent> {
         val metadataSubjects = events.all + events.referencedNotes
         return loadMetadata(
-            (metadataSubjects.map { it.pubKey } + metadataSubjects.flatMap { it.tags.pubkeyTagValues() }).distinct(),
+            (
+                metadataSubjects.map { it.pubKey } +
+                    metadataSubjects.flatMap { it.tags.pubkeyTagValues() } +
+                    metadataSubjects.flatMap { it.mentionedInContent() }
+                ).distinct(),
         )
     }
 

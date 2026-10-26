@@ -8,6 +8,7 @@ import net.primal.core.utils.coroutines.DispatcherProvider
 import net.primal.core.utils.getOrDefault
 import net.primal.core.utils.runCatching
 import net.primal.data.local.db.CachingDatabase
+import net.primal.data.repository.feed.processors.healUnresolvedMentionHandles
 import net.primal.data.repository.mappers.local.asProfileDataDO
 import net.primal.data.repository.mappers.local.asProfileStatsDO
 import net.primal.data.repository.mappers.remote.asProfileDataPOFromRelay
@@ -179,6 +180,8 @@ internal class ProfileRepositoryImpl(
         if (events.isEmpty()) return emptyList()
         val profiles = events.latestMetadataByPubkey().map { it.asProfileDataPOFromRelay() }
         database.profiles().insertOrUpdateAll(data = profiles)
+        // Notes that mention this person were stored while their name was unknown; fix them now.
+        database.healUnresolvedMentionHandles(profiles = profiles)
         return profiles.map { it.asProfileDataDO() }
     }
 

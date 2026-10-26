@@ -49,10 +49,12 @@ import net.primal.android.main.explore.section.toSubtitle
 import net.primal.android.main.explore.section.toTitle
 import net.primal.android.main.explore.zaps.ExploreZaps
 import net.primal.android.notes.feed.grid.MediaFeedGrid
+import net.primal.android.notes.feed.list.NoteFeedList
 import net.primal.android.notes.feed.note.ui.events.NoteCallbacks
 import net.primal.android.theme.AppTheme
 import net.primal.android.theme.domain.PrimalTheme
 import net.primal.domain.feeds.exploreMediaFeedSpec
+import net.primal.domain.feeds.networkNotesFeedSpec
 import net.primal.domain.links.CdnImage
 
 @Composable
@@ -76,6 +78,24 @@ internal fun ExploreHomeContent(
                 onProfileClick = { noteCallbacks.onProfileClick?.invoke(it) },
                 onRecentSearchEditClick = onRecentSearchEditClick,
                 onRecentSearchExecuteClick = onRecentSearchExecuteClick,
+            )
+
+            ExploreSection.Network -> NoteFeedList(
+                feedSpec = networkNotesFeedSpec,
+                noteCallbacks = noteCallbacks,
+                contentPadding = paddingValues,
+                // Rebuilt from relays when opened or pulled; polling it in the background would only repeat
+                // the same requests for a list that changes by the minute at most.
+                pollingEnabled = false,
+                noContentText = stringResource(id = R.string.explore_network_no_content),
+                onUiError = { uiError: UiError ->
+                    uiScope.launch {
+                        snackbarHostState.showSnackbar(
+                            message = uiError.resolveUiErrorMessage(context),
+                            duration = SnackbarDuration.Short,
+                        )
+                    }
+                },
             )
 
             ExploreSection.FeedGallery -> ExploreFeeds(

@@ -9,6 +9,7 @@ fun EventUserStats.asNostrEventUserStats(): NostrEventUserStats {
         userId = this.userId,
         replied = this.replied,
         liked = this.liked,
+        reaction = this.reaction,
         reposted = this.reposted,
         zapped = this.zapped,
         votedForOption = this.votedForOption,

@@ -1,5 +1,6 @@
 package net.primal.data.repository.mute
 
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -40,6 +41,7 @@ import net.primal.domain.nostr.isPubKeyTag
 import net.primal.domain.nostr.isWordTag
 import net.primal.domain.nostr.relay.RelayEventQuerier
 import net.primal.domain.nostr.relay.RelayFilter
+import net.primal.domain.profile.ProfileData as ProfileDataDO
 import net.primal.domain.publisher.PrimalPublisher
 import net.primal.shared.data.local.db.withTransaction
 
@@ -56,7 +58,9 @@ class MutedItemRepositoryImpl(
 
     override fun observeMutedUsersByOwnerId(ownerId: String) =
         database.mutedItems().observeMutedUsersByOwnerId(ownerId = ownerId)
-            .map { it.mapNotNull { it.profileData?.asProfileDataDO() } }
+            .map { muted ->
+                muted.map { it.profileData?.asProfileDataDO() ?: ProfileDataDO(profileId = it.mutedAccount.item) }
+            }
 
     override fun observeIsUserMutedByOwnerId(pubkey: String, ownerId: String) =
         database.mutedItems().observeIsUserMutedByOwnerId(
@@ -82,7 +86,13 @@ class MutedItemRepositoryImpl(
             .observeIsStreamMutedByOwnerId(ownerId = ownerId, pubkey = pubkey)
 
     override suspend fun fetchAndPersistMuteList(userId: String) {
-        val muteList = fetchMuteListAndPersistProfiles(userId = userId)
+        // null means the relays returned no mute list event at all: a timeout, an unreachable relay
+        // or a relay that does not store the kind look exactly like "this user has no list". Taking
+        // that for the truth wiped the local list on every profile visit and every visit to the muted
+        // accounts screen whenever the relays were slow, and every muted user came straight back
+        // into the feeds. An event that is there with no entries still empties the list, because
+        // that is a real "I unmuted everyone".
+        val muteList = fetchMuteListOrNull(userId = userId) ?: return
         persistList(ownerId = userId, listType = ListType.MuteList, muteList = muteList)
     }
 
@@ -277,6 +287,37 @@ class MutedItemRepositoryImpl(
         reducer: Set<MutedItemData>.() -> Set<MutedItemData>,
         legacyFetch: suspend () -> Set<MutedItemData>,
     ) {
+        // The effect is applied to the local copy first and the relays are told afterwards. Reading the
+        // current list from the relays alone can take several seconds on a slow connection or over Tor,
+        // and publishing waits for a relay to acknowledge; with nothing changing on screen in the
+        // meantime a mute looked like it had not worked, and tapping again made it worse. The merged
+        // result replaces this optimistic copy once the publish went through, and if anything fails
+        // (no signature, no relay accepted it) the list goes back to what it was.
+        val localBefore = database.mutedItems().getListByOwnerId(ownerId = userId, listType = listType).toSet()
+        persistList(ownerId = userId, listType = listType, muteList = localBefore.reducer())
+        try {
+            readMergePublishList(
+                userId = userId,
+                kind = kind,
+                listType = listType,
+                reducer = reducer,
+                legacyFetch = legacyFetch,
+            )
+        } catch (error: Throwable) {
+            withContext(NonCancellable) {
+                persistList(ownerId = userId, listType = listType, muteList = localBefore)
+            }
+            throw error
+        }
+    }
+
+    private suspend fun readMergePublishList(
+        userId: String,
+        kind: NostrEventKind,
+        listType: ListType,
+        reducer: Set<MutedItemData>.() -> Set<MutedItemData>,
+        legacyFetch: suspend () -> Set<MutedItemData>,
+    ) {
         val querier = relayEventQuerier
         val remoteEvent = querier?.let { queryLatestListEvent(querier = it, userId = userId, kind = kind) }
 
@@ -362,19 +403,24 @@ class MutedItemRepositoryImpl(
             muteList
         }
 
-    private suspend fun fetchMuteListAndPersistProfiles(userId: String): Set<MutedItemData> {
+    private suspend fun fetchMuteListAndPersistProfiles(userId: String): Set<MutedItemData> =
+        fetchMuteListOrNull(userId = userId) ?: emptySet()
+
+    /**
+     * The user's mute list as the relays hold it, or null when no relay returned a mute list event.
+     * Null is deliberately different from an empty set: see [fetchAndPersistMuteList].
+     */
+    private suspend fun fetchMuteListOrNull(userId: String): Set<MutedItemData>? {
         relayEventQuerier?.let { querier ->
             val event = queryLatestListEvent(
                 querier = querier,
                 userId = userId,
                 kind = NostrEventKind.MuteList,
-            )
+            ) ?: return null
             persistRelayProfiles(event = event, querier = querier)
-            return event
-                ?.tags
-                ?.mapNotNull { it.toMutedItemData(ownerId = userId, listType = ListType.MuteList) }
-                ?.toSet()
-                ?: emptySet()
+            return event.tags
+                .mapNotNull { it.toMutedItemData(ownerId = userId, listType = ListType.MuteList) }
+                .toSet()
         }
 
         val response = settingsApi?.getMuteList(userId = userId) ?: return emptySet()

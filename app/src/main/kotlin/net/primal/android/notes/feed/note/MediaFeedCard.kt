@@ -708,6 +708,7 @@ private fun MediaFeedActionsRow(
                 icon = PrimalIcons.FeedLikeOutline,
                 iconHighlighted = PrimalIcons.FeedNewLikeFilled,
                 highlightColor = AppTheme.extraColorScheme.liked,
+                highlightedEmoji = eventStats.userReactionEmoji,
                 contentDescription = stringResource(R.string.accessibility_likes_count),
                 numberFormat = numberFormat,
                 onPostAction = onPostAction,
@@ -755,6 +756,7 @@ private fun ActionStat(
     contentDescription: String,
     numberFormat: NumberFormat,
     iconSize: TextUnit = ActionIconSize,
+    highlightedEmoji: String? = null,
     onPostAction: (FeedPostAction) -> Unit,
     onPostLongPressAction: (FeedPostAction) -> Unit,
 ) {
@@ -767,6 +769,7 @@ private fun ActionStat(
                 onLongClick = { onPostLongPressAction(action) },
             ),
         leadingIcon = if (highlighted) iconHighlighted else icon,
+        leadingEmoji = highlightedEmoji.takeIf { highlighted },
         leadingIconTintColor = if (highlighted) null else defaultColor,
         leadingIconContentDescription = contentDescription,
         iconSize = iconSize,

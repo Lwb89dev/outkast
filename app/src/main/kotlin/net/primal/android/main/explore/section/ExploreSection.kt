@@ -7,6 +7,9 @@ import net.primal.android.core.compose.AppBarPage
 
 enum class ExploreSection {
     Explore,
+
+    /** Notes by people the user does not follow yet, that the people they do follow engaged with. */
+    Network,
     FeedGallery,
     FollowPacks,
     Zaps,
@@ -17,6 +20,7 @@ enum class ExploreSection {
 fun ExploreSection.toTitle(): String =
     when (this) {
         ExploreSection.Explore -> stringResource(id = R.string.explore_section_explore_title)
+        ExploreSection.Network -> stringResource(id = R.string.explore_section_network_title)
         ExploreSection.FeedGallery -> stringResource(id = R.string.explore_section_feed_gallery_title)
         ExploreSection.FollowPacks -> stringResource(id = R.string.explore_section_follow_packs_title)
         ExploreSection.Zaps -> stringResource(id = R.string.explore_section_zaps_title)
@@ -27,6 +31,7 @@ fun ExploreSection.toTitle(): String =
 fun ExploreSection.toSubtitle(): String =
     when (this) {
         ExploreSection.Explore -> stringResource(id = R.string.explore_section_explore_subtitle)
+        ExploreSection.Network -> stringResource(id = R.string.explore_section_network_subtitle)
         ExploreSection.FeedGallery -> stringResource(id = R.string.explore_section_feed_gallery_subtitle)
         ExploreSection.FollowPacks -> stringResource(id = R.string.explore_section_follow_packs_subtitle)
         ExploreSection.Zaps -> stringResource(id = R.string.explore_section_zaps_subtitle)

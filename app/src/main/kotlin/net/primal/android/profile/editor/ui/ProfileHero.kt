@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import net.primal.android.R
+import net.primal.android.imageedit.ui.rememberPhotoEditGate
 import net.primal.android.theme.AppTheme
 
 @Composable
@@ -71,13 +72,17 @@ fun ProfileHero(
             horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            // A picked photo opens in the photo editor first (crop it to the avatar's or banner's shape, level it,
+            // adjust it), and what comes out of the editor is what becomes the new picture.
+            val attachAvatar = rememberPhotoEditGate(onReady = { onAvatarUriChange(it.firstOrNull()) })
+            val attachBanner = rememberPhotoEditGate(onReady = { onBannerUriChange(it.firstOrNull()) })
             val avatarPickMedia =
                 rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-                    onAvatarUriChange(uri)
+                    if (uri == null) onAvatarUriChange(null) else attachAvatar(listOf(uri))
                 }
             val bannerPickMedia =
                 rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-                    onBannerUriChange(uri)
+                    if (uri == null) onBannerUriChange(null) else attachBanner(listOf(uri))
                 }
 
             Text(

@@ -86,6 +86,44 @@ class EventStatsUpdaterTest {
         }
 
     @Test
+    fun `increaseLikeStats remembers the emoji the user reacted with`() =
+        runTest {
+            createUpdater().increaseLikeStats(reaction = "\uD83E\uDDE1")
+
+            val userStatsSlot = slot<EventUserStats>()
+            coVerify { mockEventUserStatsDao.upsert(data = capture(userStatsSlot)) }
+
+            userStatsSlot.captured.liked shouldBe true
+            userStatsSlot.captured.reaction shouldBe "\uD83E\uDDE1"
+        }
+
+    @Test
+    fun `a plain like is remembered as the plus sign`() =
+        runTest {
+            createUpdater().increaseLikeStats()
+
+            val userStatsSlot = slot<EventUserStats>()
+            coVerify { mockEventUserStatsDao.upsert(data = capture(userStatsSlot)) }
+
+            userStatsSlot.captured.reaction shouldBe "+"
+        }
+
+    @Test
+    fun `taking the reaction back forgets the emoji along with the like`() =
+        runTest {
+            coEvery { mockEventUserStatsDao.find(eventId = eventId, userId = userId) } returns
+                initialEventUserStats.copy(liked = true, reaction = "\uD83D\uDC4D")
+
+            createUpdater().decreaseLikeStats()
+
+            val userStatsSlot = slot<EventUserStats>()
+            coVerify { mockEventUserStatsDao.upsert(data = capture(userStatsSlot)) }
+
+            userStatsSlot.captured.liked shouldBe false
+            userStatsSlot.captured.reaction shouldBe null
+        }
+
+    @Test
     fun `increaseLikeStats does not do multiple increases`() =
         runTest {
             val updater = createUpdater()

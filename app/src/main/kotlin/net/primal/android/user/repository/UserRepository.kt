@@ -37,15 +37,18 @@ import net.primal.core.networking.blossom.UploadResult
 import net.primal.core.utils.coroutines.DispatcherProvider
 import net.primal.core.utils.getOrDefault
 import net.primal.core.utils.map
+import net.primal.core.utils.onFailure
 import net.primal.core.utils.runCatching
 import net.primal.domain.common.UserProfileSearchItem
 import net.primal.domain.common.exception.NetworkException
 import net.primal.domain.global.CachingImportRepository
 import net.primal.domain.nostr.ContentMetadata
+import net.primal.domain.nostr.NostrEvent
 import net.primal.domain.nostr.NostrEventKind
 import net.primal.domain.nostr.NostrUnsignedEvent
 import net.primal.domain.nostr.cryptography.SignatureException
 import net.primal.domain.nostr.cryptography.utils.hexToNpubHrp
+import net.primal.domain.posts.FeedRepository
 import net.primal.domain.profile.ProfileRepository
 import net.primal.domain.user.UserDataCleanupRepository
 
@@ -61,6 +64,7 @@ class UserRepository @Inject constructor(
     private val profileRepository: ProfileRepository,
     private val userDataCleanupRepository: UserDataCleanupRepository,
     private val cachingImportRepository: CachingImportRepository,
+    private val feedRepository: FeedRepository,
 ) {
     suspend fun setActiveAccount(userId: String) =
         withContext(dispatchers.io()) {
@@ -123,9 +127,21 @@ class UserRepository @Inject constructor(
             // The authoritative remote source is the user's kind-3 event on Nostr.
             // If relays are temporarily unavailable, keep the last locally persisted
             // list rather than falling back to the centralized Primal cache API.
-            fetchFollowListFromRelays(userId)
-                ?: accountsStore.findByIdOrNull(userId = userId)?.takeIf { it.following.isNotEmpty() }
+            val fromRelays = fetchFollowListFromRelays(userId)
+            val local = accountsStore.findByIdOrNull(userId = userId)?.takeIf { it.following.isNotEmpty() }
+            when {
+                fromRelays == null -> local
+                local == null -> fromRelays
+                // The relays can answer with an older list than the one this device last published (the ones
+                // that answered had not received it yet). Building the next follow or unfollow on that would
+                // publish a list missing every recent change, so the newer of the two is the base.
+                local.isNewerFollowListThan(fromRelays) -> local
+                else -> fromRelays
+            }
         }
+
+    private fun UserAccount.isNewerFollowListThan(other: UserAccount): Boolean =
+        (followListCreatedAt ?: 0L) > (other.followListCreatedAt ?: 0L)
 
     private suspend fun fetchFollowListFromRelays(userId: String): UserAccount? {
         val result = runCatching {
@@ -314,11 +330,38 @@ class UserRepository @Inject constructor(
         }
 
         val existingFollowing = userFollowList?.following ?: emptySet()
-        setFollowList(
+        val newFollowing = existingFollowing.reducer()
+        val publishedEvent = setFollowList(
             userId = userId,
-            contacts = existingFollowing.reducer(),
+            contacts = newFollowing,
             content = userFollowList?.followListEventContent ?: "",
+            interests = userFollowList?.interests.orEmpty(),
         )
+        syncFeedsWithFollowList(
+            userId = userId,
+            publishedEvent = publishedEvent,
+            unfollowedIds = existingFollowing - newFollowing,
+        )
+    }
+
+    /**
+     * The list was published and the account updated; the feeds still hold the old one. Best effort:
+     * the follow itself has already succeeded, so a failure here is logged and nothing more.
+     */
+    private suspend fun syncFeedsWithFollowList(
+        userId: String,
+        publishedEvent: NostrEvent,
+        unfollowedIds: Set<String>,
+    ) {
+        runCatching {
+            feedRepository.onFollowListPublished(
+                userId = userId,
+                followListEvent = publishedEvent,
+                unfollowedIds = unfollowedIds,
+            )
+        }.onFailure { error ->
+            Napier.w(throwable = error) { "Failed to sync the feeds with the new follow list." }
+        }
     }
 
     @Throws(NostrPublishException::class, SignatureException::class)
@@ -326,17 +369,21 @@ class UserRepository @Inject constructor(
         userId: String,
         contacts: Set<String>,
         content: String = "",
-    ) = withContext(dispatchers.io()) {
-        val nostrEventResponse = nostrPublisher.publishUserFollowList(
-            userId = userId,
-            contacts = contacts,
-            content = content,
-        )
-        updateFollowList(
-            userId = userId,
-            contactsUserAccount = nostrEventResponse.asUserAccountFromFollowListEvent(),
-        )
-    }
+        interests: List<String> = emptyList(),
+    ): NostrEvent =
+        withContext(dispatchers.io()) {
+            val nostrEventResponse = nostrPublisher.publishUserFollowList(
+                userId = userId,
+                contacts = contacts,
+                content = content,
+                interests = interests,
+            )
+            updateFollowList(
+                userId = userId,
+                contactsUserAccount = nostrEventResponse.asUserAccountFromFollowListEvent(),
+            )
+            nostrEventResponse
+        }
 
     @Throws(NostrPublishException::class, SignatureException::class)
     suspend fun recoverFollowList(

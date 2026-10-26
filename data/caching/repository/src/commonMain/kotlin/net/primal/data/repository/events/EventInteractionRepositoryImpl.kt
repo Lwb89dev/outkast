@@ -46,7 +46,7 @@ class EventInteractionRepositoryImpl(
         )
 
         try {
-            statsUpdater.increaseLikeStats()
+            statsUpdater.increaseLikeStats(reaction = reaction)
             primalPublisher.signPublishImportNostrEvent(
                 unsignedNostrEvent = NostrUnsignedEvent(
                     pubKey = userId,

@@ -94,6 +94,7 @@ fun FeedPost.asFeedPostUi(): FeedPostUi {
                 userZapped = stats.userZapped,
                 likesCount = stats.likesCount,
                 userLiked = stats.userLiked,
+                userReaction = stats.userReaction,
                 repostsCount = stats.repostsCount,
                 userReposted = stats.userReposted,
                 quotesCount = stats.quotesCount,

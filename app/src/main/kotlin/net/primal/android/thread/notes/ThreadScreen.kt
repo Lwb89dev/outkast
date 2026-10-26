@@ -7,6 +7,8 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,6 +33,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -38,6 +41,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -909,52 +913,26 @@ private fun ReplyToOptions(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-        ) {
-            ImportPhotosIconButton(
-                imageVector = PrimalIcons.ImportPhotoFromGallery,
-                contentDescription = stringResource(id = R.string.accessibility_import_photo_from_gallery),
-                tint = AppTheme.colorScheme.onSurface,
-                onPhotosImported = onPhotosImported,
-            )
-
-            IconButton(onClick = onGifClick) {
-                Icon(
-                    imageVector = PrimalIcons.Gif,
-                    contentDescription = stringResource(id = R.string.accessibility_gif_picker),
-                    tint = AppTheme.colorScheme.onSurface,
-                )
-            }
-
-            TakePhotoIconButton(
-                imageVector = PrimalIcons.ImportPhotoFromCamera,
-                contentDescription = stringResource(id = R.string.accessibility_take_photo),
-                tint = AppTheme.colorScheme.onSurface,
-                onPhotoTaken = { uri -> onPhotosImported(listOf(uri)) },
-            )
-
-            IconButton(onClick = onPollClick) {
-                Icon(
-                    imageVector = PrimalIcons.Poll,
-                    contentDescription = stringResource(id = R.string.accessibility_poll_toggle),
-                    tint = AppTheme.colorScheme.onSurface,
-                )
-            }
-
-            IconButton(onClick = onPrivateReplyClick) {
-                Icon(
-                    imageVector = Icons.Default.Lock,
-                    contentDescription = stringResource(id = R.string.accessibility_private_reply),
-                    tint = AppTheme.colorScheme.onSurface,
-                )
-            }
-
-            IconButton(onClick = onUserTagClick) {
-                Icon(
-                    imageVector = Icons.Default.AlternateEmail,
-                    contentDescription = stringResource(id = R.string.accessibility_tag_user),
-                    tint = AppTheme.colorScheme.onSurface,
+        // The six tool icons used to be laid out first, at 48dp each, and took ~300dp of a 360-411dp
+        // wide screen; the reply button was measured last with whatever was left and its label was
+        // clipped ("Rispondi" -> "Rispo"). Now the button is measured first (it is not weighted), the
+        // icon group takes the rest through `weight(fill = false)` and scrolls sideways if even that
+        // is not enough (large font scale, very narrow screen). The icons are also drawn at their
+        // 40dp visual size instead of being inflated to the 48dp touch target, which is what makes
+        // the group fit without scrolling on ordinary phones.
+        CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 40.dp) {
+            Row(
+                modifier = Modifier
+                    .weight(1f, fill = false)
+                    .horizontalScroll(rememberScrollState())
+                    .padding(horizontal = 8.dp, vertical = 2.dp),
+            ) {
+                ReplyToolIcons(
+                    onPhotosImported = onPhotosImported,
+                    onGifClick = onGifClick,
+                    onPollClick = onPollClick,
+                    onPrivateReplyClick = onPrivateReplyClick,
+                    onUserTagClick = onUserTagClick,
                 )
             }
         }
@@ -971,10 +949,68 @@ private fun ReplyToOptions(
             enabled = replyEnabled,
             fontSize = 14.sp,
             fontWeight = FontWeight.Normal,
+            // One line, never ellipsized or clipped: the label decides the button's width.
+            maxLines = 1,
+            contentPadding = PaddingValues(horizontal = 16.dp),
             onClick = {
                 onPublishReplyClick()
                 keyboardController?.hide()
             },
+        )
+    }
+}
+
+@Composable
+private fun ReplyToolIcons(
+    onPhotosImported: (List<Uri>) -> Unit,
+    onGifClick: () -> Unit,
+    onPollClick: () -> Unit,
+    onPrivateReplyClick: () -> Unit,
+    onUserTagClick: () -> Unit,
+) {
+    ImportPhotosIconButton(
+        imageVector = PrimalIcons.ImportPhotoFromGallery,
+        contentDescription = stringResource(id = R.string.accessibility_import_photo_from_gallery),
+        tint = AppTheme.colorScheme.onSurface,
+        onPhotosImported = onPhotosImported,
+    )
+
+    IconButton(onClick = onGifClick) {
+        Icon(
+            imageVector = PrimalIcons.Gif,
+            contentDescription = stringResource(id = R.string.accessibility_gif_picker),
+            tint = AppTheme.colorScheme.onSurface,
+        )
+    }
+
+    TakePhotoIconButton(
+        imageVector = PrimalIcons.ImportPhotoFromCamera,
+        contentDescription = stringResource(id = R.string.accessibility_take_photo),
+        tint = AppTheme.colorScheme.onSurface,
+        onPhotoTaken = { uri -> onPhotosImported(listOf(uri)) },
+    )
+
+    IconButton(onClick = onPollClick) {
+        Icon(
+            imageVector = PrimalIcons.Poll,
+            contentDescription = stringResource(id = R.string.accessibility_poll_toggle),
+            tint = AppTheme.colorScheme.onSurface,
+        )
+    }
+
+    IconButton(onClick = onPrivateReplyClick) {
+        Icon(
+            imageVector = Icons.Default.Lock,
+            contentDescription = stringResource(id = R.string.accessibility_private_reply),
+            tint = AppTheme.colorScheme.onSurface,
+        )
+    }
+
+    IconButton(onClick = onUserTagClick) {
+        Icon(
+            imageVector = Icons.Default.AlternateEmail,
+            contentDescription = stringResource(id = R.string.accessibility_tag_user),
+            tint = AppTheme.colorScheme.onSurface,
         )
     }
 }

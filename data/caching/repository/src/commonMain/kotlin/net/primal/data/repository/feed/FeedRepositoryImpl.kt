@@ -49,6 +49,7 @@ import net.primal.data.repository.utils.cacheAvatarUrls
 import net.primal.data.repository.utils.performTopologicalSortOrThis
 import net.primal.domain.common.exception.NetworkException
 import net.primal.domain.feeds.isAdvancedSearchFeedSpec
+import net.primal.domain.feeds.isNetworkNotesFeedSpec
 import net.primal.domain.feeds.isNotesBookmarkFeedSpec
 import net.primal.domain.feeds.isProfileAuthoredMediaFeedSpec
 import net.primal.domain.feeds.isRelayServableNotesFeedSpec
@@ -332,6 +333,22 @@ internal class FeedRepositoryImpl(
         invalidationTracker.invalidate(ownerId = userId, feedSpec = feedSpec)
     }
 
+    override suspend fun onFollowListPublished(
+        userId: String,
+        followListEvent: NostrEvent,
+        unfollowedIds: Set<String>,
+    ) {
+        withContext(dispatcherProvider.io()) {
+            fetchCoordinator.rememberPublishedFollowList(pubkey = userId, event = followListEvent)
+            if (unfollowedIds.isEmpty()) return@withContext
+            val affectedSpecs = database.feedsConnections().findLatestFeedSpecs(ownerId = userId)
+            unfollowedIds.toList().chunked(UNFOLLOW_CLEANUP_CHUNK).forEach { chunk ->
+                database.feedsConnections().deleteLatestFeedRowsOfAuthors(ownerId = userId, authorIds = chunk)
+            }
+            affectedSpecs.forEach { spec -> invalidationTracker.invalidate(ownerId = userId, feedSpec = spec) }
+        }
+    }
+
     override suspend fun retryAppendFeed(userId: String, feedSpec: String) {
         invalidationTracker.retryAppend(ownerId = userId, feedSpec = feedSpec)
     }
@@ -397,7 +414,13 @@ internal class FeedRepositoryImpl(
         // A bookmarks feed only changes when its owner edits the list, never because somebody
         // published; the author scope resolveAuthors would fall back to is the follow list, whose
         // live notes do not belong in it.
-        if (subscriber == null || fetcher == null || feedSpec.isNotesBookmarkFeedSpec()) return emptyFlow()
+        // The network feed is made of notes people the user does not follow wrote, so a live subscription on
+        // the user's own follow list has nothing to say about it either.
+        if (subscriber == null || fetcher == null ||
+            feedSpec.isNotesBookmarkFeedSpec() || feedSpec.isNetworkNotesFeedSpec()
+        ) {
+            return emptyFlow()
+        }
 
         return flow {
             val authors = fetcher.resolveAuthors(userId = userId, feedSpec = feedSpec)
@@ -607,11 +630,14 @@ internal class FeedRepositoryImpl(
             // yet (stats are fetched for a refresh and for notes that come into view, and a grid has
             // no viewport trigger), so those rows would be stored and then never selected. A profile
             // is looked at on purpose, so web-of-trust filtering does not apply either.
-            feedSpec.isProfileAuthoredMediaFeedSpec() -> ChronologicalFeedWithRepostsQueryBuilder(
-                feedSpec = feedSpec,
-                userPubkey = userId,
-                allowMutedThreads = allowMutedThreads,
-            )
+            // The network feed is listed with it for the same reason: its pages come from relays by id, a page
+            // fetched by scrolling has no stats rows yet, and the explore builder would never select them.
+            feedSpec.isProfileAuthoredMediaFeedSpec() || feedSpec.isNetworkNotesFeedSpec() ->
+                ChronologicalFeedWithRepostsQueryBuilder(
+                    feedSpec = feedSpec,
+                    userPubkey = userId,
+                    allowMutedThreads = allowMutedThreads,
+                )
 
             // Explore/hashtag/trending feeds exist to surface strangers, so WoT never applies here
             // — no filter (like above) and no boost either, since a boost would put a stale WoT
@@ -632,6 +658,9 @@ internal class FeedRepositoryImpl(
 
         /** Past this the filter gets unwieldy; the periodic refresh still covers the rest. */
         const val MAX_STREAMED_AUTHORS = 1_000
+
+        /** Authors per DELETE when cleaning up after an unfollow; far under SQLite's variable limit. */
+        const val UNFOLLOW_CLEANUP_CHUNK = 200
     }
 }
 

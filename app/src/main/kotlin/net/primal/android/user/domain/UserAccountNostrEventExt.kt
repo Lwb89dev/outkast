@@ -13,4 +13,5 @@ fun NostrEvent.asUserAccountFromFollowListEvent() =
         following = tags.parseFollowings(),
         interests = tags.parseInterests(),
         followListEventContent = content,
+        followListCreatedAt = createdAt,
     )

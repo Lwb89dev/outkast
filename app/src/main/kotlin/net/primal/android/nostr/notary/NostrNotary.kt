@@ -43,6 +43,7 @@ import net.primal.android.signer.SIGNABLE_EVENT_KIND_VALUES
 import net.primal.domain.nostr.NostrEventKind
 import net.primal.domain.nostr.NostrUnsignedEvent
 import net.primal.domain.nostr.asClientTag
+import net.primal.domain.nostr.asHashtagTag
 import net.primal.domain.nostr.asPubkeyTag
 import net.primal.domain.nostr.cryptography.NostrEventSignatureHandler
 import net.primal.domain.nostr.cryptography.NostrKeyPair
@@ -280,8 +281,13 @@ class NostrNotary @Inject constructor(
         userId: String,
         contacts: Set<String>,
         content: String,
+        interests: List<String> = emptyList(),
     ): SignResult {
+        // The hashtags a user follows live in the same kind 3 event as the people (`t` tags). Rebuilding
+        // the list from the people alone, as this used to, deleted every followed hashtag the first time
+        // the user followed or unfollowed anybody.
         val tags = contacts.map { it.asPubkeyTag() } +
+            interests.map { it.asHashtagTag() } +
             listOf(UserAgentProvider.CLIENT_NAME.asClientTag())
         return signNostrEvent(
             unsignedNostrEvent = NostrUnsignedEvent(

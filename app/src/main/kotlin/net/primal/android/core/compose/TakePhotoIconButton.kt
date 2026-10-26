@@ -19,6 +19,7 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 import net.primal.android.BuildConfig
+import net.primal.android.imageedit.ui.rememberPhotoEditGate
 import net.primal.core.utils.runCatching
 
 fun Context.createImageFile(): File {
@@ -48,9 +49,11 @@ fun TakePhotoIconButton(
         )
     }.getOrNull()
 
+    // The photo just taken opens in the photo editor before it is handed on.
+    val attach = rememberPhotoEditGate(onReady = { photos -> photos.forEach(onPhotoTaken) })
     val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { caputred ->
         if (caputred && uri != null) {
-            onPhotoTaken(uri)
+            attach(listOf(uri))
         }
     }
 

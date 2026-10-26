@@ -400,6 +400,9 @@
     <string name="explore_section_zaps_subtitle">Top zaps su Nostr oggi</string>
     <string name="explore_section_media_title">Media</string>
     <string name="explore_section_media_subtitle">Immagini e video di Nostr oggi</string>
+    <string name="explore_section_network_title">Rete</string>
+    <string name="explore_section_network_subtitle">Ciò che piace ai tuoi amici, da persone che non segui</string>
+    <string name="explore_network_no_content">Ancora nulla dagli amici dei tuoi amici. Segui altre persone e ricontrolla: qui compaiono le note di persone che non segui che sono piaciute o sono state ripubblicate da chi segui.</string>
     <string name="explore_search_bar_hint">Cerca…</string>
     <string name="explore_landing_recent_users_title">Utenti recenti</string>
     <string name="explore_landing_recent_searches_title">Ricerche recenti</string>
@@ -1196,4 +1199,54 @@
         <item quantity="one">%d emoji</item>
         <item quantity="other">%d emoji</item>
     </plurals>
+
+    <!-- Editor foto: si apre dopo la scelta di una foto per una nota, prima del caricamento -->
+    <string name="photo_edit_title">Modifica foto</string>
+    <string name="photo_edit_cancel">Annulla</string>
+    <string name="photo_edit_done">Fatto</string>
+    <string name="photo_edit_reset">Ripristina</string>
+    <string name="photo_edit_original">Originale</string>
+    <string name="photo_edit_failed">Impossibile preparare la foto modificata. Riprova oppure annulla.</string>
+    <string name="photo_edit_discard_title">Scartare le modifiche?</string>
+    <string name="photo_edit_discard_message">Le modifiche fatte a questa foto andranno perse.</string>
+    <string name="photo_edit_discard">Scarta</string>
+    <string name="photo_edit_keep_editing">Continua a modificare</string>
+    <string name="photo_edit_slider_reset">Riporta al valore neutro</string>
+    <string name="photo_edit_tool_auto">Auto</string>
+    <string name="photo_edit_tool_light">Luce</string>
+    <string name="photo_edit_tool_color">Colore</string>
+    <string name="photo_edit_tool_detail">Dettaglio</string>
+    <string name="photo_edit_tool_filters">Filtri</string>
+    <string name="photo_edit_tool_crop">Ritaglia</string>
+    <string name="photo_edit_adj_exposure">Esposizione</string>
+    <string name="photo_edit_adj_brightness">Luminosità</string>
+    <string name="photo_edit_adj_contrast">Contrasto</string>
+    <string name="photo_edit_adj_highlights">Alte luci</string>
+    <string name="photo_edit_adj_shadows">Ombre</string>
+    <string name="photo_edit_adj_black_point">Punto del nero</string>
+    <string name="photo_edit_adj_saturation">Saturazione</string>
+    <string name="photo_edit_adj_vibrance">Vividezza</string>
+    <string name="photo_edit_adj_temperature">Temperatura</string>
+    <string name="photo_edit_adj_tint">Tinta</string>
+    <string name="photo_edit_adj_sharpness">Nitidezza</string>
+    <string name="photo_edit_adj_vignette">Vignettatura</string>
+    <string name="photo_edit_filter_none">Nessuno</string>
+    <string name="photo_edit_filter_vivid">Vivido</string>
+    <string name="photo_edit_filter_warm">Caldo</string>
+    <string name="photo_edit_filter_cool">Freddo</string>
+    <string name="photo_edit_filter_mono">Mono</string>
+    <string name="photo_edit_filter_noir">Noir</string>
+    <string name="photo_edit_filter_fade">Sbiadito</string>
+    <string name="photo_edit_filter_chrome">Cromato</string>
+    <string name="photo_edit_filter_sepia">Seppia</string>
+    <string name="photo_edit_filter_amount">Intensità</string>
+    <string name="photo_edit_crop_rotate">Ruota</string>
+    <string name="photo_edit_crop_flip">Specchia</string>
+    <string name="photo_edit_shape_free">Libero</string>
+    <string name="photo_edit_shape_original">Originale</string>
+    <string name="photo_edit_shape_square">Quadrato</string>
+    <string name="photo_edit_geo_straighten">Raddrizza</string>
+    <string name="photo_edit_geo_perspective_vertical">Prospettiva verticale</string>
+    <string name="photo_edit_geo_perspective_horizontal">Prospettiva orizzontale</string>
+    <string name="photo_edit_crop_area">Area di ritaglio, dal %1$d%% al %2$d%% in larghezza e dal %3$d%% al %4$d%% in altezza</string>
 </resources>
