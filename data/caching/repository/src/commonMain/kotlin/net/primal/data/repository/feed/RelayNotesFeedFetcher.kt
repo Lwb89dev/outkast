@@ -5,7 +5,9 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import net.primal.core.utils.getOrDefault
@@ -58,6 +60,11 @@ internal data class NotesFeedPage(
      * decide the order of the page (the network feed). The caller stores them instead of asking the relays again.
      */
     val stats: RelayEventStatsSnapshot? = null,
+    /**
+     * The profiles of [page]'s authors and mentions, when they were already fetched ahead of time (the network
+     * feed). [RelayNotesFeedFetcher.fetchMetadataFor] hands them over instead of asking the relays again.
+     */
+    val metadata: List<NostrEvent>? = null,
 )
 
 /** The network feed's notes, resolved once and kept for a while: see [RelayNotesFeedFetcher.fetchNetworkNotesPage]. */
@@ -68,6 +75,10 @@ private class NetworkNotes(
     val ranked: List<NostrEvent> = emptyList(),
     /** Counters and the user's own flags for [ranked]; the order was decided from them, so they are kept. */
     val stats: RelayEventStatsSnapshot = RelayEventStatsSnapshot(emptyList(), emptyList()),
+    /** The notes that [ranked] quotes, resolved with it so that opening the section does not wait for them. */
+    val referenced: List<NostrEvent> = emptyList(),
+    /** The profiles of [ranked]'s authors and mentions, fetched with it for the same reason. */
+    val metadata: List<NostrEvent> = emptyList(),
     /** True when nothing came back although the user follows people, i.e. the relays did not answer. */
     val unreachable: Boolean = false,
 )
@@ -87,6 +98,9 @@ internal class RelayNotesFeedFetcher(
 
     @Volatile
     private var networkNotes: NetworkNotes? = null
+
+    /** One load of the network feed at a time: a second caller waits for it and then reads its result. */
+    private val networkLoadLock = Mutex()
 
     /**
      * @param failWhenUnreachable throw [RelaysUnreachableException] instead of returning an empty
@@ -260,6 +274,13 @@ internal class RelayNotesFeedFetcher(
 
     /** Everyone a page's content renderer needs a kind 0 for: authors, mentions, and quotes. */
     suspend fun fetchMetadataFor(feedPage: NotesFeedPage): List<NostrEvent> {
+        feedPage.metadata?.let { prefetched ->
+            // They were fetched ahead of the page without claiming the authors, since nothing would have stored them
+            // had the page never been opened. Opening it is what stores them, so the claim is made here, the way a
+            // fetch of their own would have made it.
+            cache?.claimMetadataPubkeys(prefetched.map { it.pubKey })
+            return prefetched
+        }
         val pageAuthorCandidates = feedPage.page.metadataAuthorCandidates()
         val pageMetadata = fetchMetadataFor(pubkeys = pageAuthorCandidates)
 
@@ -342,13 +363,37 @@ internal class RelayNotesFeedFetcher(
             eventStats = network.stats.eventStats.filter { it.eventId in pageIds },
             userStats = network.stats.userStats.filter { it.eventId in pageIds },
         )
+        // The whole ranking is the page in practice, and what it quotes and who wrote it were resolved with it.
+        if (page.size == network.ranked.size) {
+            return NotesFeedPage(
+                page = page,
+                referencedNotes = network.referenced,
+                stats = stats,
+                metadata = network.metadata,
+            )
+        }
         return buildPageEvents(page).copy(stats = stats)
     }
 
-    private suspend fun loadNetworkNotes(userId: String): NetworkNotes {
-        val now = Clock.System.now().epochSeconds
-        networkNotes?.takeIf { it.userId == userId && now - it.loadedAt < NETWORK_CACHE_SECONDS }?.let { return it }
+    /**
+     * Resolves the network feed ahead of the screen that shows it, so that opening the section finds the ranking
+     * already in the cache instead of starting the requests then. It stores nothing but that cache: profiles and
+     * the rest of the page are fetched when the page is actually built.
+     */
+    suspend fun prefetchNetworkNotes(userId: String) {
+        loadNetworkNotes(userId)
+    }
 
+    private suspend fun loadNetworkNotes(userId: String): NetworkNotes =
+        networkLoadLock.withLock {
+            // Checked inside the lock: a caller that queued behind a load in progress finds its result here and
+            // does not repeat the requests, which a prefetch racing with the opened section would otherwise do.
+            val now = Clock.System.now().epochSeconds
+            networkNotes?.takeIf { it.userId == userId && now - it.loadedAt < NETWORK_CACHE_SECONDS }
+                ?: resolveNetworkNotes(userId, now)
+        }
+
+    private suspend fun resolveNetworkNotes(userId: String, now: Long): NetworkNotes {
         val friends = loadFollows(userId).filter { it != userId }.toSet()
         if (friends.isEmpty()) return NetworkNotes(userId = userId, loadedAt = now)
 
@@ -364,7 +409,16 @@ internal class RelayNotesFeedFetcher(
             .sortedByDescending { it.value.size }
             .take(MAX_NETWORK_CANDIDATES)
             .map { it.key }
-        val shortlist = fetchReferencedNotes(candidateIds)
+        // The counters only need the ids, so they are asked for while the notes are, instead of after them: that was a
+        // whole extra round. The notes with the most friends behind them come first and are where the shortlist is
+        // drawn from; one that is not among them is counted afterwards.
+        val statsFetcher = RelayEventStatsFetcher(querier, coordinator)
+        val (candidates, earlyStats) = coroutineScope {
+            val notes = async { fetchReferencedNotes(candidateIds) }
+            val counters = async { countInteractions(statsFetcher, candidateIds.take(NETWORK_PAGE_SIZE), userId) }
+            notes.await() to counters.await()
+        }
+        val shortlist = candidates
             .asSequence()
             .distinctBy { it.id }
             .filter { it.kind == NostrEventKind.ShortTextNote.value && !it.tags.hasEventIdTag() }
@@ -380,16 +434,56 @@ internal class RelayNotesFeedFetcher(
                 .also { if (window.isNotEmpty()) networkNotes = it }
         }
 
-        val stats = runCatching { RelayEventStatsFetcher(querier, coordinator).fetch(shortlist.map { it.id }, userId) }
-            .getOrDefault(RelayEventStatsSnapshot(emptyList(), emptyList()))
+        val counted = earlyStats.eventStats.mapTo(HashSet()) { it.eventId }
+        val lateIds = shortlist.map { it.id }.filterNot { it in counted }
+        val lateStats = countInteractions(statsFetcher, lateIds, userId)
+        val stats = RelayEventStatsSnapshot(
+            eventStats = earlyStats.eventStats + lateStats.eventStats,
+            userStats = earlyStats.userStats + lateStats.userStats,
+        )
         val interactions = stats.eventStats.associate { it.eventId to it.interactionScore() }
         val ranked = shortlist.sortedWith(
             compareByDescending<NostrEvent> { interactions[it.id] ?: 0L }
                 .thenByDescending { tally[it.id]?.size ?: 0 }
                 .thenByDescending { it.createdAt },
         )
-        return NetworkNotes(userId = userId, loadedAt = now, ranked = ranked, stats = stats)
-            .also { networkNotes = it }
+        // Resolved here too, so that the section opens on a complete page: the notes it quotes, then the profiles of
+        // everyone on it. A failure only means the page asks for them itself when it is opened.
+        val referenced = runCatching { buildPageEvents(ranked).referencedNotes }.getOrDefault(emptyList())
+        val metadata = runCatching { fetchMetadataWithoutClaiming(ranked + referenced) }.getOrNull().orEmpty()
+        return NetworkNotes(
+            userId = userId,
+            loadedAt = now,
+            ranked = ranked,
+            stats = stats,
+            referenced = referenced,
+            metadata = metadata,
+        ).also { networkNotes = it }
+    }
+
+    /** The counters of [ids], or none at all if the relays could not be asked: the caller treats those as unknown. */
+    private suspend fun countInteractions(
+        statsFetcher: RelayEventStatsFetcher,
+        ids: List<String>,
+        userId: String,
+    ): RelayEventStatsSnapshot =
+        if (ids.isEmpty()) {
+            RelayEventStatsSnapshot(emptyList(), emptyList())
+        } else {
+            runCatching { statsFetcher.fetch(ids, userId) }
+                .getOrDefault(RelayEventStatsSnapshot(emptyList(), emptyList()))
+        }
+
+    /**
+     * The profiles a page of [events] needs, for a page that is built before anyone opens it. Unlike
+     * [fetchMetadataFor] it does not claim the authors: a claim says "this was asked for and stored", and nothing
+     * stores these until the page is opened, so a claim made now would stop every other feed from fetching an author
+     * whose profile is, in fact, nowhere.
+     */
+    private suspend fun fetchMetadataWithoutClaiming(events: List<NostrEvent>): List<NostrEvent> {
+        val authors = events.metadataAuthorCandidates().take(MAX_METADATA_AUTHORS)
+        if (authors.isEmpty()) return emptyList()
+        return queryInChunks(authors = authors, kinds = listOf(NostrEventKind.Metadata.value), limit = authors.size)
     }
 
     /**

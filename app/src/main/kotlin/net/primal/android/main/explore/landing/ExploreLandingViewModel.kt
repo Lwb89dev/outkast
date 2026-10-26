@@ -11,11 +11,14 @@ import kotlinx.coroutines.launch
 import net.primal.android.main.explore.landing.ExploreLandingContract.UiState
 import net.primal.android.user.accounts.active.ActiveAccountStore
 import net.primal.android.user.repository.UserRepository
+import net.primal.core.utils.runCatching
+import net.primal.domain.posts.FeedRepository
 
 @HiltViewModel
 class ExploreLandingViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val activeAccountStore: ActiveAccountStore,
+    private val feedRepository: FeedRepository,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(UiState())
@@ -25,7 +28,18 @@ class ExploreLandingViewModel @Inject constructor(
     init {
         observeRecentUsers()
         observeRecentSearches()
+        prefetchNetwork()
     }
+
+    /**
+     * The Network section ranks what the user's friends engaged with, which takes several rounds of requests. Opening
+     * Discover is the best sign that the section is next, so that work starts here and is waiting when the user gets
+     * there. It is one pass that the section would run anyway, and it is kept for a few minutes.
+     */
+    private fun prefetchNetwork() =
+        viewModelScope.launch {
+            runCatching { feedRepository.prefetchNetworkNotes(userId = activeAccountStore.activeUserId()) }
+        }
 
     private fun observeRecentUsers() =
         viewModelScope.launch {

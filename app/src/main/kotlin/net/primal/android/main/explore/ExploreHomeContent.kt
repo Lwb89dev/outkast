@@ -48,12 +48,10 @@ import net.primal.android.main.explore.section.toAppBarPages
 import net.primal.android.main.explore.section.toSubtitle
 import net.primal.android.main.explore.section.toTitle
 import net.primal.android.main.explore.zaps.ExploreZaps
-import net.primal.android.notes.feed.grid.MediaFeedGrid
 import net.primal.android.notes.feed.list.NoteFeedList
 import net.primal.android.notes.feed.note.ui.events.NoteCallbacks
 import net.primal.android.theme.AppTheme
 import net.primal.android.theme.domain.PrimalTheme
-import net.primal.domain.feeds.exploreMediaFeedSpec
 import net.primal.domain.feeds.networkNotesFeedSpec
 import net.primal.domain.links.CdnImage
 
@@ -78,6 +76,7 @@ internal fun ExploreHomeContent(
                 onProfileClick = { noteCallbacks.onProfileClick?.invoke(it) },
                 onRecentSearchEditClick = onRecentSearchEditClick,
                 onRecentSearchExecuteClick = onRecentSearchExecuteClick,
+                onSectionClick = { section -> uiScope.launch { pagerState.animateScrollToPage(section.ordinal) } },
             )
 
             ExploreSection.Network -> NoteFeedList(
@@ -122,13 +121,6 @@ internal fun ExploreHomeContent(
                 modifier = Modifier.background(color = AppTheme.colorScheme.surfaceVariant),
                 paddingValues = paddingValues,
                 noteCallbacks = noteCallbacks,
-            )
-
-            ExploreSection.Media -> MediaFeedGrid(
-                feedSpec = exploreMediaFeedSpec,
-                contentPadding = paddingValues,
-                onNoteClick = { noteCallbacks.onNoteClick?.invoke(it) },
-                onGetPrimalPremiumClick = { noteCallbacks.onGetPrimalPremiumClick?.invoke() },
             )
         }
     }

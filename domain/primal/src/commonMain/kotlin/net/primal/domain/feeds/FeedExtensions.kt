@@ -147,7 +147,7 @@ fun String.isNotesBookmarkFeedSpec(): Boolean {
  *
  * The spec carries no pubkey on purpose. Whose network it is comes from the feed's owner, which every
  * cached feed row already records, and a constant spec can be opened from a screen that does not know
- * the user's id (a page of the Explore pager), like [exploreMediaFeedSpec].
+ * the user's id (a page of the Explore pager).
  */
 const val networkNotesFeedSpec = """{"id":"feed","kind":"notes","notes":"network"}"""
 
@@ -214,8 +214,6 @@ fun buildAdvancedSearchNotificationsFeedSpec(query: String) =
     """{"id":"advsearch","query":"kind:1 scope:mynotifications ${query.escapeForJsonString()}"}"""
 
 fun buildReadsTopicFeedSpec(hashtag: String) = """{"kind":"reads","topic":"${hashtag.substring(startIndex = 1)}"}"""
-
-const val exploreMediaFeedSpec = """{"id":"explore-media"}"""
 
 fun String.extractTopicFromFeedSpec(): String? {
     val noteQueryStartIndex = this.indexOf("\"query\":\"kind:1 #")

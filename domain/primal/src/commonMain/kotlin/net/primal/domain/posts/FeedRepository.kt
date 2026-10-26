@@ -28,6 +28,13 @@ interface FeedRepository {
         limit: Int,
     ): List<FeedPost>
 
+    /**
+     * Starts resolving the network feed (see `networkNotesFeedSpec`) without showing it, so that a screen that
+     * opens it a moment later is served from what was already fetched. Calling it again while a load is running, or
+     * soon after one, costs nothing. Does nothing on a repository that cannot reach relays.
+     */
+    suspend fun prefetchNetworkNotes(userId: String) = Unit
+
     suspend fun findRepostByPostId(postId: String, userId: String): Result<FeedPostRepostInfo>
 
     suspend fun deleteRepostById(

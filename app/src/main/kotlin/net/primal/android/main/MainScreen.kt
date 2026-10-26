@@ -9,6 +9,8 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,7 +26,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.pager.PagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SnackbarHost
@@ -47,7 +52,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
@@ -82,6 +91,7 @@ import net.primal.android.drawer.PrimalDrawer
 import net.primal.android.drawer.PrimalMainScaffold
 import net.primal.android.drawer.multiaccount.events.AccountSwitcherCallbacks
 import net.primal.android.explore.search.ui.SearchScope
+import net.primal.android.feeds.algorithm.YourAlgorithmsPanel
 import net.primal.android.feeds.list.FeedListOverlayContent
 import net.primal.android.feeds.list.ui.model.FeedUi
 import net.primal.android.main.explore.section.ExploreSection
@@ -213,6 +223,15 @@ fun MainScreen(
 
     BackHandler(enabled = activeTab != PrimalTopLevelDestination.Feeds) {
         activeTab = PrimalTopLevelDestination.Feeds
+    }
+
+    // Explore is a list of sections (its first page) and the sections themselves are the other pages. Back from a
+    // section returns to the list, where another can be chosen, and only back from the list leaves Explore. It is
+    // registered after the handler above, which makes it the one that answers first.
+    val exploreSectionOpen = activeTab == PrimalTopLevelDestination.Explore &&
+        sharedState.explorePagerState.currentPage != ExploreSection.Explore.ordinal
+    BackHandler(enabled = exploreSectionOpen) {
+        uiScope.launch { sharedState.explorePagerState.animateScrollToPage(ExploreSection.Explore.ordinal) }
     }
 
     MainScreenScaffold(
@@ -572,6 +591,15 @@ private fun MainScreenScaffold(
         if (destination == activeTab) onActiveDestinationClick() else onTabChanged(destination)
     }
 
+    // The Discover entry of Orbit opens Explore on its list of sections, not on whichever section was open when the
+    // user left: the pager remembers its page, and coming back to a section with no way to the list felt like being
+    // stuck in it.
+    val exploreScope = rememberCoroutineScope()
+    fun openExploreSections() {
+        exploreScope.launch { sharedState.explorePagerState.scrollToPage(ExploreSection.Explore.ordinal) }
+        changeDestination(PrimalTopLevelDestination.Explore)
+    }
+
     // Picking the feed that is already showing has no feed to switch to. It used to do nothing at
     // all, so the only way to bring Home up to date from Orbit was to pick the other feed and then
     // come back; now it refreshes the feed and scrolls to its top, like tapping an active tab.
@@ -704,6 +732,7 @@ private fun MainScreenScaffold(
                 onOpenOrbit = { orbitVisible = true },
                 onDismissOrbit = { orbitVisible = false },
                 onDestinationChanged = ::changeDestination,
+                onExploreSectionsClick = ::openExploreSections,
                 onMessagesClick = {
                     orbitVisible = false
                     navController.navigateToMessages()
@@ -715,10 +744,6 @@ private fun MainScreenScaffold(
                     )
                 },
                 onFeedSelected = ::selectHomeFeed,
-                onEditAdvancedSearch = { feedSpec ->
-                    orbitVisible = false
-                    navController.navigateToAdvancedSearch(editingFeedSpec = feedSpec)
-                },
                 onProfileClick = {
                     orbitVisible = false
                     if (mainState.activeAccountId.isNotEmpty()) {
@@ -792,10 +817,10 @@ private fun OutkastGestureNavigation(
     onOpenOrbit: () -> Unit,
     onDismissOrbit: () -> Unit,
     onDestinationChanged: (PrimalTopLevelDestination) -> Unit,
+    onExploreSectionsClick: () -> Unit,
     onMessagesClick: () -> Unit,
     onBookmarksClick: () -> Unit,
     onFeedSelected: (FeedUi) -> Unit,
-    onEditAdvancedSearch: (String) -> Unit,
     onProfileClick: () -> Unit,
     onSettingsClick: () -> Unit,
 ) {
@@ -827,10 +852,10 @@ private fun OutkastGestureNavigation(
             activeHomeFeed = activeHomeFeed,
             onDismiss = onDismissOrbit,
             onDestinationChanged = onDestinationChanged,
+            onExploreSectionsClick = onExploreSectionsClick,
             onMessagesClick = onMessagesClick,
             onBookmarksClick = onBookmarksClick,
             onFeedSelected = onFeedSelected,
-            onEditAdvancedSearch = onEditAdvancedSearch,
             onProfileClick = onProfileClick,
             onSettingsClick = onSettingsClick,
         )
@@ -897,10 +922,10 @@ private fun OutkastOrbitSheet(
     activeHomeFeed: FeedUi?,
     onDismiss: () -> Unit,
     onDestinationChanged: (PrimalTopLevelDestination) -> Unit,
+    onExploreSectionsClick: () -> Unit,
     onMessagesClick: () -> Unit,
     onBookmarksClick: () -> Unit,
     onFeedSelected: (FeedUi) -> Unit,
-    onEditAdvancedSearch: (String) -> Unit,
     onProfileClick: () -> Unit,
     onSettingsClick: () -> Unit,
 ) {
@@ -943,11 +968,10 @@ private fun OutkastOrbitSheet(
                 }
                 OrbitSection.Algorithms -> OrbitAlgorithmsSection(
                     discoverSelected = activeDestination == PrimalTopLevelDestination.Explore,
-                    activeFeed = fallbackActiveFeed,
+                    activeFeedSpec = fallbackActiveFeed?.spec,
                     onBack = { section = OrbitSection.Main },
-                    onDiscoverClick = { onDestinationChanged(PrimalTopLevelDestination.Explore) },
+                    onDiscoverClick = onExploreSectionsClick,
                     onFeedSelected = onFeedSelected,
-                    onEditAdvancedSearch = onEditAdvancedSearch,
                 )
             }
             Spacer(modifier = Modifier.height(20.dp))
@@ -1121,59 +1145,77 @@ private fun OrbitSectionHeader(title: String, onBack: () -> Unit) {
 }
 
 /**
- * The single algorithm panel of Orbit: the user's own feed list (pick, reorder, add from the
- * marketplace) plus an entry into the Discover world. These used to be two separate tiles, one for
- * each, that both read as "the algorithm place".
+ * The Explore panel of Orbit: the way into the Discover world, then the user's own algorithms (the lists they created
+ * or imported) with the way to make a new one. The default feeds, recent notes with and without replies, are not
+ * here: they live in the Home menu.
  */
 @Composable
 private fun OrbitAlgorithmsSection(
     discoverSelected: Boolean,
-    activeFeed: FeedUi?,
+    activeFeedSpec: String?,
     onBack: () -> Unit,
     onDiscoverClick: () -> Unit,
     onFeedSelected: (FeedUi) -> Unit,
-    onEditAdvancedSearch: (String) -> Unit,
 ) {
     OrbitSectionHeader(
         title = stringResource(id = R.string.primary_destination_explore_label),
         onBack = onBack,
     )
     OrbitDiscoverEntry(selected = discoverSelected, onClick = onDiscoverClick)
-    if (activeFeed == null) return
-
-    // The list is a scrollable pane that needs a bounded height.
-    Box(modifier = Modifier.fillMaxWidth().height(420.dp)) {
-        FeedListOverlayContent(
-            activeFeed = activeFeed,
-            feedSpecKind = FeedSpecKind.Notes,
-            onFeedClick = onFeedSelected,
-            onDismiss = onBack,
-            onEditAdvancedSearchFeedClick = onEditAdvancedSearch,
-            applyNavigationBarsPadding = false,
-        )
-    }
+    YourAlgorithmsPanel(activeFeedSpec = activeFeedSpec, onFeedSelected = onFeedSelected)
 }
 
-/** Entry that opens the Discover world, headed like the world itself so it is recognisable. */
+/**
+ * The way into the Discover world. It is the one call to action of the panel, so it is drawn as a filled accent button
+ * with an icon and an arrow: as a plain card in the colour of the lists below it read as a label, not as something to
+ * tap.
+ */
 @Composable
 private fun OrbitDiscoverEntry(selected: Boolean, onClick: () -> Unit) {
     val tokens = AppTheme.outkastTokens
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        onClick = onClick,
-        shape = RoundedCornerShape(20.dp),
-        color = if (selected) tokens.accentSubtle else AppTheme.colorScheme.surfaceVariant,
-        border = if (selected) BorderStroke(1.dp, tokens.accent) else null,
+    val onAccent = AppTheme.colorScheme.onPrimary
+    val shape = RoundedCornerShape(22.dp)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(Brush.linearGradient(listOf(tokens.accent, lerp(tokens.accent, Color.Black, 0.22f))))
+            .then(if (selected) Modifier.border(2.dp, onAccent.copy(alpha = 0.55f), shape) else Modifier)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = stringResource(id = R.string.algorithm_title), style = AppTheme.typography.titleMedium)
-            Text(
-                modifier = Modifier.padding(top = 3.dp),
-                text = stringResource(id = R.string.algorithm_subtitle),
-                style = AppTheme.typography.bodySmall,
-                color = AppTheme.colorScheme.onSurface.copy(alpha = 0.62f),
+        Box(
+            modifier = Modifier.size(44.dp).clip(CircleShape).background(onAccent.copy(alpha = 0.16f)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                modifier = Modifier.size(26.dp),
+                imageVector = OutkastNavigationIcons.Algorithm,
+                contentDescription = null,
+                tint = onAccent,
             )
         }
+        Column(modifier = Modifier.weight(1f).padding(horizontal = 14.dp)) {
+            Text(
+                text = stringResource(id = R.string.algorithm_title),
+                style = AppTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = onAccent,
+            )
+            Text(
+                modifier = Modifier.padding(top = 2.dp),
+                text = stringResource(id = R.string.algorithm_subtitle),
+                style = AppTheme.typography.bodySmall,
+                color = onAccent.copy(alpha = 0.82f),
+            )
+        }
+        Icon(
+            modifier = Modifier.size(28.dp),
+            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            contentDescription = null,
+            tint = onAccent,
+        )
     }
 }
 

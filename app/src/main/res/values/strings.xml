@@ -182,7 +182,7 @@
     <string name="primary_destination_messages_short_label">Chats</string>
     <string name="primary_destination_notifications_short_label">Inbox</string>
     <string name="primary_destination_post_label">Create</string>
-    <string name="primary_destination_explore_label">Discover</string>
+    <string name="primary_destination_explore_label">Explore</string>
     <string name="primary_destination_you_label">You</string>
     <string name="algorithm_title">Discover</string>
     <string name="algorithm_subtitle">People, posts, topics and long reads</string>
@@ -469,8 +469,6 @@
     <string name="explore_section_follow_packs_subtitle">Curated lists of users to follow</string>
     <string name="explore_section_zaps_title">Zaps</string>
     <string name="explore_section_zaps_subtitle">Top zaps on Nostr today</string>
-    <string name="explore_section_media_title">Media</string>
-    <string name="explore_section_media_subtitle">Top images and videos on Nostr today</string>
     <string name="explore_section_network_title">Network</string>
     <string name="explore_section_network_subtitle">Notes your friends engaged with, by people you don’t follow</string>
     <string name="explore_network_no_content">Nothing from your friends’ friends yet. Follow more people and check back: this list shows notes by people you don’t follow that the people you follow liked or reposted, the most interacted-with first.</string>
@@ -1424,4 +1422,29 @@
     <string name="photo_edit_geo_perspective_vertical">Vertical perspective</string>
     <string name="photo_edit_geo_perspective_horizontal">Horizontal perspective</string>
     <string name="photo_edit_crop_area">Crop area, %1$d%% to %2$d%% across and %3$d%% to %4$d%% down</string>
+
+    <!-- Your algorithms (the Discover panel of Orbit) and the screen that creates one -->
+    <string name="algorithms_your_title">Your algorithms</string>
+    <string name="algorithms_empty_title">No algorithm yet</string>
+    <string name="algorithms_empty_description">An algorithm is a list of people: its feed shows only their notes. Create one, or import a list you already have.</string>
+    <string name="algorithms_create_button">Create your algorithm</string>
+    <string name="algorithms_create_another_button">Create a new algorithm</string>
+    <string name="algorithms_remove">Remove from your algorithms</string>
+    <string name="algorithm_create_name_label">Name of your algorithm</string>
+    <string name="algorithm_create_import_title">Import one of your lists</string>
+    <string name="algorithm_create_import_add">Add</string>
+    <string name="algorithm_create_import_added">Added</string>
+    <string name="algorithm_create_import_members">People: %1$d</string>
+    <string name="algorithm_create_people_title">Choose people</string>
+    <string name="algorithm_create_selected">Chosen: %1$d</string>
+    <string name="algorithm_create_search_hint">Search your contacts or anyone on Nostr</string>
+    <string name="algorithm_create_contacts_header">Your contacts</string>
+    <string name="algorithm_create_others_header">Other people</string>
+    <string name="algorithm_create_no_contacts">You don’t follow anyone yet. Use the search box to find people.</string>
+    <string name="algorithm_create_no_results">No one found</string>
+    <string name="algorithm_create_searching">Searching…</string>
+    <string name="algorithm_create_submit">Create</string>
+    <string name="algorithm_create_failed">Couldn’t publish the list. Check your relays and try again.</string>
+    <string name="explore_landing_browse_title">Browse</string>
+    <string name="explore_landing_recent_users_empty">People you visit will show up here.</string>
 </resources>

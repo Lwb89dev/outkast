@@ -7,6 +7,8 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -244,6 +246,92 @@ class NetworkFeedFromRelaysTest {
         }
 
     @Test
+    fun `opening the section after a prefetch does not ask the relays for the friends' reactions again`() =
+        runTest {
+            val querier = FakeQuerier(
+                follows = friends(1),
+                notes = listOf(note("seen", STRANGER, 10)),
+                reactions = listOf(reaction(friend(0), "seen")),
+            )
+            val fetcher = fetcher(querier)
+
+            fetcher.prefetchNetworkNotes(ME)
+            val response = fetcher.fetchNetwork()
+
+            assertEquals(listOf("seen"), response.notes.map { it.id })
+            assertEquals(1, querier.engagementQueries)
+        }
+
+    @Test
+    fun `the page is complete after a prefetch, with the authors' profiles, and opening it asks for no profile`() =
+        runTest {
+            val querier = FakeQuerier(
+                follows = friends(1),
+                notes = listOf(note("seen", STRANGER, 10)),
+                reactions = listOf(reaction(friend(0), "seen")),
+                profiles = listOf(profile(STRANGER)),
+            )
+            val fetcher = fetcher(querier)
+
+            fetcher.prefetchNetworkNotes(ME)
+            assertEquals(1, querier.metadataQueries)
+
+            val page = fetcher.fetchPage(
+                userId = ME,
+                feedSpec = networkNotesFeedSpec,
+                includeReplies = false,
+                limit = 20,
+            )
+            val profiles = fetcher.fetchMetadataFor(page)
+
+            assertEquals(listOf(STRANGER), profiles.map { it.pubKey })
+            assertEquals(1, querier.metadataQueries)
+        }
+
+    @Test
+    fun `a note the early counters did not cover is still counted before the list is ranked`() =
+        runTest {
+            // 100 notes by friends fill the early counters (they have the most friends behind them) and are then left
+            // out of the list; the one stranger's note comes last in that order and is counted afterwards.
+            val byFriends = List(100) { note("friend-note-$it", friend(1), 100L + it) }
+            val querier = FakeQuerier(
+                follows = friends(2),
+                notes = byFriends + note("late", STRANGER, 10),
+                reactions = byFriends.flatMap { listOf(reaction(friend(0), it.id), reaction(friend(1), it.id)) } +
+                    reaction(friend(0), "late"),
+            )
+
+            val page = fetcher(querier).fetchPage(
+                userId = ME,
+                feedSpec = networkNotesFeedSpec,
+                includeReplies = false,
+                limit = 20,
+            )
+
+            assertEquals(listOf("late"), page.page.map { it.id })
+            assertEquals(1L, page.stats?.eventStats?.single { it.eventId == "late" }?.likes)
+        }
+
+    @Test
+    fun `a request that arrives while the network feed is being resolved waits for it instead of repeating it`() =
+        runTest {
+            val querier = FakeQuerier(
+                follows = friends(1),
+                notes = listOf(note("seen", STRANGER, 10)),
+                reactions = listOf(reaction(friend(0), "seen")),
+                engagementDelayMs = 1_000,
+            )
+            val fetcher = fetcher(querier)
+
+            val prefetch = async { fetcher.prefetchNetworkNotes(ME) }
+            val page = async { fetcher.fetchNetwork() }
+            prefetch.await()
+
+            assertEquals(listOf("seen"), page.await().notes.map { it.id })
+            assertEquals(1, querier.engagementQueries)
+        }
+
+    @Test
     fun `a user who follows nobody gets an empty page that is not an outage`() =
         runTest {
             val querier = FakeQuerier(follows = emptyList(), notes = emptyList(), reactions = emptyList())
@@ -307,7 +395,13 @@ class NetworkFeedFromRelaysTest {
         private val reactions: List<NostrEvent>,
         /** Interactions by people who are not the user's friends, e.g. other readers' reactions, replies, zaps. */
         private val otherInteractions: List<NostrEvent> = emptyList(),
+        /** How long the friends' reactions take to arrive, to have two callers overlap. */
+        private val engagementDelayMs: Long = 0,
+        /** The kind 0 events relays have, by author. */
+        private val profiles: List<NostrEvent> = emptyList(),
     ) : RelayEventQuerier {
+        /** How many times profiles were asked for. */
+        var metadataQueries = 0
         /** How many times the friends' reactions and reposts were asked for (a query that names authors). */
         var engagementQueries = 0
 
@@ -315,6 +409,11 @@ class NetworkFeedFromRelaysTest {
             val kinds = filter.kinds.orEmpty()
             return when {
                 NostrEventKind.FollowList.value in kinds -> listOf(followList())
+
+                NostrEventKind.Metadata.value in kinds -> {
+                    metadataQueries++
+                    profiles.filter { it.pubKey in filter.authors.orEmpty() }
+                }
 
                 filter.eventTags != null -> {
                     // The counters of the shortlisted notes: every event that points at one of them.
@@ -326,6 +425,7 @@ class NetworkFeedFromRelaysTest {
 
                 NostrEventKind.Reaction.value in kinds -> {
                     engagementQueries++
+                    if (engagementDelayMs > 0) delay(engagementDelayMs)
                     val authors = filter.authors.orEmpty()
                     reactions.filter { it.pubKey in authors }
                 }
@@ -374,6 +474,17 @@ class NetworkFeedFromRelaysTest {
                 kind = NostrEventKind.ShortTextNote.value,
                 tags = tags,
                 content = "note $id",
+                sig = "sig",
+            )
+
+        fun profile(author: String) =
+            NostrEvent(
+                id = "profile-$author",
+                pubKey = author,
+                createdAt = 1_700_000_000L,
+                kind = NostrEventKind.Metadata.value,
+                tags = emptyList(),
+                content = "{\"name\":\"someone\"}",
                 sig = "sig",
             )
 

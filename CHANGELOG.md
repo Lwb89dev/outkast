@@ -9,7 +9,7 @@ the LibreNostr/OUTKAST fork on top of the imported `3.5.25` baseline.
 
 ## [Unreleased]
 
-## [2.2.1] - 2026-10-27
+## [2.2.1] - 2026-10-26
 
 ### Added
 
@@ -34,6 +34,15 @@ the LibreNostr/OUTKAST fork on top of the imported `3.5.25` baseline.
   ends; pulling to refresh recomputes it. This is the nearest honest version of "popular among friends
   of friends": nostrich.org's Explore, which was the model, does not work that way, it shows global
   trending notes ranked by an external index.
+- **Create your algorithm.** In the Explore panel of Orbit, "Your algorithms" lists the lists you created or
+  imported, and with none yet it explains what an algorithm is (a list of people whose notes make up a feed)
+  and offers a Create your algorithm button. The creation screen takes a name and the people: pick them from
+  your contacts (everyone you follow, with a search box that filters them) or find anyone, contacts or not,
+  with the same box, which also accepts a pasted `npub` or `nprofile`. Above the people, your existing lists
+  can be imported in one tap. The algorithm is published as a NIP-51 follow set, so other clients see it as
+  a list too, and it is added to your feeds.
+- Explore's first page lists where it can take you (Network, Follow packs, Feed gallery, Zaps) instead of
+  showing only recent people and searches.
 
 ### Fixed
 
@@ -67,11 +76,42 @@ the LibreNostr/OUTKAST fork on top of the imported `3.5.25` baseline.
   screen is still too narrow. The label is one line in every language.
 - Taking a photo with the camera button left an empty temporary file in the cache on every redraw of the
   button. The file is created when the button is tapped, one per photo.
+- In Explore, choosing Network, Feed gallery or any other section left no way back to the list of sections:
+  Back went to Home or closed the app. Back from a section now returns to the list, and Back from the list
+  leaves Explore as before. Opening Explore from Orbit also lands on the list instead of on the section that
+  was open when you left.
+- 80 strings that were still in English in every language (Tor settings, web of trust, onboarding, private
+  replies, bookmarks, quotes, Orbit) are translated in all 25 languages.
+- The first page of Explore showed pulsing placeholders forever when you had not visited anyone yet, because
+  the recent people it waits for are read from the phone and an empty list is the final answer. It shows a
+  short note instead.
+- Removing an algorithm from the list does not touch the list on your relays; it can be imported again.
 
 ### Changed
 
 - The local database moves to version 7 (the user's own reaction is stored per note); the update is
   automatic and keeps everything.
+- The Discover entry in the Orbit panel is now a filled accent button with an icon and an arrow, so it reads as
+  something to tap instead of as a label.
+- The Network section opens faster. It is resolved ahead of time when Explore opens (the ranking, the notes
+  it quotes and everyone's profile), so tapping it finds the page ready; the counters used for the order are
+  asked for together with the notes instead of after them, which saves a round of requests when nothing is
+  ready yet; and a request that arrives while one is running waits for it instead of repeating it. A page
+  built in the last ten minutes is now shown as it is when the section is opened again, and an older one stays
+  on screen until the rebuilt page replaces it, where it used to be cleared first and leave an empty screen
+  for as long as the rebuild took.
+- Create your algorithm opens faster: the contacts and your lists start loading while the Explore panel is
+  still on screen, the lists stay visible while they refresh, and the contact list is sorted off the main
+  thread and no longer filtered again on every keystroke in the name box.
+- The Orbit tile and its panel are called **Explore** (Esplora in Italian, translated in every language)
+  instead of "Algorithm", and the button inside it that opens the Discover world keeps the name **Discover**
+  (Scopri), so the two no longer repeat each other. The panel no longer lists Recent and Recent with replies,
+  which are in the Home menu; Discover takes their place at the top.
+
+### Removed
+
+- Explore's **Media** page. It ranked the media of the whole network, which only the Primal index could
+  compute, so without it the page had nothing to show.
 
 ## [2.1.1] - 2026-10-22
 

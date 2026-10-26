@@ -349,6 +349,10 @@ internal class FeedRepositoryImpl(
         }
     }
 
+    override suspend fun prefetchNetworkNotes(userId: String) {
+        notesFeedFetcher?.prefetchNetworkNotes(userId)
+    }
+
     override suspend fun retryAppendFeed(userId: String, feedSpec: String) {
         invalidationTracker.retryAppend(ownerId = userId, feedSpec = feedSpec)
     }

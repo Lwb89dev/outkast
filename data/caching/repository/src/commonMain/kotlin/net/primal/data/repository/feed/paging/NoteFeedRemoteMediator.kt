@@ -190,9 +190,6 @@ internal class NoteFeedRemoteMediator(
             // can appear stale even though the relay fetch completed.
             feedSpec.isAdvancedSearchFeedSpec() -> true
             feedSpec.isNotesBookmarkFeedSpec() -> true
-            // Rebuilt every time it is opened: what friends engaged with changes by the minute, and the
-            // fetcher keeps its own short-lived tally so reopening is cheap.
-            feedSpec.isNetworkNotesFeedSpec() -> true
             feedSpec.isProfileAuthoredNotesFeedSpec() -> true
             feedSpec.isProfileAuthoredNoteRepliesFeedSpec() -> true
             feedSpec.isProfileAuthoredMediaFeedSpec() -> true
@@ -200,7 +197,21 @@ internal class NoteFeedRemoteMediator(
             else -> feedSpec.isLastCacheTimestampOlderThan(duration = 3.minutes)
         }
 
+    /**
+     * The network feed is a ranking rebuilt from the relays, not a stream that grows, so a page built a few minutes
+     * ago is the page a rebuild would give: it is shown as it is, at once. An older one is rebuilt, but it is not
+     * cleared first. The rebuild replaces it when it arrives, where clearing it first left an empty screen for as long
+     * as the rebuild took, every time the section was opened.
+     */
+    private suspend fun initializeNetworkFeed(): InitializeAction =
+        if (feedSpec.isLastCacheTimestampOlderThan(duration = NETWORK_FEED_FRESH_FOR)) {
+            InitializeAction.LAUNCH_INITIAL_REFRESH
+        } else {
+            InitializeAction.SKIP_INITIAL_REFRESH
+        }
+
     override suspend fun initialize(): InitializeAction {
+        if (feedSpec.isNetworkNotesFeedSpec()) return initializeNetworkFeed()
         return when {
             shouldResetLocalCache() -> {
                 clearFeedSpec(feedSpec = feedSpec)
@@ -664,6 +675,9 @@ internal class NoteFeedRemoteMediator(
 
     companion object {
         private val LAST_REQUEST_EXPIRY = 10.seconds.inWholeSeconds
+
+        /** As long as the fetcher keeps the network feed's ranking: a rebuild inside it would give the same page. */
+        private val NETWORK_FEED_FRESH_FOR = 10.minutes
 
         /** Two more tries after a first APPEND that no relay answered. Short on purpose: it holds the
          * list's loading row open, and a relay still backing off will not be back within a few
