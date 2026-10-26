@@ -176,9 +176,18 @@ class UserRepository @Inject constructor(
             }
         }
 
-    suspend fun updateFollowList(userId: String, contactsUserAccount: UserAccount) {
+    /**
+     * Stores [contactsUserAccount]'s follow list in the local account.
+     *
+     * A list read from the relays is only adopted if it is not older than the one held (see
+     * [copyFollowListIfNotNull]). [force] is for a list this device has just signed and published: it is by
+     * definition the one that counts, and must not be turned away because some other client once stamped a
+     * follow list with a clock that runs ahead of this phone's.
+     */
+    suspend fun updateFollowList(userId: String, contactsUserAccount: UserAccount, force: Boolean = false) {
         accountsStore.getAndUpdateAccount(userId = userId) {
-            copyFollowListIfNotNull(followList = contactsUserAccount)
+            val held = if (force) copy(followListCreatedAt = null) else this
+            held.copyFollowListIfNotNull(followList = contactsUserAccount)
                 .copy(followingCount = contactsUserAccount.following.size)
         }
     }
@@ -325,10 +334,10 @@ class UserRepository @Inject constructor(
             throw FollowListNotFound()
         }
 
-        if (userFollowList != null) {
-            updateFollowList(userId, userFollowList)
-        }
-
+        // The local account is not touched before the publish: the list that goes out is built from `userFollowList`,
+        // and the account takes the published one right after. Writing the relays' version in between used to be
+        // visible, since the screens read the follow state from the account: for as long as the publish took, a
+        // person who had just been unfollowed showed as followed again, then as unfollowed.
         val existingFollowing = userFollowList?.following ?: emptySet()
         val newFollowing = existingFollowing.reducer()
         val publishedEvent = setFollowList(
@@ -381,6 +390,7 @@ class UserRepository @Inject constructor(
             updateFollowList(
                 userId = userId,
                 contactsUserAccount = nostrEventResponse.asUserAccountFromFollowListEvent(),
+                force = true,
             )
             nostrEventResponse
         }
@@ -403,6 +413,7 @@ class UserRepository @Inject constructor(
         updateFollowList(
             userId = userId,
             contactsUserAccount = publishResult.nostrEvent.asUserAccountFromFollowListEvent(),
+            force = true,
         )
     }
 

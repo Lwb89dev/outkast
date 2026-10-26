@@ -1181,4 +1181,57 @@
         <item quantity="one">%d 個の絵文字</item>
         <item quantity="other">%d 個の絵文字</item>
     </plurals>
+
+    <!-- Photo editor: opens after a photo is picked for a note, before it is uploaded -->
+    <string name="photo_edit_title">写真を編集</string>
+    <string name="photo_edit_cancel">キャンセル</string>
+    <string name="photo_edit_done">完了</string>
+    <string name="photo_edit_reset">リセット</string>
+    <string name="photo_edit_original">オリジナル</string>
+    <string name="photo_edit_failed">編集した写真を準備できませんでした。もう一度試すか、キャンセルしてください。</string>
+    <string name="photo_edit_discard_title">編集を破棄しますか？</string>
+    <string name="photo_edit_discard_message">この写真に加えた変更は失われます。</string>
+    <string name="photo_edit_discard">破棄</string>
+    <string name="photo_edit_keep_editing">編集を続ける</string>
+    <string name="photo_edit_slider_reset">初期値に戻す</string>
+    <string name="photo_edit_tool_auto">自動</string>
+    <string name="photo_edit_tool_light">ライト</string>
+    <string name="photo_edit_tool_color">カラー</string>
+    <string name="photo_edit_tool_detail">ディテール</string>
+    <string name="photo_edit_tool_filters">フィルター</string>
+    <string name="photo_edit_tool_crop">切り抜き</string>
+    <string name="photo_edit_adj_exposure">露出</string>
+    <string name="photo_edit_adj_brightness">明るさ</string>
+    <string name="photo_edit_adj_contrast">コントラスト</string>
+    <string name="photo_edit_adj_highlights">ハイライト</string>
+    <string name="photo_edit_adj_shadows">シャドウ</string>
+    <string name="photo_edit_adj_black_point">黒レベル</string>
+    <string name="photo_edit_adj_saturation">彩度</string>
+    <string name="photo_edit_adj_vibrance">自然な彩度</string>
+    <string name="photo_edit_adj_temperature">色温度</string>
+    <string name="photo_edit_adj_tint">色合い</string>
+    <string name="photo_edit_adj_sharpness">シャープネス</string>
+    <string name="photo_edit_adj_vignette">ビネット</string>
+    <string name="photo_edit_filter_none">なし</string>
+    <string name="photo_edit_filter_vivid">ビビッド</string>
+    <string name="photo_edit_filter_warm">暖色</string>
+    <string name="photo_edit_filter_cool">寒色</string>
+    <string name="photo_edit_filter_mono">モノ</string>
+    <string name="photo_edit_filter_noir">ノワール</string>
+    <string name="photo_edit_filter_fade">フェード</string>
+    <string name="photo_edit_filter_chrome">クローム</string>
+    <string name="photo_edit_filter_sepia">セピア</string>
+    <string name="photo_edit_filter_amount">強さ</string>
+    <string name="photo_edit_crop_rotate">回転</string>
+    <string name="photo_edit_crop_flip">反転</string>
+    <string name="photo_edit_shape_free">フリー</string>
+    <string name="photo_edit_shape_original">オリジナル</string>
+    <string name="photo_edit_shape_square">正方形</string>
+    <string name="photo_edit_geo_straighten">角度補正</string>
+    <string name="photo_edit_geo_perspective_vertical">垂直パースペクティブ</string>
+    <string name="photo_edit_geo_perspective_horizontal">水平パースペクティブ</string>
+    <string name="photo_edit_crop_area">切り抜き範囲：横 %1$d%%〜%2$d%%、縦 %3$d%%〜%4$d%%</string>
+    <string name="explore_section_network_title">ネットワーク</string>
+    <string name="explore_section_network_subtitle">フォローしていない人の投稿で、あなたの友達が反応したもの</string>
+    <string name="explore_network_no_content">友達の友達の投稿はまだありません。もっとフォローしてからまた確認してください。ここには、フォローしていない人の投稿のうち、フォロー中の人がいいねまたはリポストしたものが、反応の多い順に表示されます。</string>
 </resources>

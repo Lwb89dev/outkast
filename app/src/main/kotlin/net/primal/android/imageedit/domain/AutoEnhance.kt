@@ -1,3 +1,5 @@
+@file:Suppress("MagicNumber")
+
 package net.primal.android.imageedit.domain
 
 import kotlin.math.abs

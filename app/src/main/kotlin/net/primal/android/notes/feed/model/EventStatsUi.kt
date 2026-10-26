@@ -63,10 +63,11 @@ data class EventStatsUi(
 /** True for a reaction that is an emoji (or other symbol) rather than NIP-25's "+" / "-" or a `:shortcode:`. */
 internal fun String.isDrawableReactionEmoji(): Boolean {
     val reaction = trim()
-    if (reaction.isEmpty() || reaction == "+" || reaction == "-") return false
-    if (reaction.startsWith(":") && reaction.endsWith(":")) return false
+    val isShortcode = reaction.startsWith(":") && reaction.endsWith(":")
+    val isPlainSign = reaction.isEmpty() || reaction == "+" || reaction == "-"
     // A keycap emoji ("1️⃣") contains a digit but is one; everything else with a letter or digit is text.
-    return reaction.contains(KEYCAP_COMBINING_MARK) || reaction.none { it.isLetterOrDigit() }
+    val isSymbol = reaction.contains(KEYCAP_COMBINING_MARK) || reaction.none { it.isLetterOrDigit() }
+    return !isPlainSign && !isShortcode && isSymbol
 }
 
 private const val KEYCAP_COMBINING_MARK = '\u20E3'

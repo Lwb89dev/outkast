@@ -416,11 +416,8 @@ internal class FeedRepositoryImpl(
         // live notes do not belong in it.
         // The network feed is made of notes people the user does not follow wrote, so a live subscription on
         // the user's own follow list has nothing to say about it either.
-        if (subscriber == null || fetcher == null ||
-            feedSpec.isNotesBookmarkFeedSpec() || feedSpec.isNetworkNotesFeedSpec()
-        ) {
-            return emptyFlow()
-        }
+        val hasNoLiveScope = feedSpec.isNotesBookmarkFeedSpec() || feedSpec.isNetworkNotesFeedSpec()
+        if (subscriber == null || fetcher == null || hasNoLiveScope) return emptyFlow()
 
         return flow {
             val authors = fetcher.resolveAuthors(userId = userId, feedSpec = feedSpec)
@@ -630,18 +627,18 @@ internal class FeedRepositoryImpl(
             // yet (stats are fetched for a refresh and for notes that come into view, and a grid has
             // no viewport trigger), so those rows would be stored and then never selected. A profile
             // is looked at on purpose, so web-of-trust filtering does not apply either.
-            // The network feed is listed with it for the same reason: its pages come from relays by id, a page
-            // fetched by scrolling has no stats rows yet, and the explore builder would never select them.
-            feedSpec.isProfileAuthoredMediaFeedSpec() || feedSpec.isNetworkNotesFeedSpec() ->
-                ChronologicalFeedWithRepostsQueryBuilder(
-                    feedSpec = feedSpec,
-                    userPubkey = userId,
-                    allowMutedThreads = allowMutedThreads,
-                )
+            feedSpec.isProfileAuthoredMediaFeedSpec() -> ChronologicalFeedWithRepostsQueryBuilder(
+                feedSpec = feedSpec,
+                userPubkey = userId,
+                allowMutedThreads = allowMutedThreads,
+            )
 
             // Explore/hashtag/trending feeds exist to surface strangers, so WoT never applies here
             // — no filter (like above) and no boost either, since a boost would put a stale WoT
             // post above a fresh one and desync the remote mediator's append cursor.
+            // The network feed is listed with this one too, on purpose: it is ordered by interactions, the order
+            // its rows were stored in (position), and its first page stores the counters of every note it lists,
+            // which is what the inner join on event stats needs to select them.
             else -> ExploreFeedQueryBuilder(
                 feedSpec = feedSpec,
                 userPubkey = userId,

@@ -1181,4 +1181,57 @@
         <item quantity="one">%d emoji</item>
         <item quantity="other">%d emojijev</item>
     </plurals>
+
+    <!-- Photo editor: opens after a photo is picked for a note, before it is uploaded -->
+    <string name="photo_edit_title">Uredi fotografijo</string>
+    <string name="photo_edit_cancel">Prekliči</string>
+    <string name="photo_edit_done">Končano</string>
+    <string name="photo_edit_reset">Ponastavi</string>
+    <string name="photo_edit_original">Izvirnik</string>
+    <string name="photo_edit_failed">Urejene fotografije ni bilo mogoče pripraviti. Poskusite znova ali prekličite.</string>
+    <string name="photo_edit_discard_title">Zavrzi spremembe?</string>
+    <string name="photo_edit_discard_message">Spremembe, ki ste jih naredili na tej fotografiji, bodo izgubljene.</string>
+    <string name="photo_edit_discard">Zavrzi</string>
+    <string name="photo_edit_keep_editing">Nadaljuj z urejanjem</string>
+    <string name="photo_edit_slider_reset">Ponastavi na nevtralno</string>
+    <string name="photo_edit_tool_auto">Samodejno</string>
+    <string name="photo_edit_tool_light">Svetloba</string>
+    <string name="photo_edit_tool_color">Barva</string>
+    <string name="photo_edit_tool_detail">Podrobnosti</string>
+    <string name="photo_edit_tool_filters">Filtri</string>
+    <string name="photo_edit_tool_crop">Obreži</string>
+    <string name="photo_edit_adj_exposure">Osvetlitev</string>
+    <string name="photo_edit_adj_brightness">Svetlost</string>
+    <string name="photo_edit_adj_contrast">Kontrast</string>
+    <string name="photo_edit_adj_highlights">Svetli toni</string>
+    <string name="photo_edit_adj_shadows">Sence</string>
+    <string name="photo_edit_adj_black_point">Črna točka</string>
+    <string name="photo_edit_adj_saturation">Nasičenost</string>
+    <string name="photo_edit_adj_vibrance">Živahnost</string>
+    <string name="photo_edit_adj_temperature">Temperatura</string>
+    <string name="photo_edit_adj_tint">Odtenek</string>
+    <string name="photo_edit_adj_sharpness">Ostrina</string>
+    <string name="photo_edit_adj_vignette">Vinjeta</string>
+    <string name="photo_edit_filter_none">Brez</string>
+    <string name="photo_edit_filter_vivid">Živo</string>
+    <string name="photo_edit_filter_warm">Toplo</string>
+    <string name="photo_edit_filter_cool">Hladno</string>
+    <string name="photo_edit_filter_mono">Mono</string>
+    <string name="photo_edit_filter_noir">Noir</string>
+    <string name="photo_edit_filter_fade">Zbledelo</string>
+    <string name="photo_edit_filter_chrome">Krom</string>
+    <string name="photo_edit_filter_sepia">Sepija</string>
+    <string name="photo_edit_filter_amount">Jakost</string>
+    <string name="photo_edit_crop_rotate">Zavrti</string>
+    <string name="photo_edit_crop_flip">Zrcali</string>
+    <string name="photo_edit_shape_free">Prosto</string>
+    <string name="photo_edit_shape_original">Izvirnik</string>
+    <string name="photo_edit_shape_square">Kvadrat</string>
+    <string name="photo_edit_geo_straighten">Poravnaj</string>
+    <string name="photo_edit_geo_perspective_vertical">Navpična perspektiva</string>
+    <string name="photo_edit_geo_perspective_horizontal">Vodoravna perspektiva</string>
+    <string name="photo_edit_crop_area">Območje obreza: od %1$d%% do %2$d%% po širini in od %3$d%% do %4$d%% po višini</string>
+    <string name="explore_section_network_title">Omrežje</string>
+    <string name="explore_section_network_subtitle">Objave, s katerimi so se odzvali vaši prijatelji, od oseb, ki jim ne sledite</string>
+    <string name="explore_network_no_content">Od prijateljev vaših prijateljev še ni ničesar. Sledite več ljudem in preverite znova: tu se prikažejo objave oseb, ki jim ne sledite, ki so ugajale ali so jih delili ljudje, ki jim sledite, najprej tiste z največ interakcijami.</string>
 </resources>

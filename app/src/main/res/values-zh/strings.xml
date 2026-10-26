@@ -1181,4 +1181,57 @@
         <item quantity="one">%d 个表情</item>
         <item quantity="other">%d 个表情</item>
     </plurals>
+
+    <!-- Photo editor: opens after a photo is picked for a note, before it is uploaded -->
+    <string name="photo_edit_title">编辑照片</string>
+    <string name="photo_edit_cancel">取消</string>
+    <string name="photo_edit_done">完成</string>
+    <string name="photo_edit_reset">重置</string>
+    <string name="photo_edit_original">原图</string>
+    <string name="photo_edit_failed">无法准备编辑后的照片。请重试或取消。</string>
+    <string name="photo_edit_discard_title">放弃编辑？</string>
+    <string name="photo_edit_discard_message">你对这张照片所做的更改将会丢失。</string>
+    <string name="photo_edit_discard">放弃</string>
+    <string name="photo_edit_keep_editing">继续编辑</string>
+    <string name="photo_edit_slider_reset">恢复为中性</string>
+    <string name="photo_edit_tool_auto">自动</string>
+    <string name="photo_edit_tool_light">光线</string>
+    <string name="photo_edit_tool_color">色彩</string>
+    <string name="photo_edit_tool_detail">细节</string>
+    <string name="photo_edit_tool_filters">滤镜</string>
+    <string name="photo_edit_tool_crop">裁剪</string>
+    <string name="photo_edit_adj_exposure">曝光</string>
+    <string name="photo_edit_adj_brightness">亮度</string>
+    <string name="photo_edit_adj_contrast">对比度</string>
+    <string name="photo_edit_adj_highlights">高光</string>
+    <string name="photo_edit_adj_shadows">阴影</string>
+    <string name="photo_edit_adj_black_point">黑点</string>
+    <string name="photo_edit_adj_saturation">饱和度</string>
+    <string name="photo_edit_adj_vibrance">自然饱和度</string>
+    <string name="photo_edit_adj_temperature">色温</string>
+    <string name="photo_edit_adj_tint">色调</string>
+    <string name="photo_edit_adj_sharpness">锐度</string>
+    <string name="photo_edit_adj_vignette">暗角</string>
+    <string name="photo_edit_filter_none">无</string>
+    <string name="photo_edit_filter_vivid">鲜艳</string>
+    <string name="photo_edit_filter_warm">暖色</string>
+    <string name="photo_edit_filter_cool">冷色</string>
+    <string name="photo_edit_filter_mono">单色</string>
+    <string name="photo_edit_filter_noir">黑白</string>
+    <string name="photo_edit_filter_fade">褪色</string>
+    <string name="photo_edit_filter_chrome">铬黄</string>
+    <string name="photo_edit_filter_sepia">怀旧</string>
+    <string name="photo_edit_filter_amount">强度</string>
+    <string name="photo_edit_crop_rotate">旋转</string>
+    <string name="photo_edit_crop_flip">翻转</string>
+    <string name="photo_edit_shape_free">自由</string>
+    <string name="photo_edit_shape_original">原图</string>
+    <string name="photo_edit_shape_square">正方形</string>
+    <string name="photo_edit_geo_straighten">矫正</string>
+    <string name="photo_edit_geo_perspective_vertical">垂直透视</string>
+    <string name="photo_edit_geo_perspective_horizontal">水平透视</string>
+    <string name="photo_edit_crop_area">裁剪区域：宽度 %1$d%%–%2$d%%，高度 %3$d%%–%4$d%%</string>
+    <string name="explore_section_network_title">网络</string>
+    <string name="explore_section_network_subtitle">你的朋友互动过的、来自你未关注的人的帖子</string>
+    <string name="explore_network_no_content">你朋友的朋友暂时还没有内容。多关注一些人，稍后再来看看：这里会显示你未关注的人发布、而你关注的人点赞或转发过的帖子，互动最多的排在前面。</string>
 </resources>

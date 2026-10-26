@@ -1181,4 +1181,57 @@
         <item quantity="one">%d emoji</item>
         <item quantity="other">%d emoji</item>
     </plurals>
+
+    <!-- Photo editor: opens after a photo is picked for a note, before it is uploaded -->
+    <string name="photo_edit_title">Επεξεργασία φωτογραφίας</string>
+    <string name="photo_edit_cancel">Ακύρωση</string>
+    <string name="photo_edit_done">Τέλος</string>
+    <string name="photo_edit_reset">Επαναφορά</string>
+    <string name="photo_edit_original">Πρωτότυπο</string>
+    <string name="photo_edit_failed">Δεν ήταν δυνατή η προετοιμασία της επεξεργασμένης φωτογραφίας. Δοκιμάστε ξανά ή ακυρώστε.</string>
+    <string name="photo_edit_discard_title">Απόρριψη αλλαγών;</string>
+    <string name="photo_edit_discard_message">Οι αλλαγές που κάνατε σε αυτή τη φωτογραφία θα χαθούν.</string>
+    <string name="photo_edit_discard">Απόρριψη</string>
+    <string name="photo_edit_keep_editing">Συνέχεια επεξεργασίας</string>
+    <string name="photo_edit_slider_reset">Επαναφορά στο ουδέτερο</string>
+    <string name="photo_edit_tool_auto">Αυτόματο</string>
+    <string name="photo_edit_tool_light">Φως</string>
+    <string name="photo_edit_tool_color">Χρώμα</string>
+    <string name="photo_edit_tool_detail">Λεπτομέρεια</string>
+    <string name="photo_edit_tool_filters">Φίλτρα</string>
+    <string name="photo_edit_tool_crop">Περικοπή</string>
+    <string name="photo_edit_adj_exposure">Έκθεση</string>
+    <string name="photo_edit_adj_brightness">Φωτεινότητα</string>
+    <string name="photo_edit_adj_contrast">Αντίθεση</string>
+    <string name="photo_edit_adj_highlights">Φωτεινές περιοχές</string>
+    <string name="photo_edit_adj_shadows">Σκιές</string>
+    <string name="photo_edit_adj_black_point">Σημείο μαύρου</string>
+    <string name="photo_edit_adj_saturation">Κορεσμός</string>
+    <string name="photo_edit_adj_vibrance">Ζωντάνια</string>
+    <string name="photo_edit_adj_temperature">Θερμοκρασία</string>
+    <string name="photo_edit_adj_tint">Απόχρωση</string>
+    <string name="photo_edit_adj_sharpness">Ευκρίνεια</string>
+    <string name="photo_edit_adj_vignette">Βινιέτα</string>
+    <string name="photo_edit_filter_none">Κανένα</string>
+    <string name="photo_edit_filter_vivid">Έντονο</string>
+    <string name="photo_edit_filter_warm">Ζεστό</string>
+    <string name="photo_edit_filter_cool">Ψυχρό</string>
+    <string name="photo_edit_filter_mono">Μονόχρωμο</string>
+    <string name="photo_edit_filter_noir">Νουάρ</string>
+    <string name="photo_edit_filter_fade">Ξεθωριασμένο</string>
+    <string name="photo_edit_filter_chrome">Χρώμιο</string>
+    <string name="photo_edit_filter_sepia">Σέπια</string>
+    <string name="photo_edit_filter_amount">Ένταση</string>
+    <string name="photo_edit_crop_rotate">Περιστροφή</string>
+    <string name="photo_edit_crop_flip">Αναστροφή</string>
+    <string name="photo_edit_shape_free">Ελεύθερο</string>
+    <string name="photo_edit_shape_original">Πρωτότυπο</string>
+    <string name="photo_edit_shape_square">Τετράγωνο</string>
+    <string name="photo_edit_geo_straighten">Ευθυγράμμιση</string>
+    <string name="photo_edit_geo_perspective_vertical">Κάθετη προοπτική</string>
+    <string name="photo_edit_geo_perspective_horizontal">Οριζόντια προοπτική</string>
+    <string name="photo_edit_crop_area">Περιοχή περικοπής: από %1$d%% έως %2$d%% οριζόντια και από %3$d%% έως %4$d%% κάθετα</string>
+    <string name="explore_section_network_title">Δίκτυο</string>
+    <string name="explore_section_network_subtitle">Σημειώσεις με τις οποίες αλληλεπίδρασαν οι φίλοι σας, από άτομα που δεν ακολουθείτε</string>
+    <string name="explore_network_no_content">Τίποτα ακόμη από τους φίλους των φίλων σας. Ακολουθήστε περισσότερα άτομα και ελέγξτε ξανά: εδώ εμφανίζονται σημειώσεις ατόμων που δεν ακολουθείτε και άρεσαν ή αναδημοσιεύτηκαν από όσους ακολουθείτε, πρώτες αυτές με τις περισσότερες αλληλεπιδράσεις.</string>
 </resources>

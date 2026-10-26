@@ -1181,4 +1181,57 @@
         <item quantity="one">%d эмодзи</item>
         <item quantity="other">%d эмодзи</item>
     </plurals>
+
+    <!-- Photo editor: opens after a photo is picked for a note, before it is uploaded -->
+    <string name="photo_edit_title">Редактировать фото</string>
+    <string name="photo_edit_cancel">Отмена</string>
+    <string name="photo_edit_done">Готово</string>
+    <string name="photo_edit_reset">Сбросить</string>
+    <string name="photo_edit_original">Оригинал</string>
+    <string name="photo_edit_failed">Не удалось подготовить отредактированное фото. Повторите попытку или отмените.</string>
+    <string name="photo_edit_discard_title">Отменить изменения?</string>
+    <string name="photo_edit_discard_message">Изменения, внесённые в это фото, будут потеряны.</string>
+    <string name="photo_edit_discard">Отменить</string>
+    <string name="photo_edit_keep_editing">Продолжить редактирование</string>
+    <string name="photo_edit_slider_reset">Вернуть к нейтральному</string>
+    <string name="photo_edit_tool_auto">Авто</string>
+    <string name="photo_edit_tool_light">Свет</string>
+    <string name="photo_edit_tool_color">Цвет</string>
+    <string name="photo_edit_tool_detail">Детали</string>
+    <string name="photo_edit_tool_filters">Фильтры</string>
+    <string name="photo_edit_tool_crop">Обрезка</string>
+    <string name="photo_edit_adj_exposure">Экспозиция</string>
+    <string name="photo_edit_adj_brightness">Яркость</string>
+    <string name="photo_edit_adj_contrast">Контраст</string>
+    <string name="photo_edit_adj_highlights">Света</string>
+    <string name="photo_edit_adj_shadows">Тени</string>
+    <string name="photo_edit_adj_black_point">Чёрная точка</string>
+    <string name="photo_edit_adj_saturation">Насыщенность</string>
+    <string name="photo_edit_adj_vibrance">Красочность</string>
+    <string name="photo_edit_adj_temperature">Температура</string>
+    <string name="photo_edit_adj_tint">Оттенок</string>
+    <string name="photo_edit_adj_sharpness">Резкость</string>
+    <string name="photo_edit_adj_vignette">Виньетирование</string>
+    <string name="photo_edit_filter_none">Нет</string>
+    <string name="photo_edit_filter_vivid">Яркий</string>
+    <string name="photo_edit_filter_warm">Тёплый</string>
+    <string name="photo_edit_filter_cool">Холодный</string>
+    <string name="photo_edit_filter_mono">Моно</string>
+    <string name="photo_edit_filter_noir">Нуар</string>
+    <string name="photo_edit_filter_fade">Блёклый</string>
+    <string name="photo_edit_filter_chrome">Хром</string>
+    <string name="photo_edit_filter_sepia">Сепия</string>
+    <string name="photo_edit_filter_amount">Сила</string>
+    <string name="photo_edit_crop_rotate">Повернуть</string>
+    <string name="photo_edit_crop_flip">Отразить</string>
+    <string name="photo_edit_shape_free">Свободно</string>
+    <string name="photo_edit_shape_original">Оригинал</string>
+    <string name="photo_edit_shape_square">Квадрат</string>
+    <string name="photo_edit_geo_straighten">Выровнять</string>
+    <string name="photo_edit_geo_perspective_vertical">Вертикальная перспектива</string>
+    <string name="photo_edit_geo_perspective_horizontal">Горизонтальная перспектива</string>
+    <string name="photo_edit_crop_area">Область обрезки: от %1$d%% до %2$d%% по ширине и от %3$d%% до %4$d%% по высоте</string>
+    <string name="explore_section_network_title">Сеть</string>
+    <string name="explore_section_network_subtitle">Заметки, с которыми взаимодействовали ваши друзья, от людей, на которых вы не подписаны</string>
+    <string name="explore_network_no_content">Пока ничего от друзей ваших друзей. Подпишитесь на больше людей и загляните позже: здесь появляются заметки людей, на которых вы не подписаны, которые понравились или которыми поделились ваши подписки, сначала с наибольшим числом взаимодействий.</string>
 </resources>

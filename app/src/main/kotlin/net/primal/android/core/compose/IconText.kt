@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.material3.LocalContentColor
@@ -19,12 +20,14 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
+import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
@@ -154,8 +157,14 @@ private fun buildIconInlineTextContent(
 }
 
 /**
- * An emoji sized like an icon. The emoji is drawn a little smaller than the placeholder because a
- * glyph at the full icon size sits taller than the vector icons do and would push the line apart.
+ * An emoji sized like an icon.
+ *
+ * The emoji is drawn a little smaller than the placeholder, and laid out so that nothing can clip it: a colour emoji
+ * glyph is taller than its font size (the emoji font reserves about 1.17 em of line), and the text inherits a line
+ * height from whatever style surrounds it, often larger still. Measured inside a placeholder that is exactly the
+ * icon's size, such a line was cut at the top and bottom, which showed up as a half-drawn reaction on the note. The
+ * text therefore gets a fixed line height of its own, is centred without being bound to the placeholder's
+ * constraints, and is not clipped.
  */
 @Composable
 private fun buildEmojiInlineTextContent(
@@ -169,17 +178,29 @@ private fun buildEmojiInlineTextContent(
         PlaceholderVerticalAlign.TextCenter,
     ),
 ) {
+    val fontSize = iconSize * EMOJI_TO_ICON_RATIO
     Box(
         modifier = Modifier.fillMaxSize().semantics { description?.let { contentDescription = it } },
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = emoji,
-            fontSize = iconSize * EMOJI_TO_ICON_RATIO,
+            modifier = Modifier.wrapContentSize(align = Alignment.Center, unbounded = true),
+            style = TextStyle(
+                fontSize = fontSize,
+                lineHeight = fontSize * EMOJI_LINE_HEIGHT_RATIO,
+                lineHeightStyle = LineHeightStyle(
+                    alignment = LineHeightStyle.Alignment.Center,
+                    trim = LineHeightStyle.Trim.None,
+                ),
+                platformStyle = PlatformTextStyle(includeFontPadding = false),
+            ),
             maxLines = 1,
             softWrap = false,
+            overflow = TextOverflow.Visible,
         )
     }
 }
 
 private const val EMOJI_TO_ICON_RATIO = 0.85f
+private const val EMOJI_LINE_HEIGHT_RATIO = 1.25f

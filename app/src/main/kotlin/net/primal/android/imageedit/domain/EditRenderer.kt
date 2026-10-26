@@ -1,3 +1,5 @@
+@file:Suppress("MagicNumber")
+
 package net.primal.android.imageedit.domain
 
 import java.util.stream.IntStream
@@ -54,6 +56,7 @@ object EditRenderer {
      * Draws the picture as [outWidth] x [outHeight] pixels in bands of [bandRows] rows, handing each finished band to
      * [sink] in order (top row, number of rows, packed ARGB pixels).
      */
+    @Suppress("LongParameterList")
     fun renderBands(
         source: PixelSource,
         recipe: EditRecipe,
@@ -86,6 +89,7 @@ object EditRenderer {
         (max(width, height) / SHARPEN_PIXELS_PER_RADIUS).coerceIn(1, MAX_SHARPEN_RADIUS)
 
     /** What one band needs to be drawn, grouped so the drawing function does not take ten loose parameters. */
+    @Suppress("LongParameterList")
     private class BandRequest(
         val source: PixelSource,
         val map: GeometryMap,

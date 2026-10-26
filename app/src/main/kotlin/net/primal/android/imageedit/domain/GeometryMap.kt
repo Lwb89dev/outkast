@@ -135,6 +135,7 @@ class GeometryMap(private val sourceWidth: Int, private val sourceHeight: Int, g
     }
 
     /** The least enlargement, at least 1, for which the four corners of the canvas map inside the original. */
+    @Suppress("ReturnCount")
     private fun findFillZoom(): Double {
         if (g.straightenDegrees == 0f && g.perspectiveHorizontal == 0f && g.perspectiveVertical == 0f) return 1.0
         if (coversCanvas(1.0)) return 1.0

@@ -1181,4 +1181,57 @@
         <item quantity="one">%d jaustukas</item>
         <item quantity="other">%d jaustukai</item>
     </plurals>
+
+    <!-- Photo editor: opens after a photo is picked for a note, before it is uploaded -->
+    <string name="photo_edit_title">Redaguoti nuotrauką</string>
+    <string name="photo_edit_cancel">Atšaukti</string>
+    <string name="photo_edit_done">Atlikta</string>
+    <string name="photo_edit_reset">Atstatyti</string>
+    <string name="photo_edit_original">Originalas</string>
+    <string name="photo_edit_failed">Nepavyko paruošti redaguotos nuotraukos. Bandykite dar kartą arba atšaukite.</string>
+    <string name="photo_edit_discard_title">Atmesti pakeitimus?</string>
+    <string name="photo_edit_discard_message">Šioje nuotraukoje atlikti pakeitimai bus prarasti.</string>
+    <string name="photo_edit_discard">Atmesti</string>
+    <string name="photo_edit_keep_editing">Tęsti redagavimą</string>
+    <string name="photo_edit_slider_reset">Atstatyti į neutralią</string>
+    <string name="photo_edit_tool_auto">Auto</string>
+    <string name="photo_edit_tool_light">Šviesa</string>
+    <string name="photo_edit_tool_color">Spalva</string>
+    <string name="photo_edit_tool_detail">Detalės</string>
+    <string name="photo_edit_tool_filters">Filtrai</string>
+    <string name="photo_edit_tool_crop">Apkirpti</string>
+    <string name="photo_edit_adj_exposure">Ekspozicija</string>
+    <string name="photo_edit_adj_brightness">Ryškumas</string>
+    <string name="photo_edit_adj_contrast">Kontrastas</string>
+    <string name="photo_edit_adj_highlights">Šviesūs tonai</string>
+    <string name="photo_edit_adj_shadows">Šešėliai</string>
+    <string name="photo_edit_adj_black_point">Juodas taškas</string>
+    <string name="photo_edit_adj_saturation">Sodrumas</string>
+    <string name="photo_edit_adj_vibrance">Gyvumas</string>
+    <string name="photo_edit_adj_temperature">Temperatūra</string>
+    <string name="photo_edit_adj_tint">Atspalvis</string>
+    <string name="photo_edit_adj_sharpness">Aštrumas</string>
+    <string name="photo_edit_adj_vignette">Vinjetė</string>
+    <string name="photo_edit_filter_none">Nėra</string>
+    <string name="photo_edit_filter_vivid">Ryškus</string>
+    <string name="photo_edit_filter_warm">Šiltas</string>
+    <string name="photo_edit_filter_cool">Šaltas</string>
+    <string name="photo_edit_filter_mono">Mono</string>
+    <string name="photo_edit_filter_noir">Noir</string>
+    <string name="photo_edit_filter_fade">Išblukęs</string>
+    <string name="photo_edit_filter_chrome">Chromas</string>
+    <string name="photo_edit_filter_sepia">Sepija</string>
+    <string name="photo_edit_filter_amount">Stiprumas</string>
+    <string name="photo_edit_crop_rotate">Pasukti</string>
+    <string name="photo_edit_crop_flip">Apversti</string>
+    <string name="photo_edit_shape_free">Laisvai</string>
+    <string name="photo_edit_shape_original">Originalas</string>
+    <string name="photo_edit_shape_square">Kvadratas</string>
+    <string name="photo_edit_geo_straighten">Ištiesinti</string>
+    <string name="photo_edit_geo_perspective_vertical">Vertikali perspektyva</string>
+    <string name="photo_edit_geo_perspective_horizontal">Horizontali perspektyva</string>
+    <string name="photo_edit_crop_area">Apkirpimo sritis: nuo %1$d%% iki %2$d%% pločio ir nuo %3$d%% iki %4$d%% aukščio</string>
+    <string name="explore_section_network_title">Tinklas</string>
+    <string name="explore_section_network_subtitle">Įrašai, su kuriais sąveikavo jūsų draugai, iš žmonių, kurių nesekate</string>
+    <string name="explore_network_no_content">Kol kas nieko iš jūsų draugų draugų. Sekite daugiau žmonių ir patikrinkite vėliau: čia rodomi žmonių, kurių nesekate, įrašai, kuriems pritarė arba kuriuos pasidalino jūsų sekami žmonės, pirmiausia su daugiausia sąveikų.</string>
 </resources>

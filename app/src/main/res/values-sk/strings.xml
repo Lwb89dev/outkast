@@ -1181,4 +1181,57 @@
         <item quantity="one">%d emoji</item>
         <item quantity="other">%d emoji</item>
     </plurals>
+
+    <!-- Photo editor: opens after a photo is picked for a note, before it is uploaded -->
+    <string name="photo_edit_title">Upraviť fotku</string>
+    <string name="photo_edit_cancel">Zrušiť</string>
+    <string name="photo_edit_done">Hotovo</string>
+    <string name="photo_edit_reset">Obnoviť</string>
+    <string name="photo_edit_original">Originál</string>
+    <string name="photo_edit_failed">Upravenú fotku sa nepodarilo pripraviť. Skúste to znova, alebo zrušte.</string>
+    <string name="photo_edit_discard_title">Zahodiť úpravy?</string>
+    <string name="photo_edit_discard_message">Zmeny, ktoré ste na tejto fotke urobili, sa stratia.</string>
+    <string name="photo_edit_discard">Zahodiť</string>
+    <string name="photo_edit_keep_editing">Pokračovať v úpravách</string>
+    <string name="photo_edit_slider_reset">Vrátiť na neutrálne</string>
+    <string name="photo_edit_tool_auto">Auto</string>
+    <string name="photo_edit_tool_light">Svetlo</string>
+    <string name="photo_edit_tool_color">Farba</string>
+    <string name="photo_edit_tool_detail">Detail</string>
+    <string name="photo_edit_tool_filters">Filtre</string>
+    <string name="photo_edit_tool_crop">Orezať</string>
+    <string name="photo_edit_adj_exposure">Expozícia</string>
+    <string name="photo_edit_adj_brightness">Jas</string>
+    <string name="photo_edit_adj_contrast">Kontrast</string>
+    <string name="photo_edit_adj_highlights">Svetlá</string>
+    <string name="photo_edit_adj_shadows">Tiene</string>
+    <string name="photo_edit_adj_black_point">Čierny bod</string>
+    <string name="photo_edit_adj_saturation">Sýtosť</string>
+    <string name="photo_edit_adj_vibrance">Živosť</string>
+    <string name="photo_edit_adj_temperature">Teplota</string>
+    <string name="photo_edit_adj_tint">Odtieň</string>
+    <string name="photo_edit_adj_sharpness">Ostrosť</string>
+    <string name="photo_edit_adj_vignette">Vinetácia</string>
+    <string name="photo_edit_filter_none">Žiadny</string>
+    <string name="photo_edit_filter_vivid">Živý</string>
+    <string name="photo_edit_filter_warm">Teplý</string>
+    <string name="photo_edit_filter_cool">Studený</string>
+    <string name="photo_edit_filter_mono">Mono</string>
+    <string name="photo_edit_filter_noir">Noir</string>
+    <string name="photo_edit_filter_fade">Vyblednutý</string>
+    <string name="photo_edit_filter_chrome">Chróm</string>
+    <string name="photo_edit_filter_sepia">Sépia</string>
+    <string name="photo_edit_filter_amount">Sila</string>
+    <string name="photo_edit_crop_rotate">Otočiť</string>
+    <string name="photo_edit_crop_flip">Prevrátiť</string>
+    <string name="photo_edit_shape_free">Voľne</string>
+    <string name="photo_edit_shape_original">Originál</string>
+    <string name="photo_edit_shape_square">Štvorec</string>
+    <string name="photo_edit_geo_straighten">Vyrovnať</string>
+    <string name="photo_edit_geo_perspective_vertical">Zvislá perspektíva</string>
+    <string name="photo_edit_geo_perspective_horizontal">Vodorovná perspektíva</string>
+    <string name="photo_edit_crop_area">Oblasť orezania: od %1$d%% do %2$d%% na šírku a od %3$d%% do %4$d%% na výšku</string>
+    <string name="explore_section_network_title">Sieť</string>
+    <string name="explore_section_network_subtitle">Príspevky, s ktorými interagovali vaši priatelia, od ľudí, ktorých nesledujete</string>
+    <string name="explore_network_no_content">Zatiaľ nič od priateľov vašich priateľov. Sledujte viac ľudí a skúste neskôr: zobrazujú sa tu príspevky ľudí, ktorých nesledujete, ktoré sa páčili alebo ktoré zdieľali ľudia, ktorých sledujete, najprv tie s najviac interakciami.</string>
 </resources>

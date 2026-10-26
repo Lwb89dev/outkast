@@ -10,6 +10,7 @@ import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import net.primal.core.utils.getOrDefault
 import net.primal.core.utils.runCatching
+import net.primal.data.local.dao.events.EventStats
 import net.primal.data.remote.api.feed.model.FeedResponse
 import net.primal.data.repository.cache.LocalEventCache
 import net.primal.data.repository.fetch.FetchCoordinator
@@ -52,14 +53,21 @@ internal data class NotesFeedPage(
      * them, say), so there is nothing on the page to derive a cursor from.
      */
     val resumeUntil: Long? = null,
+    /**
+     * Counters and the user's own interaction flags for [page], when the fetcher already had to compute them to
+     * decide the order of the page (the network feed). The caller stores them instead of asking the relays again.
+     */
+    val stats: RelayEventStatsSnapshot? = null,
 )
 
 /** The network feed's notes, resolved once and kept for a while: see [RelayNotesFeedFetcher.fetchNetworkNotesPage]. */
 private class NetworkNotes(
     val userId: String,
     val loadedAt: Long,
-    /** Newest first. */
-    val notes: List<NostrEvent>,
+    /** Best first: most interactions, then most friends behind it, then newest. */
+    val ranked: List<NostrEvent> = emptyList(),
+    /** Counters and the user's own flags for [ranked]; the order was decided from them, so they are kept. */
+    val stats: RelayEventStatsSnapshot = RelayEventStatsSnapshot(emptyList(), emptyList()),
     /** True when nothing came back although the user follows people, i.e. the relays did not answer. */
     val unreachable: Boolean = false,
 )
@@ -296,20 +304,25 @@ internal class RelayNotesFeedFetcher(
     }
 
     /**
-     * The network feed: what the people the user follows reacted to or reposted, written by people the
-     * user does not follow, newest first.
+     * The network feed: what the people the user follows reacted to or reposted, written by people the user does
+     * not follow, best first.
      *
-     * Nothing here needs a server that ranks the network. The user's follows are asked once for the
-     * reactions and reposts they made in the last [NETWORK_WINDOW_SECONDS] (a handful of requests, however
-     * many people that is), every target note is tallied by how many *different* friends engaged with it,
-     * and the ones with enough friends behind them are fetched by id. That tally is the popularity signal:
-     * a note a few of your friends liked is worth showing; one that only one did, usually is not, unless
-     * the user follows so few people that one is all there is ([minimumFriends]). Notes by people the
-     * user already follows, their own, replies, and anything an earlier mute list hides never make the
-     * list; the point is to surface people the user does not follow yet.
+     * Nothing here needs a server that ranks the network. The user's follows are asked once for the reactions and
+     * reposts they made in the last [NETWORK_WINDOW_SECONDS] (a handful of requests, however many people that is),
+     * and every target note is tallied by how many *different* friends engaged with it. That tally picks the
+     * candidates: a note a few of your friends liked is worth a look; one that only one did, usually is not, unless
+     * the user follows so few people that one is all there is ([minimumFriends]). Notes by people the user already
+     * follows, their own, and replies never make the list; the point is to surface people the user does not follow
+     * yet.
      *
-     * The tally and the notes are computed once and kept for [NETWORK_CACHE_SECONDS], so paging through the
-     * list, which asks for a page at a time, does not repeat the requests for each page.
+     * The order is by interactions: the note's reactions plus its replies plus the number of zaps it received (the
+     * number, not the sats, so one big zap does not outweigh a hundred small ones), with the friend tally and then
+     * recency to break ties. That needs the counters of the shortlisted notes, which are fetched once here and
+     * handed to the caller in [NotesFeedPage.stats].
+     *
+     * A ranking has no "older than" to page by, so the first page carries the whole list (at most
+     * [NETWORK_PAGE_SIZE] notes) and every later page, asked for with a time cursor, is empty. The result is kept for
+     * [NETWORK_CACHE_SECONDS], so reopening the section does not repeat the requests.
      */
     private suspend fun fetchNetworkNotesPage(
         userId: String,
@@ -317,15 +330,19 @@ internal class RelayNotesFeedFetcher(
         until: Long?,
         since: Long?,
     ): NotesFeedPage {
+        if (until != null || since != null) return NotesFeedPage(page = emptyList(), referencedNotes = emptyList())
+
         val network = loadNetworkNotes(userId)
-        if (network.notes.isEmpty()) {
+        if (network.ranked.isEmpty()) {
             return NotesFeedPage(page = emptyList(), referencedNotes = emptyList(), unreachable = network.unreachable)
         }
-        val page = network.notes
-            .filter { until == null || it.createdAt <= until }
-            .filter { since == null || it.createdAt >= since }
-            .take(limit)
-        return buildPageEvents(page)
+        val page = network.ranked.take(maxOf(limit, NETWORK_PAGE_SIZE))
+        val pageIds = page.map { it.id }.toSet()
+        val stats = RelayEventStatsSnapshot(
+            eventStats = network.stats.eventStats.filter { it.eventId in pageIds },
+            userStats = network.stats.userStats.filter { it.eventId in pageIds },
+        )
+        return buildPageEvents(page).copy(stats = stats)
     }
 
     private suspend fun loadNetworkNotes(userId: String): NetworkNotes {
@@ -333,7 +350,7 @@ internal class RelayNotesFeedFetcher(
         networkNotes?.takeIf { it.userId == userId && now - it.loadedAt < NETWORK_CACHE_SECONDS }?.let { return it }
 
         val friends = loadFollows(userId).filter { it != userId }.toSet()
-        if (friends.isEmpty()) return NetworkNotes(userId = userId, loadedAt = now, notes = emptyList())
+        if (friends.isEmpty()) return NetworkNotes(userId = userId, loadedAt = now)
 
         val window = queryInChunks(
             authors = friends.toList(),
@@ -341,26 +358,45 @@ internal class RelayNotesFeedFetcher(
             limit = NETWORK_ENGAGEMENT_LIMIT,
             since = now - NETWORK_WINDOW_SECONDS,
         )
-        val candidateIds = window.tallyFriendEngagement(friends)
+        val tally = window.tallyFriendEngagement(friends)
             .filterValues { it.size >= minimumFriends(friends.size) }
-            .entries
+        val candidateIds = tally.entries
             .sortedByDescending { it.value.size }
             .take(MAX_NETWORK_CANDIDATES)
             .map { it.key }
-        val notes = fetchReferencedNotes(candidateIds)
+        val shortlist = fetchReferencedNotes(candidateIds)
             .asSequence()
             .distinctBy { it.id }
             .filter { it.kind == NostrEventKind.ShortTextNote.value && !it.tags.hasEventIdTag() }
             .filter { it.pubKey !in friends && it.pubKey != userId }
-            .sortedByDescending { it.createdAt }
+            .sortedWith(compareByDescending<NostrEvent> { tally[it.id]?.size ?: 0 }.thenByDescending { it.createdAt })
+            .take(NETWORK_PAGE_SIZE)
             .toList()
 
-        // Nothing came back at all from a user who does follow people: the relays did not answer, which
-        // is not the same as "your friends liked nothing", so the page must not read as the end of the list.
-        val unreachable = window.isEmpty() && notes.isEmpty()
-        return NetworkNotes(userId = userId, loadedAt = now, notes = notes, unreachable = unreachable)
-            .also { if (!unreachable) networkNotes = it }
+        // Nothing came back at all from a user who does follow people: the relays did not answer, which is not
+        // the same as "your friends liked nothing", so the page must not read as the end of the list.
+        if (shortlist.isEmpty()) {
+            return NetworkNotes(userId = userId, loadedAt = now, unreachable = window.isEmpty())
+                .also { if (window.isNotEmpty()) networkNotes = it }
+        }
+
+        val stats = runCatching { RelayEventStatsFetcher(querier, coordinator).fetch(shortlist.map { it.id }, userId) }
+            .getOrDefault(RelayEventStatsSnapshot(emptyList(), emptyList()))
+        val interactions = stats.eventStats.associate { it.eventId to it.interactionScore() }
+        val ranked = shortlist.sortedWith(
+            compareByDescending<NostrEvent> { interactions[it.id] ?: 0L }
+                .thenByDescending { tally[it.id]?.size ?: 0 }
+                .thenByDescending { it.createdAt },
+        )
+        return NetworkNotes(userId = userId, loadedAt = now, ranked = ranked, stats = stats)
+            .also { networkNotes = it }
     }
+
+    /**
+     * What a note's interactions add up to for the network feed's order: reactions, replies and the number of
+     * zaps. Reposts are not counted, and a zap counts as one however many sats it carried.
+     */
+    private fun EventStats.interactionScore(): Long = likes + replies + zaps
 
     /** One friend is enough for someone who follows few people; a crowd needs more than one to mean something. */
     private fun minimumFriends(friendCount: Int): Int =
@@ -373,12 +409,14 @@ internal class RelayNotesFeedFetcher(
      */
     private fun List<NostrEvent>.tallyFriendEngagement(friends: Set<String>): Map<String, Set<String>> {
         val byNote = HashMap<String, MutableSet<String>>()
-        for (event in this) {
-            if (event.pubKey !in friends) continue
-            if (event.kind == NostrEventKind.Reaction.value && event.content == DOWNVOTE) continue
-            val target = event.tags.eventIdTagValues().lastOrNull() ?: continue
-            byNote.getOrPut(target) { mutableSetOf() }.add(event.pubKey)
-        }
+        asSequence()
+            .filter { it.pubKey in friends }
+            .filterNot { it.kind == NostrEventKind.Reaction.value && it.content == DOWNVOTE }
+            .forEach { event ->
+                event.tags.eventIdTagValues().lastOrNull()?.let { target ->
+                    byNote.getOrPut(target) { mutableSetOf() }.add(event.pubKey)
+                }
+            }
         return byNote
     }
 
@@ -646,7 +684,13 @@ internal class RelayNotesFeedFetcher(
         private const val NETWORK_ENGAGEMENT_LIMIT = 1_000
 
         /** Notes fetched by id at most; the ones with the most friends behind them come first. */
-        private const val MAX_NETWORK_CANDIDATES = 300
+        private const val MAX_NETWORK_CANDIDATES = 200
+
+        /**
+         * Notes ranked, and so listed: the shortlist (most friends first) whose counters are fetched. Bounded because
+         * the counters cost several requests per fifty notes.
+         */
+        private const val NETWORK_PAGE_SIZE = 100
 
         /** Following this many people or more, a note needs [MIN_FRIENDS_FOR_MANY] friends behind it. */
         private const val NETWORK_MANY_FRIENDS = 40

@@ -46,6 +46,7 @@ enum class EditTool { LIGHT, COLOR, DETAIL, FILTERS, CROP }
  * leaving the editor cancels any drawing still in progress.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
+@Suppress("TooManyFunctions")
 class PhotoEditorState(
     private val sourceUri: Uri,
     private val loader: PhotoEditLoader,
@@ -91,14 +92,26 @@ class PhotoEditorState(
     val changed: Boolean get() = !recipe.isIdentity
 
     private var source: RgbImage? = null
-    private val shown = MutableStateFlow(EditRecipe.NONE to EditTool.LIGHT)
+
+    /**
+     * What the preview has to be drawn from. [sourceReady] is part of it on purpose: the flow starts with a request
+     * for the neutral recipe, which is also exactly what it holds when the photo has just been decoded, and a
+     * StateFlow does not emit a value equal to the one it already has. Without the flag the first drawing was
+     * therefore never triggered, the preview stayed empty, and the picture only appeared when the original was shown
+     * by tapping (that one is set directly).
+     */
+    private data class DrawRequest(val recipe: EditRecipe, val tool: EditTool, val sourceReady: Boolean)
+
+    private val shown = MutableStateFlow(DrawRequest(EditRecipe.NONE, EditTool.LIGHT, sourceReady = false))
 
     init {
         scope.launch { load() }
         scope.launch {
             // A StateFlow already skips equal values, so a slider that settles where it was draws nothing.
             shown
-                .mapLatest { (recipe, tool) -> draw(shownRecipe(recipe, tool)) }
+                .mapLatest { request ->
+                    if (request.sourceReady) draw(shownRecipe(request.recipe, request.tool)) else null
+                }
                 .collect { drawn -> if (drawn != null) preview = drawn }
         }
     }
@@ -122,7 +135,7 @@ class PhotoEditorState(
         filterThumbnails = thumbnails
         original = plain
         loading = false
-        shown.value = recipe to tool
+        shown.value = DrawRequest(recipe, tool, sourceReady = true)
     }
 
     /**
@@ -150,12 +163,12 @@ class PhotoEditorState(
 
     fun selectTool(next: EditTool) {
         tool = next
-        shown.value = recipe to tool
+        shown.value = DrawRequest(recipe, tool, sourceReady = source != null)
     }
 
     private fun edit(change: (EditRecipe) -> EditRecipe) {
         recipe = change(recipe).clamped()
-        shown.value = recipe to tool
+        shown.value = DrawRequest(recipe, tool, sourceReady = source != null)
         saveFailed = false
     }
 

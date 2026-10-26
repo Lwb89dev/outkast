@@ -1,3 +1,5 @@
+@file:Suppress("MagicNumber")
+
 package net.primal.android.imageedit.domain
 
 import kotlin.math.max
@@ -42,6 +44,7 @@ object DetailPasses {
      * Darkens (positive [strength]) or lightens (negative) towards the corners of a [width] x [height] picture; [top]
      * is the band's first row.
      */
+    @Suppress("LongParameterList")
     fun vignette(pixels: IntArray, width: Int, top: Int, rows: Int, height: Int, strength: Float) {
         if (strength == 0f) return
         for (row in 0 until rows) {
@@ -83,6 +86,7 @@ object DetailPasses {
         return out
     }
 
+    @Suppress("LongParameterList")
     private fun blurLine(source: FloatArray, from: Int, step: Int, length: Int, target: FloatArray, radius: Int) {
         val window = (2 * radius + 1).toFloat()
         var sum = 0f

@@ -1181,4 +1181,57 @@
         <item quantity="one">%d emoji</item>
         <item quantity="other">%d emoji\'s</item>
     </plurals>
+
+    <!-- Photo editor: opens after a photo is picked for a note, before it is uploaded -->
+    <string name="photo_edit_title">Foto bewerken</string>
+    <string name="photo_edit_cancel">Annuleren</string>
+    <string name="photo_edit_done">Klaar</string>
+    <string name="photo_edit_reset">Resetten</string>
+    <string name="photo_edit_original">Origineel</string>
+    <string name="photo_edit_failed">De bewerkte foto kon niet worden voorbereid. Probeer het opnieuw of annuleer.</string>
+    <string name="photo_edit_discard_title">Wijzigingen negeren?</string>
+    <string name="photo_edit_discard_message">De wijzigingen die je aan deze foto hebt gemaakt gaan verloren.</string>
+    <string name="photo_edit_discard">Negeren</string>
+    <string name="photo_edit_keep_editing">Doorgaan met bewerken</string>
+    <string name="photo_edit_slider_reset">Terugzetten naar neutraal</string>
+    <string name="photo_edit_tool_auto">Auto</string>
+    <string name="photo_edit_tool_light">Licht</string>
+    <string name="photo_edit_tool_color">Kleur</string>
+    <string name="photo_edit_tool_detail">Detail</string>
+    <string name="photo_edit_tool_filters">Filters</string>
+    <string name="photo_edit_tool_crop">Bijsnijden</string>
+    <string name="photo_edit_adj_exposure">Belichting</string>
+    <string name="photo_edit_adj_brightness">Helderheid</string>
+    <string name="photo_edit_adj_contrast">Contrast</string>
+    <string name="photo_edit_adj_highlights">Hooglichten</string>
+    <string name="photo_edit_adj_shadows">Schaduwen</string>
+    <string name="photo_edit_adj_black_point">Zwartpunt</string>
+    <string name="photo_edit_adj_saturation">Verzadiging</string>
+    <string name="photo_edit_adj_vibrance">Levendigheid</string>
+    <string name="photo_edit_adj_temperature">Temperatuur</string>
+    <string name="photo_edit_adj_tint">Tint</string>
+    <string name="photo_edit_adj_sharpness">Scherpte</string>
+    <string name="photo_edit_adj_vignette">Vignet</string>
+    <string name="photo_edit_filter_none">Geen</string>
+    <string name="photo_edit_filter_vivid">Levendig</string>
+    <string name="photo_edit_filter_warm">Warm</string>
+    <string name="photo_edit_filter_cool">Koel</string>
+    <string name="photo_edit_filter_mono">Mono</string>
+    <string name="photo_edit_filter_noir">Noir</string>
+    <string name="photo_edit_filter_fade">Vervaagd</string>
+    <string name="photo_edit_filter_chrome">Chroom</string>
+    <string name="photo_edit_filter_sepia">Sepia</string>
+    <string name="photo_edit_filter_amount">Sterkte</string>
+    <string name="photo_edit_crop_rotate">Roteren</string>
+    <string name="photo_edit_crop_flip">Spiegelen</string>
+    <string name="photo_edit_shape_free">Vrij</string>
+    <string name="photo_edit_shape_original">Origineel</string>
+    <string name="photo_edit_shape_square">Vierkant</string>
+    <string name="photo_edit_geo_straighten">Rechtzetten</string>
+    <string name="photo_edit_geo_perspective_vertical">Verticaal perspectief</string>
+    <string name="photo_edit_geo_perspective_horizontal">Horizontaal perspectief</string>
+    <string name="photo_edit_crop_area">Bijsnijgebied: %1$d%% tot %2$d%% in de breedte en %3$d%% tot %4$d%% in de hoogte</string>
+    <string name="explore_section_network_title">Netwerk</string>
+    <string name="explore_section_network_subtitle">Berichten waar je vrienden op reageerden, van mensen die je niet volgt</string>
+    <string name="explore_network_no_content">Nog niets van de vrienden van je vrienden. Volg meer mensen en kijk later nog eens: hier staan berichten van mensen die je niet volgt en die mensen die je volgt leuk vonden of opnieuw deelden, met de meeste interacties bovenaan.</string>
 </resources>

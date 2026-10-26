@@ -1181,4 +1181,57 @@
         <item quantity="one">%d emoji</item>
         <item quantity="other">%d emojis</item>
     </plurals>
+
+    <!-- Photo editor: opens after a photo is picked for a note, before it is uploaded -->
+    <string name="photo_edit_title">Editar foto</string>
+    <string name="photo_edit_cancel">Cancelar</string>
+    <string name="photo_edit_done">Hecho</string>
+    <string name="photo_edit_reset">Restablecer</string>
+    <string name="photo_edit_original">Original</string>
+    <string name="photo_edit_failed">No se pudo preparar la foto editada. Inténtalo de nuevo o cancela.</string>
+    <string name="photo_edit_discard_title">¿Descartar los cambios?</string>
+    <string name="photo_edit_discard_message">Se perderán los cambios que hiciste en esta foto.</string>
+    <string name="photo_edit_discard">Descartar</string>
+    <string name="photo_edit_keep_editing">Seguir editando</string>
+    <string name="photo_edit_slider_reset">Volver a neutro</string>
+    <string name="photo_edit_tool_auto">Auto</string>
+    <string name="photo_edit_tool_light">Luz</string>
+    <string name="photo_edit_tool_color">Color</string>
+    <string name="photo_edit_tool_detail">Detalle</string>
+    <string name="photo_edit_tool_filters">Filtros</string>
+    <string name="photo_edit_tool_crop">Recortar</string>
+    <string name="photo_edit_adj_exposure">Exposición</string>
+    <string name="photo_edit_adj_brightness">Brillo</string>
+    <string name="photo_edit_adj_contrast">Contraste</string>
+    <string name="photo_edit_adj_highlights">Altas luces</string>
+    <string name="photo_edit_adj_shadows">Sombras</string>
+    <string name="photo_edit_adj_black_point">Punto negro</string>
+    <string name="photo_edit_adj_saturation">Saturación</string>
+    <string name="photo_edit_adj_vibrance">Intensidad</string>
+    <string name="photo_edit_adj_temperature">Temperatura</string>
+    <string name="photo_edit_adj_tint">Matiz</string>
+    <string name="photo_edit_adj_sharpness">Nitidez</string>
+    <string name="photo_edit_adj_vignette">Viñeta</string>
+    <string name="photo_edit_filter_none">Ninguno</string>
+    <string name="photo_edit_filter_vivid">Vívido</string>
+    <string name="photo_edit_filter_warm">Cálido</string>
+    <string name="photo_edit_filter_cool">Frío</string>
+    <string name="photo_edit_filter_mono">Mono</string>
+    <string name="photo_edit_filter_noir">Noir</string>
+    <string name="photo_edit_filter_fade">Desvanecido</string>
+    <string name="photo_edit_filter_chrome">Cromado</string>
+    <string name="photo_edit_filter_sepia">Sepia</string>
+    <string name="photo_edit_filter_amount">Intensidad</string>
+    <string name="photo_edit_crop_rotate">Girar</string>
+    <string name="photo_edit_crop_flip">Voltear</string>
+    <string name="photo_edit_shape_free">Libre</string>
+    <string name="photo_edit_shape_original">Original</string>
+    <string name="photo_edit_shape_square">Cuadrado</string>
+    <string name="photo_edit_geo_straighten">Enderezar</string>
+    <string name="photo_edit_geo_perspective_vertical">Perspectiva vertical</string>
+    <string name="photo_edit_geo_perspective_horizontal">Perspectiva horizontal</string>
+    <string name="photo_edit_crop_area">Área de recorte: del %1$d%% al %2$d%% de ancho y del %3$d%% al %4$d%% de alto</string>
+    <string name="explore_section_network_title">Red</string>
+    <string name="explore_section_network_subtitle">Notas con las que interactuaron tus amigos, de personas a las que no sigues</string>
+    <string name="explore_network_no_content">Aún nada de los amigos de tus amigos. Sigue a más gente y vuelve a mirar: aquí aparecen notas de personas a las que no sigues que les gustaron o compartieron quienes sigues, primero las que más interacciones tienen.</string>
 </resources>

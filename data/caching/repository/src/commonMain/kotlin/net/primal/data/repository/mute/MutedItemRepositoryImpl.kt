@@ -303,7 +303,8 @@ class MutedItemRepositoryImpl(
                 reducer = reducer,
                 legacyFetch = legacyFetch,
             )
-        } catch (error: Throwable) {
+        } catch (@Suppress("TooGenericExceptionCaught") error: Throwable) {
+            // Rethrown below: this only puts the optimistic change back, whatever made the publish fail.
             withContext(NonCancellable) {
                 persistList(ownerId = userId, listType = listType, muteList = localBefore)
             }

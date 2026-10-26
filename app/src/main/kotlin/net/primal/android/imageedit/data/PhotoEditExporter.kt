@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
 import androidx.core.content.FileProvider
+import androidx.core.graphics.createBitmap
 import java.io.File
 import java.io.IOException
 import kotlinx.coroutines.Dispatchers
@@ -58,7 +59,7 @@ class PhotoEditExporter(
             val map = GeometryMap(decoded.width, decoded.height, recipe.geometry)
             val width = map.fullWidth
             val height = map.fullHeight
-            val out = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            val out = createBitmap(width, height)
             val bandRows = (BAND_PIXELS / width).coerceIn(MIN_BAND_ROWS, MAX_BAND_ROWS)
             EditRenderer.renderBands(BitmapPixelSource(decoded), recipe, width, height, bandRows) { top, rows, pixels ->
                 out.setPixels(pixels, 0, width, 0, top, width, rows)

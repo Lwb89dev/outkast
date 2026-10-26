@@ -1,4 +1,4 @@
-@file:Suppress("ktlint:standard:max-line-length")
+@file:Suppress("ktlint:standard:max-line-length", "MaxLineLength", "ComplexCondition", "MagicNumber")
 
 package net.primal.android.imageedit.domain
 

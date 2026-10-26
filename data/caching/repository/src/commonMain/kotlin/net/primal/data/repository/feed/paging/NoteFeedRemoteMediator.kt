@@ -29,6 +29,7 @@ import net.primal.data.remote.api.feed.model.MultiKindFeedBySpecRequestBody
 import net.primal.data.repository.cache.LocalEventCache
 import net.primal.data.repository.feed.RelayAdvancedSearchFeedFetcher
 import net.primal.data.repository.feed.RelayEventStatsFetcher
+import net.primal.data.repository.feed.RelayEventStatsSnapshot
 import net.primal.data.repository.feed.RelayNotesFeedFetcher
 import net.primal.data.repository.feed.asReferencedPrimalEvent
 import net.primal.data.repository.feed.processors.FeedProcessor
@@ -347,7 +348,7 @@ internal class NoteFeedRemoteMediator(
         // round-trips a refresh didn't need yet — those pages now get their stats lazily, from
         // the viewport-visibility trigger in NoteFeedViewModel / NoteFeedList instead
         // (EventRepository.fetchAndCacheEventStats), once a note actually scrolls into view.
-        if (isRealRefresh) {
+        if (isRealRefresh && !feedSpec.isNetworkNotesFeedSpec()) {
             refreshRelayEventStats(response = syncResult.response)
         }
 
@@ -370,17 +371,23 @@ internal class NoteFeedRemoteMediator(
         val alreadyPersisted: Boolean = false,
     )
 
-    private suspend fun refreshRelayEventStats(response: FeedResponse) {
-        val statsFetcher = relayEventStatsFetcher ?: return
-        val eventIds = (response.notes + response.articles + response.reposts).map { it.id }.distinct()
-        if (eventIds.isEmpty()) return
-        val stats = statsFetcher.fetch(eventIds = eventIds, userId = userId)
+    /** Stores counters and the user's own interaction flags; the feed redraws them once [invalidate] is asked for. */
+    private suspend fun persistStatsSnapshot(stats: RelayEventStatsSnapshot, invalidate: Boolean = true) {
         database.withTransaction {
             database.eventStats().upsertAll(stats.eventStats)
             if (stats.userStats.isNotEmpty()) {
                 database.eventUserStats().upsertAll(stats.userStats)
             }
         }
+        if (invalidate) invalidationTracker.invalidate(ownerId = userId, feedSpec = feedSpec)
+    }
+
+    private suspend fun refreshRelayEventStats(response: FeedResponse) {
+        val statsFetcher = relayEventStatsFetcher ?: return
+        val eventIds = (response.notes + response.articles + response.reposts).map { it.id }.distinct()
+        if (eventIds.isEmpty()) return
+        val stats = statsFetcher.fetch(eventIds = eventIds, userId = userId)
+        persistStatsSnapshot(stats, invalidate = false)
         // EventStats is a relation and is intentionally excluded from Room's paging
         // observed-entity set, so an explicit invalidate is the only way their counters redraw
         // without navigating away/back. Safe to do unconditionally now that this function only
@@ -429,6 +436,10 @@ internal class NoteFeedRemoteMediator(
                 feedProcessor.processAndPersistToDatabase(userId = userId, response = fullResponse, clearFeed = false)
                 fullResponse
             }
+            // The network feed had to count every note's interactions to put them in order; those counters are
+            // stored now, and its first page is the whole list, so there is nothing left for the refresh below to
+            // ask the relays.
+            feedPage.stats?.let { persistStatsSnapshot(it) }
             return SyncResult(request = requestBody, response = response, alreadyPersisted = true)
         }
         val response = fetchFeedPage(requestBody)

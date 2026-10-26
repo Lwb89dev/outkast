@@ -1181,4 +1181,57 @@
         <item quantity="one">%d emocijzīme</item>
         <item quantity="other">%d emocijzīmes</item>
     </plurals>
+
+    <!-- Photo editor: opens after a photo is picked for a note, before it is uploaded -->
+    <string name="photo_edit_title">Rediģēt foto</string>
+    <string name="photo_edit_cancel">Atcelt</string>
+    <string name="photo_edit_done">Gatavs</string>
+    <string name="photo_edit_reset">Atiestatīt</string>
+    <string name="photo_edit_original">Oriģināls</string>
+    <string name="photo_edit_failed">Neizdevās sagatavot rediģēto foto. Mēģiniet vēlreiz vai atceliet.</string>
+    <string name="photo_edit_discard_title">Atmest izmaiņas?</string>
+    <string name="photo_edit_discard_message">Šajā foto veiktās izmaiņas tiks zaudētas.</string>
+    <string name="photo_edit_discard">Atmest</string>
+    <string name="photo_edit_keep_editing">Turpināt rediģēt</string>
+    <string name="photo_edit_slider_reset">Atiestatīt uz neitrālu</string>
+    <string name="photo_edit_tool_auto">Auto</string>
+    <string name="photo_edit_tool_light">Gaisma</string>
+    <string name="photo_edit_tool_color">Krāsa</string>
+    <string name="photo_edit_tool_detail">Detaļas</string>
+    <string name="photo_edit_tool_filters">Filtri</string>
+    <string name="photo_edit_tool_crop">Apgriezt</string>
+    <string name="photo_edit_adj_exposure">Ekspozīcija</string>
+    <string name="photo_edit_adj_brightness">Spilgtums</string>
+    <string name="photo_edit_adj_contrast">Kontrasts</string>
+    <string name="photo_edit_adj_highlights">Gaišie toņi</string>
+    <string name="photo_edit_adj_shadows">Ēnas</string>
+    <string name="photo_edit_adj_black_point">Melnais punkts</string>
+    <string name="photo_edit_adj_saturation">Piesātinājums</string>
+    <string name="photo_edit_adj_vibrance">Dzīvīgums</string>
+    <string name="photo_edit_adj_temperature">Temperatūra</string>
+    <string name="photo_edit_adj_tint">Nokrāsa</string>
+    <string name="photo_edit_adj_sharpness">Asums</string>
+    <string name="photo_edit_adj_vignette">Vinjete</string>
+    <string name="photo_edit_filter_none">Nav</string>
+    <string name="photo_edit_filter_vivid">Spilgts</string>
+    <string name="photo_edit_filter_warm">Silts</string>
+    <string name="photo_edit_filter_cool">Auksts</string>
+    <string name="photo_edit_filter_mono">Mono</string>
+    <string name="photo_edit_filter_noir">Noir</string>
+    <string name="photo_edit_filter_fade">Izbalējis</string>
+    <string name="photo_edit_filter_chrome">Hroms</string>
+    <string name="photo_edit_filter_sepia">Sēpija</string>
+    <string name="photo_edit_filter_amount">Spēks</string>
+    <string name="photo_edit_crop_rotate">Pagriezt</string>
+    <string name="photo_edit_crop_flip">Apvērst</string>
+    <string name="photo_edit_shape_free">Brīvi</string>
+    <string name="photo_edit_shape_original">Oriģināls</string>
+    <string name="photo_edit_shape_square">Kvadrāts</string>
+    <string name="photo_edit_geo_straighten">Iztaisnot</string>
+    <string name="photo_edit_geo_perspective_vertical">Vertikālā perspektīva</string>
+    <string name="photo_edit_geo_perspective_horizontal">Horizontālā perspektīva</string>
+    <string name="photo_edit_crop_area">Apgriešanas apgabals: no %1$d%% līdz %2$d%% platumā un no %3$d%% līdz %4$d%% augstumā</string>
+    <string name="explore_section_network_title">Tīkls</string>
+    <string name="explore_section_network_subtitle">Ieraksti, ar kuriem mijiedarbojās jūsu draugi, no cilvēkiem, kuriem jūs neseko</string>
+    <string name="explore_network_no_content">No jūsu draugu draugiem vēl nekā nav. Sekojiet vairāk cilvēkiem un pārbaudiet vēlāk: šeit parādās ieraksti no cilvēkiem, kuriem neseko, ko patika vai kopīgoja jūsu sekotie cilvēki, vispirms tie ar visvairāk mijiedarbību.</string>
 </resources>

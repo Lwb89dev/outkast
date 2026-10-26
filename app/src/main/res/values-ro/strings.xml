@@ -1181,4 +1181,57 @@
         <item quantity="one">%d emoji</item>
         <item quantity="other">%d emoji</item>
     </plurals>
+
+    <!-- Photo editor: opens after a photo is picked for a note, before it is uploaded -->
+    <string name="photo_edit_title">Editează fotografia</string>
+    <string name="photo_edit_cancel">Anulează</string>
+    <string name="photo_edit_done">Gata</string>
+    <string name="photo_edit_reset">Resetează</string>
+    <string name="photo_edit_original">Original</string>
+    <string name="photo_edit_failed">Fotografia editată nu a putut fi pregătită. Încearcă din nou sau anulează.</string>
+    <string name="photo_edit_discard_title">Renunți la modificări?</string>
+    <string name="photo_edit_discard_message">Modificările făcute acestei fotografii se vor pierde.</string>
+    <string name="photo_edit_discard">Renunță</string>
+    <string name="photo_edit_keep_editing">Continuă editarea</string>
+    <string name="photo_edit_slider_reset">Revino la neutru</string>
+    <string name="photo_edit_tool_auto">Auto</string>
+    <string name="photo_edit_tool_light">Lumină</string>
+    <string name="photo_edit_tool_color">Culoare</string>
+    <string name="photo_edit_tool_detail">Detaliu</string>
+    <string name="photo_edit_tool_filters">Filtre</string>
+    <string name="photo_edit_tool_crop">Decupează</string>
+    <string name="photo_edit_adj_exposure">Expunere</string>
+    <string name="photo_edit_adj_brightness">Luminozitate</string>
+    <string name="photo_edit_adj_contrast">Contrast</string>
+    <string name="photo_edit_adj_highlights">Zone luminoase</string>
+    <string name="photo_edit_adj_shadows">Umbre</string>
+    <string name="photo_edit_adj_black_point">Punct de negru</string>
+    <string name="photo_edit_adj_saturation">Saturație</string>
+    <string name="photo_edit_adj_vibrance">Vibranță</string>
+    <string name="photo_edit_adj_temperature">Temperatură</string>
+    <string name="photo_edit_adj_tint">Nuanță</string>
+    <string name="photo_edit_adj_sharpness">Claritate</string>
+    <string name="photo_edit_adj_vignette">Vinietă</string>
+    <string name="photo_edit_filter_none">Niciunul</string>
+    <string name="photo_edit_filter_vivid">Vibrant</string>
+    <string name="photo_edit_filter_warm">Cald</string>
+    <string name="photo_edit_filter_cool">Rece</string>
+    <string name="photo_edit_filter_mono">Mono</string>
+    <string name="photo_edit_filter_noir">Noir</string>
+    <string name="photo_edit_filter_fade">Decolorat</string>
+    <string name="photo_edit_filter_chrome">Cromat</string>
+    <string name="photo_edit_filter_sepia">Sepia</string>
+    <string name="photo_edit_filter_amount">Intensitate</string>
+    <string name="photo_edit_crop_rotate">Rotește</string>
+    <string name="photo_edit_crop_flip">Oglindește</string>
+    <string name="photo_edit_shape_free">Liber</string>
+    <string name="photo_edit_shape_original">Original</string>
+    <string name="photo_edit_shape_square">Pătrat</string>
+    <string name="photo_edit_geo_straighten">Îndreaptă</string>
+    <string name="photo_edit_geo_perspective_vertical">Perspectivă verticală</string>
+    <string name="photo_edit_geo_perspective_horizontal">Perspectivă orizontală</string>
+    <string name="photo_edit_crop_area">Zonă de decupare: de la %1$d%% la %2$d%% pe lățime și de la %3$d%% la %4$d%% pe înălțime</string>
+    <string name="explore_section_network_title">Rețea</string>
+    <string name="explore_section_network_subtitle">Note cu care au interacționat prietenii tăi, de la persoane pe care nu le urmărești</string>
+    <string name="explore_network_no_content">Încă nimic de la prietenii prietenilor tăi. Urmărește mai multe persoane și revino: aici apar notele persoanelor pe care nu le urmărești, apreciate sau redistribuite de cei pe care îi urmărești, mai întâi cele cu cele mai multe interacțiuni.</string>
 </resources>

@@ -10,6 +10,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -40,39 +44,38 @@ fun TakePhotoIconButton(
     onPhotoTaken: (Uri) -> Unit,
 ) {
     val context = LocalContext.current
-    val file = context.createImageFile()
-    val uri = runCatching {
-        FileProvider.getUriForFile(
-            Objects.requireNonNull(context),
-            BuildConfig.APPLICATION_ID + ".provider",
-            file,
-        )
-    }.getOrNull()
+
+    // The file the camera writes to is created when the button is tapped, one per photo. It used to be created on
+    // every recomposition (which left a stray file behind each time, and opening and closing the photo editor
+    // recomposes the button), and a single remembered file would let a second photo overwrite one that is still
+    // attached to the note.
+    var pendingUri by remember { mutableStateOf<Uri?>(null) }
 
     // The photo just taken opens in the photo editor before it is handed on.
     val attach = rememberPhotoEditGate(onReady = { photos -> photos.forEach(onPhotoTaken) })
-    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { caputred ->
-        if (caputred && uri != null) {
-            attach(listOf(uri))
-        }
+    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { captured ->
+        pendingUri?.takeIf { captured }?.let { attach(listOf(it)) }
     }
 
     val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (granted && uri != null) {
-            cameraLauncher.launch(uri)
-        }
+        if (granted) pendingUri?.let(cameraLauncher::launch)
     }
 
     IconButton(
-        enabled = uri != null,
         onClick = {
-            if (uri != null) {
-                val cameraPermissionResult = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
-                if (cameraPermissionResult == PackageManager.PERMISSION_GRANTED) {
-                    cameraLauncher.launch(uri)
-                } else {
-                    permissionLauncher.launch(Manifest.permission.CAMERA)
-                }
+            val uri = runCatching {
+                FileProvider.getUriForFile(
+                    Objects.requireNonNull(context),
+                    BuildConfig.APPLICATION_ID + ".provider",
+                    context.createImageFile(),
+                )
+            }.getOrNull() ?: return@IconButton
+            pendingUri = uri
+            val cameraPermissionResult = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
+            if (cameraPermissionResult == PackageManager.PERMISSION_GRANTED) {
+                cameraLauncher.launch(uri)
+            } else {
+                permissionLauncher.launch(Manifest.permission.CAMERA)
             }
         },
     ) {

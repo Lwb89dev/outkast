@@ -6,12 +6,15 @@ import io.mockk.mockk
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import net.primal.core.utils.coroutines.DispatcherProvider
 import net.primal.data.local.dao.mutes.ListType
 import net.primal.data.local.dao.mutes.MutedItemData
 import net.primal.data.local.dao.mutes.MutedItemType
+import net.primal.data.local.dao.profiles.ProfileData
 import net.primal.data.local.db.CachingDatabase
 import net.primal.domain.nostr.NostrEvent
 import net.primal.domain.nostr.NostrEventKind
@@ -87,6 +90,29 @@ class MutedItemRepositoryRelayTest {
 
             assertEquals(setOf(MUTED_B), localMuted(database))
             assertEquals(listOf(setOf(MUTED_B)), publishedPubkeys)
+        }
+
+    @Test
+    fun `a muted user whose profile was never fetched is still listed so it can be unmuted`() =
+        withRepository(relayList = null) { database, repository, _ ->
+            seedLocal(database, MUTED_A, MUTED_B)
+            database.profiles().insertOrUpdateAll(
+                data = listOf(
+                    ProfileData(
+                        ownerId = MUTED_A,
+                        eventId = "metadata-a",
+                        createdAt = 1L,
+                        raw = "{}",
+                        displayName = "Alice",
+                    ),
+                ),
+            )
+
+            val listed = repository.observeMutedUsersByOwnerId(ownerId = USER_ID).first()
+
+            assertEquals(setOf(MUTED_A, MUTED_B), listed.map { it.profileId }.toSet())
+            assertEquals("Alice", listed.first { it.profileId == MUTED_A }.displayName)
+            assertNull(listed.first { it.profileId == MUTED_B }.displayName)
         }
 
     // ------------------------------------------------------------------------------- harness

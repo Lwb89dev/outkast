@@ -1178,4 +1178,57 @@
         <item quantity="one">%d emoji</item>
         <item quantity="other">%d emoji</item>
     </plurals>
+
+    <!-- Photo editor: opens after a photo is picked for a note, before it is uploaded -->
+    <string name="photo_edit_title">Editja r-ritratt</string>
+    <string name="photo_edit_cancel">Ikkanċella</string>
+    <string name="photo_edit_done">Lest</string>
+    <string name="photo_edit_reset">Irrisettja</string>
+    <string name="photo_edit_original">Oriġinal</string>
+    <string name="photo_edit_failed">Ma setax jitħejja r-ritratt editjat. Erġa’ pprova jew ikkanċella.</string>
+    <string name="photo_edit_discard_title">Tarmi l-bidliet?</string>
+    <string name="photo_edit_discard_message">Il-bidliet li għamilt f’dan ir-ritratt jintilfu.</string>
+    <string name="photo_edit_discard">Armi</string>
+    <string name="photo_edit_keep_editing">Kompli editja</string>
+    <string name="photo_edit_slider_reset">Irritorna għan-newtrali</string>
+    <string name="photo_edit_tool_auto">Awto</string>
+    <string name="photo_edit_tool_light">Dawl</string>
+    <string name="photo_edit_tool_color">Kulur</string>
+    <string name="photo_edit_tool_detail">Dettall</string>
+    <string name="photo_edit_tool_filters">Filtri</string>
+    <string name="photo_edit_tool_crop">Aqta’</string>
+    <string name="photo_edit_adj_exposure">Espożizzjoni</string>
+    <string name="photo_edit_adj_brightness">Luminożità</string>
+    <string name="photo_edit_adj_contrast">Kuntrast</string>
+    <string name="photo_edit_adj_highlights">Dwal qawwija</string>
+    <string name="photo_edit_adj_shadows">Dellijiet</string>
+    <string name="photo_edit_adj_black_point">Punt iswed</string>
+    <string name="photo_edit_adj_saturation">Saturazzjoni</string>
+    <string name="photo_edit_adj_vibrance">Vibranza</string>
+    <string name="photo_edit_adj_temperature">Temperatura</string>
+    <string name="photo_edit_adj_tint">Tinta</string>
+    <string name="photo_edit_adj_sharpness">Ċarezza</string>
+    <string name="photo_edit_adj_vignette">Vinjetta</string>
+    <string name="photo_edit_filter_none">L-ebda</string>
+    <string name="photo_edit_filter_vivid">Ħaj</string>
+    <string name="photo_edit_filter_warm">Sħun</string>
+    <string name="photo_edit_filter_cool">Kiesaħ</string>
+    <string name="photo_edit_filter_mono">Mono</string>
+    <string name="photo_edit_filter_noir">Noir</string>
+    <string name="photo_edit_filter_fade">Mdgħajjef</string>
+    <string name="photo_edit_filter_chrome">Kromu</string>
+    <string name="photo_edit_filter_sepia">Sepja</string>
+    <string name="photo_edit_filter_amount">Qawwa</string>
+    <string name="photo_edit_crop_rotate">Dawwar</string>
+    <string name="photo_edit_crop_flip">Aqleb</string>
+    <string name="photo_edit_shape_free">Ħieles</string>
+    <string name="photo_edit_shape_original">Oriġinal</string>
+    <string name="photo_edit_shape_square">Kwadru</string>
+    <string name="photo_edit_geo_straighten">Iddrittja</string>
+    <string name="photo_edit_geo_perspective_vertical">Perspettiva vertikali</string>
+    <string name="photo_edit_geo_perspective_horizontal">Perspettiva orizzontali</string>
+    <string name="photo_edit_crop_area">Żona tal-qtugħ: minn %1$d%% sa %2$d%% fil-wisa’ u minn %3$d%% sa %4$d%% fl-għoli</string>
+    <string name="explore_section_network_title">Netwerk</string>
+    <string name="explore_section_network_subtitle">Noti li l-ħbieb tiegħek interaġixxew magħhom, minn nies li ma ssegwix</string>
+    <string name="explore_network_no_content">Għad m’hemm xejn mill-ħbieb tal-ħbieb tiegħek. Segwi aktar nies u erġa’ ċċekkja: hawn jidhru noti ta’ nies li ma ssegwix li ġew apprezzati jew ixxerjati minn nies li ssegwi, l-ewwel dawk b’aktar interazzjonijiet.</string>
 </resources>

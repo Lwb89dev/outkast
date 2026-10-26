@@ -401,8 +401,8 @@
     <string name="explore_section_media_title">Media</string>
     <string name="explore_section_media_subtitle">Immagini e video di Nostr oggi</string>
     <string name="explore_section_network_title">Rete</string>
-    <string name="explore_section_network_subtitle">Ciò che piace ai tuoi amici, da persone che non segui</string>
-    <string name="explore_network_no_content">Ancora nulla dagli amici dei tuoi amici. Segui altre persone e ricontrolla: qui compaiono le note di persone che non segui che sono piaciute o sono state ripubblicate da chi segui.</string>
+    <string name="explore_section_network_subtitle">Note con cui interagiscono i tuoi amici, di persone che non segui</string>
+    <string name="explore_network_no_content">Ancora nulla dagli amici dei tuoi amici. Segui altre persone e ricontrolla: qui compaiono le note di persone che non segui che sono piaciute o sono state ripubblicate da chi segui, prima quelle con più interazioni.</string>
     <string name="explore_search_bar_hint">Cerca…</string>
     <string name="explore_landing_recent_users_title">Utenti recenti</string>
     <string name="explore_landing_recent_searches_title">Ricerche recenti</string>

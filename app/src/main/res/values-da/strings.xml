@@ -1181,4 +1181,57 @@
         <item quantity="one">%d emoji</item>
         <item quantity="other">%d emojis</item>
     </plurals>
+
+    <!-- Photo editor: opens after a photo is picked for a note, before it is uploaded -->
+    <string name="photo_edit_title">Rediger foto</string>
+    <string name="photo_edit_cancel">Annuller</string>
+    <string name="photo_edit_done">Færdig</string>
+    <string name="photo_edit_reset">Nulstil</string>
+    <string name="photo_edit_original">Original</string>
+    <string name="photo_edit_failed">Det redigerede foto kunne ikke gøres klar. Prøv igen, eller annuller.</string>
+    <string name="photo_edit_discard_title">Kassér ændringer?</string>
+    <string name="photo_edit_discard_message">Ændringerne i dette foto går tabt.</string>
+    <string name="photo_edit_discard">Kassér</string>
+    <string name="photo_edit_keep_editing">Fortsæt redigering</string>
+    <string name="photo_edit_slider_reset">Nulstil til neutral</string>
+    <string name="photo_edit_tool_auto">Auto</string>
+    <string name="photo_edit_tool_light">Lys</string>
+    <string name="photo_edit_tool_color">Farve</string>
+    <string name="photo_edit_tool_detail">Detaljer</string>
+    <string name="photo_edit_tool_filters">Filtre</string>
+    <string name="photo_edit_tool_crop">Beskær</string>
+    <string name="photo_edit_adj_exposure">Eksponering</string>
+    <string name="photo_edit_adj_brightness">Lysstyrke</string>
+    <string name="photo_edit_adj_contrast">Kontrast</string>
+    <string name="photo_edit_adj_highlights">Højlys</string>
+    <string name="photo_edit_adj_shadows">Skygger</string>
+    <string name="photo_edit_adj_black_point">Sortpunkt</string>
+    <string name="photo_edit_adj_saturation">Farvemætning</string>
+    <string name="photo_edit_adj_vibrance">Livlighed</string>
+    <string name="photo_edit_adj_temperature">Temperatur</string>
+    <string name="photo_edit_adj_tint">Farvetone</string>
+    <string name="photo_edit_adj_sharpness">Skarphed</string>
+    <string name="photo_edit_adj_vignette">Vignettering</string>
+    <string name="photo_edit_filter_none">Ingen</string>
+    <string name="photo_edit_filter_vivid">Livlig</string>
+    <string name="photo_edit_filter_warm">Varm</string>
+    <string name="photo_edit_filter_cool">Kold</string>
+    <string name="photo_edit_filter_mono">Mono</string>
+    <string name="photo_edit_filter_noir">Noir</string>
+    <string name="photo_edit_filter_fade">Falmet</string>
+    <string name="photo_edit_filter_chrome">Krom</string>
+    <string name="photo_edit_filter_sepia">Sepia</string>
+    <string name="photo_edit_filter_amount">Styrke</string>
+    <string name="photo_edit_crop_rotate">Roter</string>
+    <string name="photo_edit_crop_flip">Spejlvend</string>
+    <string name="photo_edit_shape_free">Frit</string>
+    <string name="photo_edit_shape_original">Original</string>
+    <string name="photo_edit_shape_square">Kvadrat</string>
+    <string name="photo_edit_geo_straighten">Ret op</string>
+    <string name="photo_edit_geo_perspective_vertical">Lodret perspektiv</string>
+    <string name="photo_edit_geo_perspective_horizontal">Vandret perspektiv</string>
+    <string name="photo_edit_crop_area">Beskæringsområde: %1$d%% til %2$d%% på tværs og %3$d%% til %4$d%% ned</string>
+    <string name="explore_section_network_title">Netværk</string>
+    <string name="explore_section_network_subtitle">Opslag, dine venner har reageret på, fra folk du ikke følger</string>
+    <string name="explore_network_no_content">Intet fra dine venners venner endnu. Følg flere og kom tilbage: her vises opslag fra folk, du ikke følger, som dem du følger har liket eller delt, de mest populære først.</string>
 </resources>

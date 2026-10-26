@@ -25,9 +25,11 @@ import net.primal.domain.nostr.relay.RelayFilter
 
 /**
  * The network feed is what the people the user follows reacted to or reposted, written by people the user does not
- * follow. These tests pin what makes it into that list and what never does.
+ * follow, ordered by how much those notes were interacted with. These tests pin what makes it into that list, what
+ * never does, and in which order.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
+@Suppress("TooManyFunctions")
 class NetworkFeedFromRelaysTest {
 
     @Test
@@ -36,7 +38,7 @@ class NetworkFeedFromRelaysTest {
     }
 
     @Test
-    fun `a stranger's note that a friend liked is listed, newest first`() =
+    fun `a stranger's note that a friend liked is listed, and with equal interactions the newest comes first`() =
         runTest {
             val querier = FakeQuerier(
                 follows = friends(2),
@@ -139,7 +141,56 @@ class NetworkFeedFromRelaysTest {
         }
 
     @Test
-    fun `the until cursor and the limit cut the page like every other feed`() =
+    fun `notes are ordered by reactions plus replies plus the number of zaps`() =
+        runTest {
+            val querier = FakeQuerier(
+                follows = friends(1),
+                notes = listOf(
+                    note("quiet", STRANGER, 30),
+                    note("busy", STRANGER, 10),
+                    note("zapped", STRANGER, 20),
+                ),
+                reactions = listOf(
+                    reaction(friend(0), "quiet"),
+                    reaction(friend(0), "busy"),
+                    reaction(friend(0), "zapped"),
+                ),
+                otherInteractions = listOf(
+                    // busy: 1 friend reaction + 2 reactions + 1 reply = 4
+                    reaction("0a".padEnd(64, '0'), "busy"),
+                    reaction("0b".padEnd(64, '0'), "busy"),
+                    reply("0c".padEnd(64, '0'), "busy"),
+                    // zapped: 1 friend reaction + 2 zaps = 3, whatever the sats
+                    zap("zap-1", "zapped", sats = 1_000_000),
+                    zap("zap-2", "zapped", sats = 21),
+                    // quiet: only the friend's reaction = 1
+                ),
+            )
+
+            val response = fetcher(querier).fetchNetwork()
+
+            assertEquals(listOf("busy", "zapped", "quiet"), response.notes.map { it.id })
+        }
+
+    @Test
+    fun `one huge zap does not outweigh several small interactions`() =
+        runTest {
+            val querier = FakeQuerier(
+                follows = friends(1),
+                notes = listOf(note("whale", STRANGER, 30), note("crowd", STRANGER, 10)),
+                reactions = listOf(reaction(friend(0), "whale"), reaction(friend(0), "crowd")),
+                otherInteractions = listOf(
+                    zap("zap-1", "whale", sats = 10_000_000),
+                    reaction("0a".padEnd(64, '0'), "crowd"),
+                    reaction("0b".padEnd(64, '0'), "crowd"),
+                ),
+            )
+
+            assertEquals(listOf("crowd", "whale"), fetcher(querier).fetchNetwork().notes.map { it.id })
+        }
+
+    @Test
+    fun `the ranked list is the first page, and a page asked for with a time cursor is empty`() =
         runTest {
             val querier = FakeQuerier(
                 follows = friends(1),
@@ -148,8 +199,32 @@ class NetworkFeedFromRelaysTest {
             )
             val fetcher = fetcher(querier)
 
-            assertEquals(listOf("b", "a"), fetcher.fetchNetwork(until = 20).notes.map { it.id })
-            assertEquals(listOf("c", "b"), fetcher.fetchNetwork(limit = 2).notes.map { it.id })
+            assertEquals(3, fetcher.fetchNetwork(limit = 2).notes.size, "a ranking cannot be paged by time")
+            assertTrue(fetcher.fetchNetwork(until = 20).notes.isEmpty())
+            assertTrue(fetcher.fetchNetwork(since = 20).notes.isEmpty())
+        }
+
+    @Test
+    fun `the first page hands over the counters the order was decided from`() =
+        runTest {
+            val querier = FakeQuerier(
+                follows = friends(1),
+                notes = listOf(note("a", STRANGER, 10)),
+                reactions = listOf(reaction(friend(0), "a")),
+                otherInteractions = listOf(reply("0c".padEnd(64, '0'), "a")),
+            )
+
+            val page = fetcher(querier).fetchPage(
+                userId = ME,
+                feedSpec = networkNotesFeedSpec,
+                includeReplies = false,
+                limit = 20,
+            )
+
+            val stats = page.stats!!.eventStats.single()
+            assertEquals("a", stats.eventId)
+            assertEquals(1L, stats.likes)
+            assertEquals(1L, stats.replies)
         }
 
     @Test
@@ -203,8 +278,15 @@ class NetworkFeedFromRelaysTest {
 
     // ------------------------------------------------------------------------------- harness
 
-    private suspend fun RelayNotesFeedFetcher.fetchNetwork(limit: Int = 20, until: Long? = null) =
-        fetch(userId = ME, feedSpec = networkNotesFeedSpec, includeReplies = false, limit = limit, until = until)
+    private suspend fun RelayNotesFeedFetcher.fetchNetwork(limit: Int = 20, until: Long? = null, since: Long? = null) =
+        fetch(
+            userId = ME,
+            feedSpec = networkNotesFeedSpec,
+            includeReplies = false,
+            limit = limit,
+            until = until,
+            since = since,
+        )
 
     private fun TestScope.fetcher(querier: RelayEventQuerier): RelayNotesFeedFetcher {
         val dispatcher = UnconfinedTestDispatcher(testScheduler)
@@ -223,13 +305,24 @@ class NetworkFeedFromRelaysTest {
         private val follows: List<String>,
         private val notes: List<NostrEvent>,
         private val reactions: List<NostrEvent>,
+        /** Interactions by people who are not the user's friends, e.g. other readers' reactions, replies, zaps. */
+        private val otherInteractions: List<NostrEvent> = emptyList(),
     ) : RelayEventQuerier {
+        /** How many times the friends' reactions and reposts were asked for (a query that names authors). */
         var engagementQueries = 0
 
         override suspend fun query(filter: RelayFilter): List<NostrEvent> {
             val kinds = filter.kinds.orEmpty()
             return when {
                 NostrEventKind.FollowList.value in kinds -> listOf(followList())
+
+                filter.eventTags != null -> {
+                    // The counters of the shortlisted notes: every event that points at one of them.
+                    val wanted = filter.eventTags.orEmpty().toSet()
+                    (reactions + otherInteractions).filter { event ->
+                        event.kind in kinds && event.tags.any { it.size > 1 && it[1].toString().trim('"') in wanted }
+                    }
+                }
 
                 NostrEventKind.Reaction.value in kinds -> {
                     engagementQueries++
@@ -281,6 +374,28 @@ class NetworkFeedFromRelaysTest {
                 kind = NostrEventKind.ShortTextNote.value,
                 tags = tags,
                 content = "note $id",
+                sig = "sig",
+            )
+
+        fun reply(by: String, target: String) =
+            NostrEvent(
+                id = "reply-$by-$target",
+                pubKey = by,
+                createdAt = 1_700_000_200L,
+                kind = NostrEventKind.ShortTextNote.value,
+                tags = listOf(tag("e", target)),
+                content = "a reply",
+                sig = "sig",
+            )
+
+        fun zap(id: String, target: String, sats: Long) =
+            NostrEvent(
+                id = id,
+                pubKey = "ee".padEnd(64, '0'),
+                createdAt = 1_700_000_300L,
+                kind = NostrEventKind.Zap.value,
+                tags = listOf(tag("e", target), tag("amount", (sats * 1_000).toString())),
+                content = "",
                 sig = "sig",
             )
 

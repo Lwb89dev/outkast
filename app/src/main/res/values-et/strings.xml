@@ -1181,4 +1181,57 @@
         <item quantity="one">%d emoji</item>
         <item quantity="other">%d emojit</item>
     </plurals>
+
+    <!-- Photo editor: opens after a photo is picked for a note, before it is uploaded -->
+    <string name="photo_edit_title">Muuda fotot</string>
+    <string name="photo_edit_cancel">Tühista</string>
+    <string name="photo_edit_done">Valmis</string>
+    <string name="photo_edit_reset">Lähtesta</string>
+    <string name="photo_edit_original">Originaal</string>
+    <string name="photo_edit_failed">Muudetud fotot ei õnnestunud ette valmistada. Proovi uuesti või tühista.</string>
+    <string name="photo_edit_discard_title">Kas loobuda muudatustest?</string>
+    <string name="photo_edit_discard_message">Selle foto muudatused lähevad kaotsi.</string>
+    <string name="photo_edit_discard">Loobu</string>
+    <string name="photo_edit_keep_editing">Jätka muutmist</string>
+    <string name="photo_edit_slider_reset">Lähtesta neutraalseks</string>
+    <string name="photo_edit_tool_auto">Auto</string>
+    <string name="photo_edit_tool_light">Valgus</string>
+    <string name="photo_edit_tool_color">Värv</string>
+    <string name="photo_edit_tool_detail">Detailid</string>
+    <string name="photo_edit_tool_filters">Filtrid</string>
+    <string name="photo_edit_tool_crop">Kärbi</string>
+    <string name="photo_edit_adj_exposure">Särituse</string>
+    <string name="photo_edit_adj_brightness">Eredus</string>
+    <string name="photo_edit_adj_contrast">Kontrast</string>
+    <string name="photo_edit_adj_highlights">Heledad toonid</string>
+    <string name="photo_edit_adj_shadows">Varjud</string>
+    <string name="photo_edit_adj_black_point">Musta punkt</string>
+    <string name="photo_edit_adj_saturation">Küllastus</string>
+    <string name="photo_edit_adj_vibrance">Elavus</string>
+    <string name="photo_edit_adj_temperature">Temperatuur</string>
+    <string name="photo_edit_adj_tint">Värvitoon</string>
+    <string name="photo_edit_adj_sharpness">Teravus</string>
+    <string name="photo_edit_adj_vignette">Vinjett</string>
+    <string name="photo_edit_filter_none">Puudub</string>
+    <string name="photo_edit_filter_vivid">Elav</string>
+    <string name="photo_edit_filter_warm">Soe</string>
+    <string name="photo_edit_filter_cool">Külm</string>
+    <string name="photo_edit_filter_mono">Mono</string>
+    <string name="photo_edit_filter_noir">Noir</string>
+    <string name="photo_edit_filter_fade">Luitunud</string>
+    <string name="photo_edit_filter_chrome">Kroom</string>
+    <string name="photo_edit_filter_sepia">Seepia</string>
+    <string name="photo_edit_filter_amount">Tugevus</string>
+    <string name="photo_edit_crop_rotate">Pööra</string>
+    <string name="photo_edit_crop_flip">Peegelda</string>
+    <string name="photo_edit_shape_free">Vaba</string>
+    <string name="photo_edit_shape_original">Originaal</string>
+    <string name="photo_edit_shape_square">Ruut</string>
+    <string name="photo_edit_geo_straighten">Sirgenda</string>
+    <string name="photo_edit_geo_perspective_vertical">Vertikaalne perspektiiv</string>
+    <string name="photo_edit_geo_perspective_horizontal">Horisontaalne perspektiiv</string>
+    <string name="photo_edit_crop_area">Kärpimisala: %1$d%% kuni %2$d%% laiuses ja %3$d%% kuni %4$d%% kõrguses</string>
+    <string name="explore_section_network_title">Võrgustik</string>
+    <string name="explore_section_network_subtitle">Postitused, millega sinu sõbrad suhtlesid, inimestelt, keda sa ei jälgi</string>
+    <string name="explore_network_no_content">Sõprade sõpradelt pole veel midagi. Jälgi rohkem inimesi ja vaata hiljem uuesti: siin on postitused inimestelt, keda sa ei jälgi ja kellelt jälgitavad meeldimisi või jagamisi andsid, kõige rohkem suhtlust saanud ees.</string>
 </resources>

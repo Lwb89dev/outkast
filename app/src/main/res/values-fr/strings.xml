@@ -1181,4 +1181,57 @@
         <item quantity="one">%d émoji</item>
         <item quantity="other">%d émojis</item>
     </plurals>
+
+    <!-- Photo editor: opens after a photo is picked for a note, before it is uploaded -->
+    <string name="photo_edit_title">Modifier la photo</string>
+    <string name="photo_edit_cancel">Annuler</string>
+    <string name="photo_edit_done">Terminé</string>
+    <string name="photo_edit_reset">Réinitialiser</string>
+    <string name="photo_edit_original">Original</string>
+    <string name="photo_edit_failed">Impossible de préparer la photo modifiée. Réessayez ou annulez.</string>
+    <string name="photo_edit_discard_title">Abandonner les modifications ?</string>
+    <string name="photo_edit_discard_message">Les changements apportés à cette photo seront perdus.</string>
+    <string name="photo_edit_discard">Abandonner</string>
+    <string name="photo_edit_keep_editing">Continuer à modifier</string>
+    <string name="photo_edit_slider_reset">Revenir à la valeur neutre</string>
+    <string name="photo_edit_tool_auto">Auto</string>
+    <string name="photo_edit_tool_light">Lumière</string>
+    <string name="photo_edit_tool_color">Couleur</string>
+    <string name="photo_edit_tool_detail">Détail</string>
+    <string name="photo_edit_tool_filters">Filtres</string>
+    <string name="photo_edit_tool_crop">Recadrer</string>
+    <string name="photo_edit_adj_exposure">Exposition</string>
+    <string name="photo_edit_adj_brightness">Luminosité</string>
+    <string name="photo_edit_adj_contrast">Contraste</string>
+    <string name="photo_edit_adj_highlights">Hautes lumières</string>
+    <string name="photo_edit_adj_shadows">Ombres</string>
+    <string name="photo_edit_adj_black_point">Point noir</string>
+    <string name="photo_edit_adj_saturation">Saturation</string>
+    <string name="photo_edit_adj_vibrance">Éclat</string>
+    <string name="photo_edit_adj_temperature">Température</string>
+    <string name="photo_edit_adj_tint">Teinte</string>
+    <string name="photo_edit_adj_sharpness">Netteté</string>
+    <string name="photo_edit_adj_vignette">Vignettage</string>
+    <string name="photo_edit_filter_none">Aucun</string>
+    <string name="photo_edit_filter_vivid">Vif</string>
+    <string name="photo_edit_filter_warm">Chaud</string>
+    <string name="photo_edit_filter_cool">Froid</string>
+    <string name="photo_edit_filter_mono">Mono</string>
+    <string name="photo_edit_filter_noir">Noir</string>
+    <string name="photo_edit_filter_fade">Délavé</string>
+    <string name="photo_edit_filter_chrome">Chrome</string>
+    <string name="photo_edit_filter_sepia">Sépia</string>
+    <string name="photo_edit_filter_amount">Intensité</string>
+    <string name="photo_edit_crop_rotate">Pivoter</string>
+    <string name="photo_edit_crop_flip">Retourner</string>
+    <string name="photo_edit_shape_free">Libre</string>
+    <string name="photo_edit_shape_original">Original</string>
+    <string name="photo_edit_shape_square">Carré</string>
+    <string name="photo_edit_geo_straighten">Redresser</string>
+    <string name="photo_edit_geo_perspective_vertical">Perspective verticale</string>
+    <string name="photo_edit_geo_perspective_horizontal">Perspective horizontale</string>
+    <string name="photo_edit_crop_area">Zone de recadrage : de %1$d%% à %2$d%% en largeur et de %3$d%% à %4$d%% en hauteur</string>
+    <string name="explore_section_network_title">Réseau</string>
+    <string name="explore_section_network_subtitle">Notes avec lesquelles vos amis ont interagi, de personnes que vous ne suivez pas</string>
+    <string name="explore_network_no_content">Rien encore des amis de vos amis. Suivez plus de monde et revenez voir : cette liste affiche les notes de personnes que vous ne suivez pas, aimées ou repartagées par les gens que vous suivez, les plus sollicitées en premier.</string>
 </resources>

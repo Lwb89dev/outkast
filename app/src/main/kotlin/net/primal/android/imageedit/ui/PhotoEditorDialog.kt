@@ -22,6 +22,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -51,6 +52,13 @@ import net.primal.android.theme.AppTheme
  */
 @Composable
 fun PhotoEditorDialog(sourceUri: Uri, onDone: (editedUri: Uri?) -> Unit, onCancel: () -> Unit) {
+    // Keyed by the photo: when the next photo of a queue takes over, the previous editor's scope (and the drawing it
+    // still has running) is cancelled with it instead of living on as long as the screen that hosts the editor.
+    key(sourceUri) { PhotoEditorDialogContent(sourceUri, onDone, onCancel) }
+}
+
+@Composable
+private fun PhotoEditorDialogContent(sourceUri: Uri, onDone: (editedUri: Uri?) -> Unit, onCancel: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val state = remember(sourceUri) {

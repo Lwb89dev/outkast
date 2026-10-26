@@ -24,15 +24,17 @@ interface MutedItemDao {
     suspend fun getListByOwnerId(ownerId: String, listType: ListType): List<MutedItemData>
 
     // LEFT JOIN: a muted user whose profile was never fetched is still muted, and has to be listed so that it
-    // can be unmuted; an inner join made such a mute invisible and permanent.
+    // can be unmuted; an inner join made such a mute invisible and permanent. Only the mute row is selected (the
+    // profile comes through MutedUser's @Relation): selecting both tables' columns returned two `ownerId`s, and which
+    // one Room reads is not something to rely on, least of all when the profile side can now be NULL.
     @Transaction
     @RewriteQueriesToDropUnusedColumns
     @Query(
         """
-        SELECT * FROM MutedItemData m
-        LEFT JOIN ProfileData ON m.item = ProfileData.ownerId
+        SELECT m.* FROM MutedItemData m
+        LEFT JOIN ProfileData p ON m.item = p.ownerId
         WHERE m.ownerId = :ownerId AND m.type = 'User'
-        ORDER BY COALESCE(ProfileData.displayName, m.item) ASC
+        ORDER BY COALESCE(p.displayName, m.item) ASC
         """,
     )
     fun observeMutedUsersByOwnerId(ownerId: String): Flow<List<MutedUser>>

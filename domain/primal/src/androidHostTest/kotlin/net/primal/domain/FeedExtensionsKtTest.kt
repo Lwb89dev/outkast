@@ -151,7 +151,7 @@ class FeedExtensionsKtTest {
     fun mergeDefaultNoteFeeds_addsLatestWhenOnlyLwrExists() {
         val lwr = defaultLibreNostrNoteFeeds(profileId)[1]
         val merged = mergeDefaultNoteFeeds(profileId, listOf(lwr))
-        merged.map { it.title } shouldBe listOf("Latest", "Latest with replies")
+        merged.map { it.title } shouldBe listOf("Recent", "Recent with replies")
         defaultNoteFeedsNeedSync(listOf(lwr), merged) shouldBe true
     }
 

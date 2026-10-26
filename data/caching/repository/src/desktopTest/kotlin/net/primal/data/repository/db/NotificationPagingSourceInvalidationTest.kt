@@ -12,6 +12,9 @@ import net.primal.data.local.dao.events.EventStats
 import net.primal.data.local.dao.events.EventUri
 import net.primal.data.local.dao.events.EventUriNostr
 import net.primal.data.local.dao.events.EventUserStats
+import net.primal.data.local.dao.mutes.ListType
+import net.primal.data.local.dao.mutes.MutedItemData
+import net.primal.data.local.dao.mutes.MutedItemType
 import net.primal.data.local.dao.notes.PostData
 import net.primal.data.local.dao.notifications.Notification
 import net.primal.data.local.dao.notifications.NotificationData
@@ -37,6 +40,7 @@ import net.primal.shared.data.local.db.LocalDatabaseFactory
  *  - [NotificationData] — new notifications and seen-state updates,
  *  - [NotificationGroupCrossRef] — group membership (the paged query's join table),
  *  - [EventUserStats] — the user's own interaction flags rendered live on the embedded note,
+ *  - [MutedItemData] — the query leaves out notifications caused by muted users,
  * and must NOT invalidate on writes to any other table its relations read.
  */
 class NotificationPagingSourceInvalidationTest {
@@ -72,6 +76,22 @@ class NotificationPagingSourceInvalidationTest {
                 data = EventUserStats(eventId = NOTE_ID, userId = USER_ID, liked = true),
             )
             pagingSource.awaitInvalidation(reason = "EventUserStats write (own interaction flags)")
+        }
+
+    @Test
+    fun notificationPagingSource_invalidates_on_MutedItemData_write() =
+        withNotificationPagingSource { database, pagingSource ->
+            database.mutedItems().upsertAll(
+                data = setOf(
+                    MutedItemData(
+                        item = ACTION_USER_ID,
+                        ownerId = USER_ID,
+                        type = MutedItemType.User,
+                        listType = ListType.MuteList,
+                    ),
+                ),
+            )
+            pagingSource.awaitInvalidation(reason = "MutedItemData write (the query leaves muted users out)")
         }
 
     @Test

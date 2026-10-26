@@ -472,8 +472,8 @@
     <string name="explore_section_media_title">Media</string>
     <string name="explore_section_media_subtitle">Top images and videos on Nostr today</string>
     <string name="explore_section_network_title">Network</string>
-    <string name="explore_section_network_subtitle">What your friends engaged with, from people you don\'t follow</string>
-    <string name="explore_network_no_content">Nothing from your friends\' friends yet. Follow more people and check back: this list shows notes by people you don\'t follow that the people you follow liked or reposted.</string>
+    <string name="explore_section_network_subtitle">Notes your friends engaged with, by people you don’t follow</string>
+    <string name="explore_network_no_content">Nothing from your friends’ friends yet. Follow more people and check back: this list shows notes by people you don’t follow that the people you follow liked or reposted, the most interacted-with first.</string>
     <string name="explore_search_bar_hint">Search…</string>
     <string name="explore_landing_recent_users_title">Recent Users</string>
     <string name="explore_landing_recent_searches_title">Recent Searches</string>

@@ -1181,4 +1181,57 @@
         <item quantity="one">%d емоджи</item>
         <item quantity="other">%d емоджита</item>
     </plurals>
+
+    <!-- Photo editor: opens after a photo is picked for a note, before it is uploaded -->
+    <string name="photo_edit_title">Редактиране на снимка</string>
+    <string name="photo_edit_cancel">Отказ</string>
+    <string name="photo_edit_done">Готово</string>
+    <string name="photo_edit_reset">Нулиране</string>
+    <string name="photo_edit_original">Оригинал</string>
+    <string name="photo_edit_failed">Редактираната снимка не можа да се подготви. Опитайте отново или отказвайте.</string>
+    <string name="photo_edit_discard_title">Да се отхвърлят ли промените?</string>
+    <string name="photo_edit_discard_message">Промените, които направихте в тази снимка, ще бъдат загубени.</string>
+    <string name="photo_edit_discard">Отхвърляне</string>
+    <string name="photo_edit_keep_editing">Продължи редактирането</string>
+    <string name="photo_edit_slider_reset">Връщане към неутрално</string>
+    <string name="photo_edit_tool_auto">Авто</string>
+    <string name="photo_edit_tool_light">Светлина</string>
+    <string name="photo_edit_tool_color">Цвят</string>
+    <string name="photo_edit_tool_detail">Детайл</string>
+    <string name="photo_edit_tool_filters">Филтри</string>
+    <string name="photo_edit_tool_crop">Изрязване</string>
+    <string name="photo_edit_adj_exposure">Експозиция</string>
+    <string name="photo_edit_adj_brightness">Яркост</string>
+    <string name="photo_edit_adj_contrast">Контраст</string>
+    <string name="photo_edit_adj_highlights">Светли тонове</string>
+    <string name="photo_edit_adj_shadows">Сенки</string>
+    <string name="photo_edit_adj_black_point">Черна точка</string>
+    <string name="photo_edit_adj_saturation">Наситеност</string>
+    <string name="photo_edit_adj_vibrance">Жизненост</string>
+    <string name="photo_edit_adj_temperature">Температура</string>
+    <string name="photo_edit_adj_tint">Нюанс</string>
+    <string name="photo_edit_adj_sharpness">Рязкост</string>
+    <string name="photo_edit_adj_vignette">Виньетиране</string>
+    <string name="photo_edit_filter_none">Без</string>
+    <string name="photo_edit_filter_vivid">Ярък</string>
+    <string name="photo_edit_filter_warm">Топъл</string>
+    <string name="photo_edit_filter_cool">Студен</string>
+    <string name="photo_edit_filter_mono">Моно</string>
+    <string name="photo_edit_filter_noir">Ноар</string>
+    <string name="photo_edit_filter_fade">Избледнял</string>
+    <string name="photo_edit_filter_chrome">Хром</string>
+    <string name="photo_edit_filter_sepia">Сепия</string>
+    <string name="photo_edit_filter_amount">Сила</string>
+    <string name="photo_edit_crop_rotate">Завъртане</string>
+    <string name="photo_edit_crop_flip">Огледално</string>
+    <string name="photo_edit_shape_free">Свободно</string>
+    <string name="photo_edit_shape_original">Оригинал</string>
+    <string name="photo_edit_shape_square">Квадрат</string>
+    <string name="photo_edit_geo_straighten">Изправяне</string>
+    <string name="photo_edit_geo_perspective_vertical">Вертикална перспектива</string>
+    <string name="photo_edit_geo_perspective_horizontal">Хоризонтална перспектива</string>
+    <string name="photo_edit_crop_area">Област на изрязване: от %1$d%% до %2$d%% по ширина и от %3$d%% до %4$d%% по височина</string>
+    <string name="explore_section_network_title">Мрежа</string>
+    <string name="explore_section_network_subtitle">Бележки, с които приятелите ви са взаимодействали, от хора, които не следвате</string>
+    <string name="explore_network_no_content">Още нищо от приятелите на приятелите ви. Следвайте още хора и проверете пак: тук се показват бележки от хора, които не следвате, харесани или споделени от хората, които следвате, първо с най-много взаимодействия.</string>
 </resources>

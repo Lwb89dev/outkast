@@ -1181,4 +1181,57 @@
         <item quantity="one">%d emoji</item>
         <item quantity="other">%d emoji</item>
     </plurals>
+
+    <!-- Photo editor: opens after a photo is picked for a note, before it is uploaded -->
+    <string name="photo_edit_title">Fotó szerkesztése</string>
+    <string name="photo_edit_cancel">Mégse</string>
+    <string name="photo_edit_done">Kész</string>
+    <string name="photo_edit_reset">Visszaállítás</string>
+    <string name="photo_edit_original">Eredeti</string>
+    <string name="photo_edit_failed">A szerkesztett fotót nem sikerült előkészíteni. Próbáld újra, vagy lépj ki.</string>
+    <string name="photo_edit_discard_title">Elveted a módosításokat?</string>
+    <string name="photo_edit_discard_message">A fotón végzett módosítások elvesznek.</string>
+    <string name="photo_edit_discard">Elvetés</string>
+    <string name="photo_edit_keep_editing">Szerkesztés folytatása</string>
+    <string name="photo_edit_slider_reset">Visszaállítás semlegesre</string>
+    <string name="photo_edit_tool_auto">Auto</string>
+    <string name="photo_edit_tool_light">Fény</string>
+    <string name="photo_edit_tool_color">Szín</string>
+    <string name="photo_edit_tool_detail">Részletek</string>
+    <string name="photo_edit_tool_filters">Szűrők</string>
+    <string name="photo_edit_tool_crop">Kivágás</string>
+    <string name="photo_edit_adj_exposure">Expozíció</string>
+    <string name="photo_edit_adj_brightness">Fényerő</string>
+    <string name="photo_edit_adj_contrast">Kontraszt</string>
+    <string name="photo_edit_adj_highlights">Fények</string>
+    <string name="photo_edit_adj_shadows">Árnyékok</string>
+    <string name="photo_edit_adj_black_point">Fekete pont</string>
+    <string name="photo_edit_adj_saturation">Telítettség</string>
+    <string name="photo_edit_adj_vibrance">Élénkség</string>
+    <string name="photo_edit_adj_temperature">Hőmérséklet</string>
+    <string name="photo_edit_adj_tint">Árnyalat</string>
+    <string name="photo_edit_adj_sharpness">Élesség</string>
+    <string name="photo_edit_adj_vignette">Vignettálás</string>
+    <string name="photo_edit_filter_none">Nincs</string>
+    <string name="photo_edit_filter_vivid">Élénk</string>
+    <string name="photo_edit_filter_warm">Meleg</string>
+    <string name="photo_edit_filter_cool">Hideg</string>
+    <string name="photo_edit_filter_mono">Mono</string>
+    <string name="photo_edit_filter_noir">Noir</string>
+    <string name="photo_edit_filter_fade">Kifakult</string>
+    <string name="photo_edit_filter_chrome">Króm</string>
+    <string name="photo_edit_filter_sepia">Szépia</string>
+    <string name="photo_edit_filter_amount">Erősség</string>
+    <string name="photo_edit_crop_rotate">Forgatás</string>
+    <string name="photo_edit_crop_flip">Tükrözés</string>
+    <string name="photo_edit_shape_free">Szabad</string>
+    <string name="photo_edit_shape_original">Eredeti</string>
+    <string name="photo_edit_shape_square">Négyzet</string>
+    <string name="photo_edit_geo_straighten">Kiegyenesítés</string>
+    <string name="photo_edit_geo_perspective_vertical">Függőleges perspektíva</string>
+    <string name="photo_edit_geo_perspective_horizontal">Vízszintes perspektíva</string>
+    <string name="photo_edit_crop_area">Kivágási terület: %1$d%%–%2$d%% szélességben és %3$d%%–%4$d%% magasságban</string>
+    <string name="explore_section_network_title">Hálózat</string>
+    <string name="explore_section_network_subtitle">Bejegyzések, amelyekkel a barátaid interakcióba léptek, olyan emberektől, akiket nem követsz</string>
+    <string name="explore_network_no_content">A barátaid barátaitól még semmi. Kövess több embert, és nézz vissza később: itt azok a bejegyzések jelennek meg, amelyeket nem követett emberek írtak, és az általad követettek kedveltek vagy megosztottak, a legtöbb interakciót kapottak elöl.</string>
 </resources>

@@ -1181,4 +1181,57 @@
         <item quantity="one">%d emoji</item>
         <item quantity="other">%d emojis</item>
     </plurals>
+
+    <!-- Photo editor: opens after a photo is picked for a note, before it is uploaded -->
+    <string name="photo_edit_title">Redigera foto</string>
+    <string name="photo_edit_cancel">Avbryt</string>
+    <string name="photo_edit_done">Klar</string>
+    <string name="photo_edit_reset">Återställ</string>
+    <string name="photo_edit_original">Original</string>
+    <string name="photo_edit_failed">Det redigerade fotot kunde inte förberedas. Försök igen eller avbryt.</string>
+    <string name="photo_edit_discard_title">Förkasta ändringar?</string>
+    <string name="photo_edit_discard_message">Ändringarna du gjort i det här fotot går förlorade.</string>
+    <string name="photo_edit_discard">Förkasta</string>
+    <string name="photo_edit_keep_editing">Fortsätt redigera</string>
+    <string name="photo_edit_slider_reset">Återställ till neutralt</string>
+    <string name="photo_edit_tool_auto">Auto</string>
+    <string name="photo_edit_tool_light">Ljus</string>
+    <string name="photo_edit_tool_color">Färg</string>
+    <string name="photo_edit_tool_detail">Detalj</string>
+    <string name="photo_edit_tool_filters">Filter</string>
+    <string name="photo_edit_tool_crop">Beskär</string>
+    <string name="photo_edit_adj_exposure">Exponering</string>
+    <string name="photo_edit_adj_brightness">Ljusstyrka</string>
+    <string name="photo_edit_adj_contrast">Kontrast</string>
+    <string name="photo_edit_adj_highlights">Högdagrar</string>
+    <string name="photo_edit_adj_shadows">Skuggor</string>
+    <string name="photo_edit_adj_black_point">Svartpunkt</string>
+    <string name="photo_edit_adj_saturation">Färgmättnad</string>
+    <string name="photo_edit_adj_vibrance">Livfullhet</string>
+    <string name="photo_edit_adj_temperature">Temperatur</string>
+    <string name="photo_edit_adj_tint">Nyans</string>
+    <string name="photo_edit_adj_sharpness">Skärpa</string>
+    <string name="photo_edit_adj_vignette">Vinjettering</string>
+    <string name="photo_edit_filter_none">Inget</string>
+    <string name="photo_edit_filter_vivid">Livfull</string>
+    <string name="photo_edit_filter_warm">Varm</string>
+    <string name="photo_edit_filter_cool">Kall</string>
+    <string name="photo_edit_filter_mono">Mono</string>
+    <string name="photo_edit_filter_noir">Noir</string>
+    <string name="photo_edit_filter_fade">Blekt</string>
+    <string name="photo_edit_filter_chrome">Krom</string>
+    <string name="photo_edit_filter_sepia">Sepia</string>
+    <string name="photo_edit_filter_amount">Styrka</string>
+    <string name="photo_edit_crop_rotate">Rotera</string>
+    <string name="photo_edit_crop_flip">Spegla</string>
+    <string name="photo_edit_shape_free">Fritt</string>
+    <string name="photo_edit_shape_original">Original</string>
+    <string name="photo_edit_shape_square">Kvadrat</string>
+    <string name="photo_edit_geo_straighten">Räta upp</string>
+    <string name="photo_edit_geo_perspective_vertical">Vertikalt perspektiv</string>
+    <string name="photo_edit_geo_perspective_horizontal">Horisontellt perspektiv</string>
+    <string name="photo_edit_crop_area">Beskärningsområde: %1$d%% till %2$d%% på bredden och %3$d%% till %4$d%% på höjden</string>
+    <string name="explore_section_network_title">Nätverk</string>
+    <string name="explore_section_network_subtitle">Inlägg som dina vänner interagerat med, från personer du inte följer</string>
+    <string name="explore_network_no_content">Inget från dina vänners vänner ännu. Följ fler och titta in igen: här visas inlägg från personer du inte följer som de du följer gillat eller delat, de med flest interaktioner först.</string>
 </resources>

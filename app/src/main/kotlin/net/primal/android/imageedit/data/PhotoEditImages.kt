@@ -1,5 +1,6 @@
 package net.primal.android.imageedit.data
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -11,6 +12,7 @@ import android.media.ExifInterface
 import android.net.Uri
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.core.graphics.createBitmap
 import kotlin.math.max
 import kotlin.math.sqrt
 import net.primal.android.imageedit.domain.PixelSource
@@ -80,7 +82,13 @@ class PhotoEditLoader(private val context: Context) {
         }
     }
 
-    /** Android 8 (API 26-27) has no ImageDecoder: sample down with BitmapFactory and apply EXIF orientation by hand. */
+    /**
+     * Android 8 (API 26-27) has no ImageDecoder: sample down with BitmapFactory and apply EXIF orientation by hand.
+     *
+     * The framework `ExifInterface` is used on purpose: it is only reached on those two releases, only to read the
+     * orientation tag of a photo the user picked, and `androidx.exifinterface` is not a dependency of the app.
+     */
+    @SuppressLint("ExifInterface")
     private fun decodeWithBitmapFactory(uri: Uri, target: (Int, Int) -> Pair<Int, Int>?): Bitmap {
         val resolver = context.contentResolver
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
@@ -132,7 +140,7 @@ class PhotoEditLoader(private val context: Context) {
 
     private fun Bitmap.onWhiteIfTransparent(): Bitmap {
         if (!hasAlpha()) return this
-        val flat = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val flat = createBitmap(width, height)
         Canvas(flat).apply {
             drawColor(android.graphics.Color.WHITE)
             drawBitmap(this@onWhiteIfTransparent, 0f, 0f, null)

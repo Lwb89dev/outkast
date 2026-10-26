@@ -1181,4 +1181,57 @@
         <item quantity="one">%d emoji</item>
         <item quantity="other">%d emojia</item>
     </plurals>
+
+    <!-- Photo editor: opens after a photo is picked for a note, before it is uploaded -->
+    <string name="photo_edit_title">Muokkaa kuvaa</string>
+    <string name="photo_edit_cancel">Peruuta</string>
+    <string name="photo_edit_done">Valmis</string>
+    <string name="photo_edit_reset">Nollaa</string>
+    <string name="photo_edit_original">Alkuperäinen</string>
+    <string name="photo_edit_failed">Muokatun kuvan valmistelu epäonnistui. Yritä uudelleen tai peruuta.</string>
+    <string name="photo_edit_discard_title">Hylätäänkö muokkaukset?</string>
+    <string name="photo_edit_discard_message">Tähän kuvaan tekemäsi muutokset menetetään.</string>
+    <string name="photo_edit_discard">Hylkää</string>
+    <string name="photo_edit_keep_editing">Jatka muokkausta</string>
+    <string name="photo_edit_slider_reset">Palauta neutraaliksi</string>
+    <string name="photo_edit_tool_auto">Auto</string>
+    <string name="photo_edit_tool_light">Valo</string>
+    <string name="photo_edit_tool_color">Väri</string>
+    <string name="photo_edit_tool_detail">Yksityiskohdat</string>
+    <string name="photo_edit_tool_filters">Suodattimet</string>
+    <string name="photo_edit_tool_crop">Rajaa</string>
+    <string name="photo_edit_adj_exposure">Valotus</string>
+    <string name="photo_edit_adj_brightness">Kirkkaus</string>
+    <string name="photo_edit_adj_contrast">Kontrasti</string>
+    <string name="photo_edit_adj_highlights">Kirkkaat alueet</string>
+    <string name="photo_edit_adj_shadows">Varjot</string>
+    <string name="photo_edit_adj_black_point">Mustapiste</string>
+    <string name="photo_edit_adj_saturation">Kylläisyys</string>
+    <string name="photo_edit_adj_vibrance">Eloisuus</string>
+    <string name="photo_edit_adj_temperature">Lämpötila</string>
+    <string name="photo_edit_adj_tint">Sävy</string>
+    <string name="photo_edit_adj_sharpness">Terävyys</string>
+    <string name="photo_edit_adj_vignette">Vinjetointi</string>
+    <string name="photo_edit_filter_none">Ei mitään</string>
+    <string name="photo_edit_filter_vivid">Eloisa</string>
+    <string name="photo_edit_filter_warm">Lämmin</string>
+    <string name="photo_edit_filter_cool">Kylmä</string>
+    <string name="photo_edit_filter_mono">Mono</string>
+    <string name="photo_edit_filter_noir">Noir</string>
+    <string name="photo_edit_filter_fade">Haalistettu</string>
+    <string name="photo_edit_filter_chrome">Kromi</string>
+    <string name="photo_edit_filter_sepia">Seepia</string>
+    <string name="photo_edit_filter_amount">Voimakkuus</string>
+    <string name="photo_edit_crop_rotate">Kierrä</string>
+    <string name="photo_edit_crop_flip">Peilaa</string>
+    <string name="photo_edit_shape_free">Vapaa</string>
+    <string name="photo_edit_shape_original">Alkuperäinen</string>
+    <string name="photo_edit_shape_square">Neliö</string>
+    <string name="photo_edit_geo_straighten">Suorista</string>
+    <string name="photo_edit_geo_perspective_vertical">Pystysuuntainen perspektiivi</string>
+    <string name="photo_edit_geo_perspective_horizontal">Vaakasuuntainen perspektiivi</string>
+    <string name="photo_edit_crop_area">Rajausalue: %1$d%%–%2$d%% leveydeltä ja %3$d%%–%4$d%% korkeudelta</string>
+    <string name="explore_section_network_title">Verkosto</string>
+    <string name="explore_section_network_subtitle">Julkaisut, joihin ystäväsi reagoivat, henkilöiltä joita et seuraa</string>
+    <string name="explore_network_no_content">Ystäviesi ystäviltä ei vielä mitään. Seuraa lisää ihmisiä ja katso myöhemmin uudelleen: täällä näkyvät julkaisut henkilöiltä, joita et seuraa ja joista seuraamasi ihmiset tykkäsivät tai jotka he jakoivat, eniten reaktioita saaneet ensin.</string>
 </resources>

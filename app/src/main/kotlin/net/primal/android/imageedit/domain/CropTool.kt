@@ -1,3 +1,5 @@
+@file:Suppress("MagicNumber")
+
 package net.primal.android.imageedit.domain
 
 import kotlin.math.abs
@@ -30,6 +32,7 @@ object CropTool {
      * The handle under ([x], [y]) (fractions of the picture) within [slop] of it, corners before edges before the
      * inside; null outside.
      */
+    @Suppress("CyclomaticComplexMethod")
     fun handleAt(crop: Crop, x: Float, y: Float, slop: Float): CropHandle? {
         val nearLeft = abs(x - crop.left) <= slop
         val nearRight = abs(x - crop.right) <= slop
@@ -55,6 +58,7 @@ object CropTool {
      * The crop after dragging [handle] by ([dx], [dy]) fractions; [ratio] (width over height, in pixels) locks the
      * shape if not null.
      */
+    @Suppress("LongParameterList")
     fun drag(crop: Crop, handle: CropHandle, dx: Float, dy: Float, ratio: Float?, canvasAspect: Float): Crop {
         if (handle == CropHandle.MOVE) return move(crop, dx, dy)
         val free = resize(crop, handle, dx, dy)
