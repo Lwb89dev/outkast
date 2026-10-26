@@ -1,11 +1,13 @@
-OUTKAST 2.1.1 tidies up Orbit and makes moving between worlds faster.
+OUTKAST 2.2.0 adds a photo editor and a new way to find people, and fixes mute, unfollow, reactions and mentions.
 
-Drag sideways along the portal at the bottom of the screen to run through the worlds in one stroke,
-without opening Orbit. The Orbit menu is reorganized — Feed, Inbox, Long reads, Discover, Messages,
-Bookmarks, You, Settings — and swiping between worlds now follows the same order. The two algorithm
-tiles are merged into one, Messages has its own tile and badge instead of a switch inside Inbox, the
-edge swipe moved to the lower half of the screen (the upper half is left to the system back gesture),
-and the stray Create button on the Settings screens is gone.
+Pictures you attach now open in an editor first: crop, rotate, straighten, tone and color sliders and
+filters, with nothing changed attaching the photo untouched and edited copies leaving without location or
+camera data. Discover gets a Network section with notes by people you do not follow that your friends
+liked or reposted. Muting now sticks (the list was being wiped when relays were slow) and also hides
+people from Notifications and Messages; unfollowing removes the person from your home feed and no longer
+gets reverted by a lagging relay or drops your followed hashtags; a custom reaction stays on the note
+instead of turning into the red heart; tagged people show their name instead of an npub; and the Reply
+button is no longer cut off.
 
 Existing accounts, databases, Keystore material, signing identity and `com.librenostr.android` upgrade
 compatibility are preserved.
