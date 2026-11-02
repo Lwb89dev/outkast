@@ -1,14 +1,12 @@
-OUTKAST 2.2.1 adds a photo editor and a new way to find people, and fixes mute, unfollow, reactions and mentions.
+OUTKAST 2.3.0 adds structured NIP-20 relay responses and fixes publishing, privacy, login, compression
+and language handling.
 
-Pictures you attach now open in an editor first: crop, rotate, straighten, tone and color sliders and
-filters, with nothing changed attaching the photo untouched and edited copies leaving without location or
-camera data. Discover gets a Network section with notes by people you do not follow that your friends
-liked or reposted, the most interacted-with first (reactions plus replies plus the number of zaps).
-Muting now sticks (the list was being wiped when relays were slow) and also hides people from
-Notifications and Messages; unfollowing removes the person from your home feed and is no longer undone by
-a lagging relay; a custom reaction stays on the note instead of turning into the red heart; tagged people
-show their name instead of an npub; and the Reply button is no longer cut off. The new screens are
-translated into all 25 languages.
+Relay `OK` responses now retain the acceptance status, machine-readable prefix and human-readable
+reason, including per-relay details when every relay rejects an event. Early publish responses are
+queued instead of lost. Direct-message and mute-list requests never fall back to public relays the
+user did not choose. Login profile requests are cancelled when the key changes, compressed WebSocket
+frames decode correctly, and the system-language option respects Android's per-app locale. The Italian
+relay-deletion confirmation also shows the relay URL again.
 
 Existing accounts, databases, Keystore material, signing identity and `com.librenostr.android` upgrade
 compatibility are preserved.

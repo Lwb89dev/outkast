@@ -7,6 +7,7 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitCancellation
@@ -27,6 +28,8 @@ import net.primal.core.networking.sockets.NostrIncomingMessage
 import net.primal.core.networking.sockets.NostrSocketClient
 import net.primal.core.networking.sockets.NostrSocketClientFactory
 import net.primal.core.testing.CoroutinesTestRule
+import net.primal.core.utils.coroutines.DispatcherProvider
+import net.primal.core.utils.runCatching
 import net.primal.domain.common.exception.NetworkException
 import net.primal.domain.nostr.NostrEvent
 import net.primal.domain.nostr.serialization.toNostrJsonObject
@@ -128,6 +131,85 @@ class RelayPoolTest {
             )
 
             relayPool.publishEvent(nostrEvent)
+        }
+
+    @Test
+    fun publishEvent_responseArrivingBeforeCollectorIsNotLost() =
+        runTest {
+            val eagerDispatchers = object : DispatcherProvider {
+                override fun io() = Dispatchers.Unconfined
+                override fun main() = Dispatchers.Unconfined
+            }
+            val relayPool = RelayPool(
+                dispatchers = eagerDispatchers,
+                nostrSocketClientFactory = mockk(relaxed = true),
+            )
+            val eventId = "eager-response-id"
+            val incoming = MutableSharedFlow<NostrIncomingMessage>(replay = 1).apply {
+                tryEmit(
+                    NostrIncomingMessage.OkMessage(
+                        eventId = eventId,
+                        success = false,
+                        message = "blocked: not allowed",
+                    ),
+                )
+            }
+            relayPool.socketClients = listOf(
+                mockk<NostrSocketClient>(relaxed = true) {
+                    every { socketUrl } returns "wss://eager.example"
+                    every { incomingMessages } returns incoming
+                    every { connectionGeneration } returns MutableStateFlow(0L)
+                },
+            )
+
+            val error = runCatching {
+                relayPool.publishEvent(buildNostrEvent(eventId))
+            }.exceptionOrNull()
+
+            (error is NostrPublishException) shouldBe true
+            error as NostrPublishException
+            error.relayResults.single().relayUrl shouldBe "wss://eager.example"
+            error.relayResults.single().result?.humanReadableMessage shouldBe "not allowed"
+            testScheduler.currentTime shouldBe 0
+        }
+
+    @Test
+    fun publishEvent_preservesNip20RejectionDetailsFromEveryRelay() =
+        runTest {
+            val relayPool = buildRelayPool()
+            val eventId = "detailed-rejection-id"
+            val rejections = listOf(
+                Triple("wss://blocked.example", "blocked", "pubkey not registered"),
+                Triple("wss://invalid.example", "invalid", "event creation date is too far off"),
+            )
+            relayPool.socketClients = rejections.map { (url, prefix, description) ->
+                mockk<NostrSocketClient>(relaxed = true) {
+                    every { socketUrl } returns url
+                    every { incomingMessages } returns flowOf(
+                        NostrIncomingMessage.OkMessage(
+                            eventId = eventId,
+                            success = false,
+                            message = "$prefix: $description",
+                        ),
+                    ).shareIn(scope = this@runTest, started = SharingStarted.Lazily)
+                    every { connectionGeneration } returns MutableStateFlow(0L)
+                }
+            }
+
+            val error = runCatching {
+                relayPool.publishEvent(buildNostrEvent(eventId = eventId))
+            }.exceptionOrNull()
+
+            (error is NostrPublishException) shouldBe true
+            error as NostrPublishException
+            val resultsByRelay = error.relayResults.associateBy { it.relayUrl }
+            resultsByRelay.keys shouldBe rejections.map { it.first }.toSet()
+            rejections.forEach { (url, prefix, description) ->
+                val result = resultsByRelay.getValue(url).result
+                result?.prefix?.wireValue shouldBe prefix
+                result?.humanReadableMessage shouldBe description
+                error.message?.contains("$url: $prefix: $description") shouldBe true
+            }
         }
 
     @Test

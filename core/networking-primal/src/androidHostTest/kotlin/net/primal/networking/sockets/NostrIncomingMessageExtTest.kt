@@ -67,4 +67,22 @@ class NostrIncomingMessageExtTest {
 
             actual shouldBe listOf(notice)
         }
+
+    @org.junit.Test
+    fun `filterByEventId drops OK for another event`() =
+        runTest {
+            val expected = NostrIncomingMessage.OkMessage(eventId = "my-event", success = true)
+            val messages = flowOf(
+                NostrIncomingMessage.OkMessage(
+                    eventId = "other-event",
+                    success = false,
+                    message = "invalid: wrong event",
+                ),
+                expected,
+            )
+
+            val actual = messages.filterByEventId(id = "my-event").toList()
+
+            actual shouldBe listOf(expected)
+        }
 }

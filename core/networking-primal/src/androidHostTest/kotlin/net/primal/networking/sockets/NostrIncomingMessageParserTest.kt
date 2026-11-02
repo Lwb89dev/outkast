@@ -11,6 +11,7 @@ import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.put
+import net.primal.core.networking.sockets.NostrCommandResultPrefix
 import net.primal.core.networking.sockets.NostrIncomingMessage
 import net.primal.core.networking.sockets.parseIncomingMessage
 import net.primal.domain.nostr.NostrEvent
@@ -90,7 +91,7 @@ class NostrIncomingMessageParserTest {
     }
 
     @org.junit.Test
-    fun `OK false message parsed as OkMessage`() {
+    fun `OK false message parsed with NIP-20 rejection details`() {
         val jsonMessage = buildJsonArray {
             add("OK")
             add("ThisIsEventId")
@@ -100,10 +101,16 @@ class NostrIncomingMessageParserTest {
 
         val actual = jsonMessage.toString().parseIncomingMessage()
         actual should beInstanceOf<NostrIncomingMessage.OkMessage>()
+        val ok = actual as NostrIncomingMessage.OkMessage
+        ok.eventId shouldBe "ThisIsEventId"
+        ok.success shouldBe false
+        ok.machineReadablePrefix shouldBe "blocked"
+        ok.prefix shouldBe NostrCommandResultPrefix.Blocked
+        ok.humanReadableMessage shouldBe "pubkey not registered."
     }
 
     @org.junit.Test
-    fun `OK true message parsed as OkMessage`() {
+    fun `OK true message parsed with empty human readable message`() {
         val jsonMessage = buildJsonArray {
             add("OK")
             add("ThisIsEventId")
@@ -113,6 +120,44 @@ class NostrIncomingMessageParserTest {
 
         val actual = jsonMessage.toString().parseIncomingMessage()
         actual should beInstanceOf<NostrIncomingMessage.OkMessage>()
+        val ok = actual as NostrIncomingMessage.OkMessage
+        ok.eventId shouldBe "ThisIsEventId"
+        ok.success shouldBe true
+        ok.machineReadablePrefix shouldBe null
+        ok.prefix shouldBe null
+        ok.humanReadableMessage shouldBe null
+    }
+
+    @org.junit.Test
+    fun `OK message recognizes every supported command result prefix`() {
+        NostrCommandResultPrefix.entries.forEach { expected ->
+            val jsonMessage = buildJsonArray {
+                add("OK")
+                add("ThisIsEventId")
+                add(false)
+                add("${expected.wireValue}: human readable detail")
+            }
+
+            val ok = jsonMessage.toString().parseIncomingMessage() as NostrIncomingMessage.OkMessage
+            ok.machineReadablePrefix shouldBe expected.wireValue
+            ok.prefix shouldBe expected
+            ok.humanReadableMessage shouldBe "human readable detail"
+        }
+    }
+
+    @org.junit.Test
+    fun `OK message preserves an unknown extension prefix`() {
+        val jsonMessage = buildJsonArray {
+            add("OK")
+            add("ThisIsEventId")
+            add(false)
+            add("future-extension: human readable detail")
+        }
+
+        val ok = jsonMessage.toString().parseIncomingMessage() as NostrIncomingMessage.OkMessage
+        ok.machineReadablePrefix shouldBe "future-extension"
+        ok.prefix shouldBe null
+        ok.humanReadableMessage shouldBe "human readable detail"
     }
 
     @org.junit.Test

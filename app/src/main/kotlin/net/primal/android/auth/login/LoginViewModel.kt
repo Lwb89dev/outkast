@@ -7,6 +7,7 @@ import io.github.aakira.napier.Napier
 import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -141,9 +142,12 @@ class LoginViewModel @Inject constructor(
         changeLoginInput(input = "")
     }
 
+    private var loginInputJob: Job? = null
+
     private fun changeLoginInput(input: String, credentialType: CredentialType? = null) {
         setState { copy(loginInput = input) }
-        viewModelScope.launch {
+        loginInputJob?.cancel()
+        loginInputJob = viewModelScope.launch {
             when {
                 input.isValidNostrPrivateKey() -> {
                     setState { copy(isValidKey = true, credentialType = credentialType ?: CredentialType.PrivateKey) }
@@ -170,20 +174,19 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    private fun fetchProfileDetails(npub: String) =
-        viewModelScope.launch {
-            setState { copy(fetchingProfileDetails = true) }
-            val profile = withContext(dispatcherProvider.io()) {
-                try {
-                    npub.asHexPubkeyOrNull()?.let { userId ->
-                        profileRepository.fetchProfile(profileId = userId)
-                        profileRepository.findProfileDataOrNull(profileId = userId)
-                    }
-                } catch (error: NetworkException) {
-                    Napier.w(throwable = error) { "Failed to fetch profile details for npub=$npub" }
-                    null
+    private suspend fun fetchProfileDetails(npub: String) {
+        setState { copy(fetchingProfileDetails = true) }
+        val profile = withContext(dispatcherProvider.io()) {
+            try {
+                npub.asHexPubkeyOrNull()?.let { userId ->
+                    profileRepository.fetchProfile(profileId = userId)
+                    profileRepository.findProfileDataOrNull(profileId = userId)
                 }
+            } catch (error: NetworkException) {
+                Napier.w(throwable = error) { "Failed to fetch profile details for npub=$npub" }
+                null
             }
-            setState { copy(fetchingProfileDetails = false, profileDetails = profile?.asProfileDetailsUi()) }
         }
+        setState { copy(fetchingProfileDetails = false, profileDetails = profile?.asProfileDetailsUi()) }
+    }
 }

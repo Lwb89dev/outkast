@@ -29,6 +29,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -37,6 +38,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.buildJsonObject
 import net.primal.core.networking.primal.BasePrimalApiClient
 import net.primal.core.networking.primal.PrimalCacheFilter
+import net.primal.core.networking.sockets.NostrIncomingMessage
 import net.primal.core.networking.sockets.NostrSocketClientImpl
 import net.primal.core.networking.sockets.RelayBackingOffException
 import net.primal.core.networking.sockets.RelayConnectionBackoff
@@ -46,6 +48,10 @@ import net.primal.core.testing.CoroutinesTestRule
 import net.primal.domain.common.exception.NetworkException
 import org.junit.After
 import org.junit.Before
+import okio.Buffer
+import okio.GzipSink
+import okio.buffer
+import okio.use
 import org.junit.Rule
 import org.junit.Test
 
@@ -98,6 +104,36 @@ class NostrSocketClientImplTest {
             every { incoming } returns incomingFrames
             coEvery { send(capture(sentFrames)) } just Runs
         }
+
+    @Test
+    fun compressedBinaryFrame_isDecodedIntoAnIncomingMessage() =
+        runTest {
+            val incomingChannel = Channel<Frame>(capacity = Channel.UNLIMITED)
+            every { mockWebSocketSession.incoming } returns incomingChannel
+            val client = NostrSocketClientImpl(
+                dispatcherProvider = coroutinesTestRule.dispatcherProvider,
+                httpClient = mockHttpClient,
+                wssUrl = "wss://relay.primal.net",
+                incomingCompressionEnabled = true,
+                connectionBackoff = RelayConnectionBackoff(),
+            )
+            val received = async { client.incomingMessages.first() }
+            client.ensureSocketConnectionOrThrow()
+            runCurrent()
+
+            incomingChannel.send(Frame.Binary(fin = true, data = gzip("""["NOTICE","hello"]""")))
+            advanceUntilIdle()
+
+            received.isCompleted shouldBe true
+            received.await() shouldBe NostrIncomingMessage.NoticeMessage(message = "hello")
+            incomingChannel.close()
+        }
+
+    private fun gzip(text: String): ByteArray {
+        val buffer = Buffer()
+        GzipSink(buffer).buffer().use { sink -> sink.writeUtf8(text) }
+        return buffer.readByteArray()
+    }
 
     @Test
     fun sendREQ_sendsTextFrameToWebSocket() =

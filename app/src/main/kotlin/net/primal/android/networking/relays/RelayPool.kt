@@ -16,12 +16,13 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.filterIsInstance
@@ -290,7 +291,7 @@ class RelayPool(
 
     @OptIn(FlowPreview::class)
     private suspend fun handlePublishEventToRelays(relayConnections: List<NostrSocketClient>, nostrEvent: NostrEvent) {
-        val responseFlow = MutableSharedFlow<NostrPublishResult>()
+        val responseChannel = Channel<NostrPublishResult>(capacity = relayConnections.size)
         relayConnections.forEach { nostrSocketClient ->
             scope.launch {
                 with(nostrSocketClient) {
@@ -300,31 +301,30 @@ class RelayPool(
                             .first()
                     }
                     sendEventResult.getOrNull()?.let {
-                        responseFlow.emit(NostrPublishResult(result = it))
+                        if (!it.success) {
+                            Napier.w { "EVENT rejected by $socketUrl: ${it.message.orEmpty()}" }
+                        }
+                        responseChannel.send(NostrPublishResult(relayUrl = socketUrl, result = it))
                     }
                     sendEventResult.exceptionOrNull()?.let {
                         Napier.w(throwable = it) { "sendEVENT failed to $socketUrl" }
-                        responseFlow.emit(NostrPublishResult(error = it))
+                        responseChannel.send(NostrPublishResult(relayUrl = socketUrl, error = it))
                     }
                 }
             }
         }
 
-        var responseCount = 0
-        responseFlow.timeout(PUBLISH_TIMEOUT.milliseconds)
-            .catch { throw NostrPublishException(cause = it) }
+        val relayResults = mutableListOf<NostrPublishResult>()
+        responseChannel.receiveAsFlow().timeout(PUBLISH_TIMEOUT.milliseconds)
+            .catch { throw NostrPublishException(cause = it, relayResults = relayResults.toList()) }
             .transform {
                 emit(it)
-                responseCount++
-                if (relayConnections.size == responseCount && !it.isSuccessful()) {
-                    throw NostrPublishException(cause = null)
+                relayResults += it
+                if (relayConnections.size == relayResults.size && !it.isSuccessful()) {
+                    throw NostrPublishException(cause = null, relayResults = relayResults.toList())
                 }
             }
             .first { it.isSuccessful() }
-    }
-
-    private fun NostrPublishResult.isSuccessful(): Boolean {
-        return result is NostrIncomingMessage.OkMessage && result.success
     }
 
     /**

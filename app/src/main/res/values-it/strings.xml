@@ -730,7 +730,7 @@
     <string name="settings_network_restore_default_relays_description">Vuoi davvero ripristinare i relay predefiniti?</string>
     <string name="settings_network_restore_default_relays_text_button">Ripristina relay predefiniti</string>
     <string name="settings_network_delete_relay_title">Confermare la cancellazione</string>
-    <string name="settings_network_delete_relay_description">Rimuovere questo relay dalla tua lista?</string>
+    <string name="settings_network_delete_relay_description">Vuoi davvero rimuovere il relay <b>%1$s</b> dalla tua lista?</string>
     <string name="settings_network_caching_service_section">Servizio di caching</string>
     <string name="settings_network_switch_caching_service">Servizio di Caching Switch</string>
     <string name="settings_network_restore_default_caching_service_title">Ripristinare Default</string>

@@ -40,8 +40,7 @@ import net.primal.core.utils.runCatching
 import net.primal.domain.common.exception.NetworkException
 import okio.Buffer
 import okio.GzipSink
-import okio.Inflater
-import okio.InflaterSource
+import okio.GzipSource
 import okio.buffer
 import okio.use
 
@@ -405,14 +404,18 @@ internal class NostrSocketClientImpl(
     }
 
     private fun decompressMessage(compressedMessage: ByteArray): String {
-        val buffer = Buffer().write(compressedMessage)
-        InflaterSource(buffer, Inflater(false)).buffer().use { source ->
-            val bytes = source.readByteArray((MAX_SOCKET_MESSAGE_CHARS + 1).toLong())
-            if (bytes.size > MAX_SOCKET_MESSAGE_CHARS) {
+        val compressedBuffer = Buffer().write(compressedMessage)
+        val decompressedBuffer = Buffer()
+        GzipSource(compressedBuffer).buffer().use { source ->
+            while (decompressedBuffer.size <= MAX_SOCKET_MESSAGE_CHARS) {
+                val remaining = MAX_SOCKET_MESSAGE_CHARS + 1L - decompressedBuffer.size
+                if (source.read(decompressedBuffer, remaining) == -1L) break
+            }
+            if (decompressedBuffer.size > MAX_SOCKET_MESSAGE_CHARS) {
                 Napier.w { "Dropping decompressed WS payload exceeding cap from $socketUrl." }
                 return ""
             }
-            return bytes.decodeToString()
+            return decompressedBuffer.readByteArray().decodeToString()
         }
     }
 

@@ -60,6 +60,13 @@ class ValidationUtilsTest {
     }
 
     @Test
+    fun isValidNostrPublicKey_returnsTrueForValidNpub() {
+        val npub = "npub1w0rthyjyp2f5gful0gm2500pwyxfrx93a85289xdz0sd6hyef33sh2cu4x"
+
+        npub.isValidNostrPublicKey() shouldBe true
+    }
+
+    @Test
     fun asHexPubkeyOrNull_returnsNullForEmptyPubkey() {
         "".asHexPubkeyOrNull() shouldBe null
     }

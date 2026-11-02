@@ -10,6 +10,7 @@ import io.mockk.slot
 import io.mockk.unmockkObject
 import io.mockk.verify
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.flowOf
@@ -371,6 +372,44 @@ class RelaysSocketManagerTest {
                     onSocketConnectionOpened = any(),
                     onSocketConnectionClosed = any(),
                 )
+            }
+        }
+
+    @Test
+    fun `private query without user relays never uses fallback sockets`() =
+        runTest {
+            val fallbackSockets = mutableListOf<NostrSocketClient>()
+            every {
+                NostrSocketClientFactory.create(
+                    wssUrl = any(),
+                    incomingCompressionEnabled = any(),
+                    onSocketConnectionOpened = any(),
+                    onSocketConnectionClosed = any(),
+                )
+            } answers {
+                mockk<NostrSocketClient>(relaxed = true) {
+                    every { socketUrl } returns firstArg()
+                    every { incomingMessages } returns MutableSharedFlow()
+                    every { connectionGeneration } returns MutableStateFlow(0L)
+                }.also(fallbackSockets::add)
+            }
+            val manager = buildRelaysSocketManager(usersDatabase = buildUsersDatabase(relays = emptyList()))
+            advanceUntilIdle()
+            val privateFilter = kotlinx.serialization.json.buildJsonObject {
+                put(
+                    "kinds",
+                    kotlinx.serialization.json.buildJsonArray {
+                        add(kotlinx.serialization.json.JsonPrimitive(NostrEventKind.EncryptedDirectMessages.value))
+                    },
+                )
+            }
+
+            manager.queryEvents(privateFilter)
+            advanceUntilIdle()
+
+            fallbackSockets.isNotEmpty() shouldBe true
+            fallbackSockets.forEach { socket ->
+                coVerify(exactly = 0) { socket.sendREQ(any(), any()) }
             }
         }
 

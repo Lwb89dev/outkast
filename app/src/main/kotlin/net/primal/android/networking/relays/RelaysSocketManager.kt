@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -283,9 +284,9 @@ class RelaysSocketManager @Inject constructor(
 
     suspend fun queryEvents(filter: JsonObject): RelayPoolQueryResult {
         // A REQ for a private kind discloses the user's pubkey and what they are reading to every
-        // relay that receives it. Those queries stay on the account's own relays whenever the user
-        // configured any, instead of also being broadcast to the hardcoded public fallback set.
-        val skipFallback = filter.isPrivateScopeFilter() && userRelaysPool.hasRelays()
+        // relay that receives it. Never broadcast those queries to relays the user did not choose,
+        // including when the account has no configured relays and the result must stay empty.
+        val skipFallback = filter.isPrivateScopeFilter()
         return coroutineScope {
             // Query both pools. Account relays are authoritative for private/follow data, while
             // public notes are often replicated only on fallback relays. Returning the first
@@ -402,8 +403,10 @@ class RelaysSocketManager @Inject constructor(
     }
 
     override fun subscribe(filter: RelayFilter): Flow<NostrEvent> {
+        val jsonFilter = filter.toJsonObject()
+        if (jsonFilter.isPrivateScopeFilter() && !userRelaysPool.hasRelays()) return emptyFlow()
         val pool = userRelaysPool.takeIf { it.hasRelays() } ?: fallbackRelaysPool
-        return pool.subscribe(filter.toJsonObject())
+        return pool.subscribe(jsonFilter)
     }
 
     fun lastQueryStats() = userRelaysPool.lastQueryStats.value ?: fallbackRelaysPool.lastQueryStats.value

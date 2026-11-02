@@ -9,6 +9,31 @@ the LibreNostr/OUTKAST fork on top of the imported `3.5.25` baseline.
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-11-02
+
+### Added
+
+- **NIP-20 command results.** Relay `OK` responses now expose the event id, acceptance status,
+  machine-readable prefix and human-readable detail. The standard `duplicate`, `pow`, `blocked`,
+  `rate-limited`, `invalid`, `restricted`, `mute` and `error` prefixes are supported, together with
+  NIP-42's `auth-required` and forward-compatible unknown prefixes. Publishing still completes as soon
+  as one relay accepts the event; when every relay refuses it, the error includes each relay's URL and
+  the reason it returned.
+
+### Fixed
+
+- Relay responses that arrive before the publish collector is attached are queued instead of being
+  lost, so an immediate acceptance or rejection no longer turns into a ten-second timeout.
+- Direct-message and mute-list requests no longer fall back to public relays the user did not choose,
+  including when the account has no configured relays. Private subscriptions behave the same way.
+- Changing the key on the login screen cancels the previous profile request, preventing a slower,
+  older response from replacing the profile for the newly entered key.
+- Compressed WebSocket frames now use the correct gzip decoder and incremental bounded reads, instead
+  of failing on ordinary payloads or attempting an exact 1 MiB + 1 byte read.
+- The system-language option now respects Android's per-app locale instead of forcing the device-wide
+  language.
+- The Italian relay-deletion confirmation once again includes the relay URL.
+
 ## [2.2.1] - 2026-10-26
 
 ### Added

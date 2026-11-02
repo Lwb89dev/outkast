@@ -19,7 +19,20 @@ sealed class NostrIncomingMessage {
         val eventId: String,
         val success: Boolean,
         val message: String? = null,
-    ) : NostrIncomingMessage()
+    ) : NostrIncomingMessage() {
+        val machineReadablePrefix: String?
+            get() = message
+                ?.substringBefore(delimiter = ':', missingDelimiterValue = "")
+                ?.takeIf { prefix -> prefix.isNotEmpty() && prefix.none { it.isWhitespace() } }
+
+        val prefix: NostrCommandResultPrefix?
+            get() = NostrCommandResultPrefix.fromWireValue(machineReadablePrefix)
+
+        val humanReadableMessage: String?
+            get() = message?.let { value ->
+                if (machineReadablePrefix == null) value else value.substringAfter(':').trim()
+            }?.takeIf { it.isNotEmpty() }
+    }
 
     data class NoticeMessage(
         val subscriptionId: String? = null,
