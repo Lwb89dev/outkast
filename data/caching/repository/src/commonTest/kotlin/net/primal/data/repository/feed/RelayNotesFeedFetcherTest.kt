@@ -41,6 +41,15 @@ class RelayNotesFeedFetcherTest {
         sig = "sig",
     )
 
+    private fun imeta(url: String) = buildJsonArray {
+        add(JsonPrimitive("imeta"))
+        add(JsonPrimitive("url $url"))
+        add(JsonPrimitive("m image/jpeg"))
+    }
+
+    private fun pictureJson(picture: NostrEvent): String =
+        """{"id":"${picture.id}","pubkey":"${picture.pubKey}","created_at":${picture.createdAt},"kind":${picture.kind},"tags":[["imeta","url https://cdn.example/a.jpg","m image/jpeg"]],"content":"${picture.content}","sig":"${picture.sig}"}"""
+
     @Test
     fun pubkeyTagValues_readsPTags() {
         val tags = listOf(
@@ -84,6 +93,19 @@ class RelayNotesFeedFetcherTest {
         response.paging?.sinceId shouldBe 10
         response.paging?.untilId shouldBe 20
         response.paging?.elements shouldBe listOf("n1", "n0", "r1")
+    }
+
+    @Test
+    fun toFeedResponse_keepsAPictureAndAPictureRepost() {
+        val picture = event("p1", "alice", NostrEventKind.PictureNote.value, 30, tags = listOf(imeta("https://cdn.example/a.jpg")))
+        val wrapper = event("g1", "bob", NostrEventKind.GenericRepost.value, 25).copy(content = pictureJson(picture))
+        val articleRepost = event("g2", "carol", NostrEventKind.GenericRepost.value, 12).copy(content = "{}")
+
+        val response = listOf(picture, wrapper, articleRepost).toFeedResponse(metadata = emptyList())
+
+        response.pictureNotes.map { it.id } shouldBe listOf("p1")
+        response.genericReposts.map { it.id } shouldBe listOf("g1")
+        response.notes shouldBe emptyList()
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)

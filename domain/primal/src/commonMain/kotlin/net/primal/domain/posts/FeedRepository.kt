@@ -163,6 +163,8 @@ interface FeedRepository {
         val DEFAULT_FEED_KINDS = listOf(
             NostrEventKind.ShortTextNote.value,
             NostrEventKind.ShortTextNoteRepost.value,
+            NostrEventKind.GenericRepost.value,
+            NostrEventKind.PictureNote.value,
             NostrEventKind.Poll.value,
             NostrEventKind.ZapPoll.value,
         )

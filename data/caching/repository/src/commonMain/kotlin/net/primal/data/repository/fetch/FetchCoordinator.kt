@@ -20,6 +20,8 @@ import net.primal.data.repository.feed.referencedNoteIds
 import net.primal.domain.nostr.NostrEvent
 import net.primal.domain.nostr.NostrEventKind
 import net.primal.domain.nostr.eventIdTagValues
+import net.primal.domain.nostr.getTagValueOrNull
+import net.primal.domain.nostr.isUppercaseEventIdTag
 import net.primal.domain.nostr.relay.RelayEventQuerier
 import net.primal.domain.nostr.relay.RelayFilter
 
@@ -127,10 +129,18 @@ internal class FetchCoordinator(
             items = eventIds,
             keyOf = { FetchKey.EventInteractions(it) },
             belongsTo = { event, eventId ->
-                eventId in event.tags.eventIdTagValues() || eventId in listOf(event).referencedNoteIds()
+                eventId in event.tags.eventIdTagValues() ||
+                    eventId in listOf(event).referencedNoteIds() ||
+                    event.namesRoot(eventId)
             },
             query = { ids -> queryInteractions(querier, ids) },
         )
+
+    /** A NIP-22 comment names the thread root with uppercase `E`, which `#e` does not see. */
+    private fun NostrEvent.namesRoot(eventId: String): Boolean {
+        if (kind != NostrEventKind.Comment.value) return false
+        return tags.any { tag -> tag.isUppercaseEventIdTag() && tag.getTagValueOrNull() == eventId }
+    }
 
     /**
      * Kind 3 for [pubkey], coalesced and briefly cached.
@@ -337,7 +347,19 @@ internal class FetchCoordinator(
                     )
                 }
             }
-            (byEventTag + byQuoteTag).awaitAll().flatten().distinctBy { it.id }
+            // A nested NIP-22 comment names the root with `E`, not `e`, so `#e` never sees it.
+            val byRootEventTag = chunks.map { chunk ->
+                async {
+                    querier.queryOrEmpty(
+                        RelayFilter(
+                            kinds = listOf(NostrEventKind.Comment.value),
+                            rootEventTags = chunk,
+                            limit = MAX_INTERACTIONS_PER_QUERY,
+                        ),
+                    )
+                }
+            }
+            (byEventTag + byQuoteTag + byRootEventTag).awaitAll().flatten().distinctBy { it.id }
         }
 
     private suspend fun RelayEventQuerier.queryOrEmpty(filter: RelayFilter): List<NostrEvent> =
@@ -440,7 +462,9 @@ internal class FetchCoordinator(
         private val INTERACTION_KINDS = listOf(
             NostrEventKind.Reaction.value,
             NostrEventKind.ShortTextNote.value,
+            NostrEventKind.Comment.value,
             NostrEventKind.ShortTextNoteRepost.value,
+            NostrEventKind.GenericRepost.value,
             NostrEventKind.Zap.value,
         )
     }

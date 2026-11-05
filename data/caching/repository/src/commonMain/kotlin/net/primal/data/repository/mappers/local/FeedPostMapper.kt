@@ -6,6 +6,7 @@ import net.primal.data.local.dao.notes.FeedPost as FeedPostPO
 import net.primal.data.local.dao.notes.FeedPostUserStats
 import net.primal.data.local.dao.notes.PostData
 import net.primal.data.repository.mappers.authorNameUiFriendly
+import net.primal.data.repository.mappers.remote.asEventLinks
 import net.primal.data.repository.mappers.usernameUiFriendly
 import net.primal.domain.events.EventZap
 import net.primal.domain.events.ZapKind
@@ -30,6 +31,7 @@ internal fun PostData.mapAsFeedPostDO(): FeedPost {
         timestamp = Instant.fromEpochSeconds(this.createdAt),
         rawNostrEvent = this.raw,
         hashtags = this.hashtags,
+        links = asEventLinks(),
         replyToAuthor = this.replyToAuthorId?.let { replyToAuthorId ->
             FeedPostAuthor(
                 authorId = replyToAuthorId,

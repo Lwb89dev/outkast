@@ -20,6 +20,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -87,6 +89,62 @@ fun NoteContent(
     onUrlClick: ((url: String) -> Unit)? = null,
     onVideoSoundToggle: ((soundOn: Boolean) -> Unit)? = null,
     onPollOptionSelected: ((optionId: String) -> Unit)? = null,
+) {
+    val warning = data.contentWarning
+    var revealed by rememberSaveable(data.noteId) { mutableStateOf(warning == null) }
+    if (warning != null && !revealed) {
+        SensitiveContentNotice(
+            reason = warning,
+            onReveal = { revealed = true },
+            modifier = modifier,
+        )
+    } else {
+        RevealedNoteContent(
+            modifier = modifier,
+            data = data,
+            rendered = rendered,
+            expanded = expanded,
+            noteCallbacks = noteCallbacks,
+            nestingLevel = nestingLevel,
+            nestingCutOffLimit = nestingCutOffLimit,
+            maxLines = maxLines,
+            overflow = overflow,
+            textSelectable = textSelectable,
+            referencedEventsHaveBorder = referencedEventsHaveBorder,
+            couldAutoPlay = couldAutoPlay,
+            highlightColor = highlightColor,
+            contentColor = contentColor,
+            referencedEventsContainerColor = referencedEventsContainerColor,
+            onClick = onClick,
+            onUrlClick = onUrlClick,
+            onVideoSoundToggle = onVideoSoundToggle,
+            onPollOptionSelected = onPollOptionSelected,
+        )
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun RevealedNoteContent(
+    modifier: Modifier,
+    data: NoteContentUi,
+    rendered: RenderedNoteContent?,
+    expanded: Boolean,
+    noteCallbacks: NoteCallbacks,
+    nestingLevel: Int,
+    nestingCutOffLimit: Int,
+    maxLines: Int,
+    overflow: TextOverflow,
+    textSelectable: Boolean,
+    referencedEventsHaveBorder: Boolean,
+    couldAutoPlay: Boolean,
+    highlightColor: Color,
+    contentColor: Color,
+    referencedEventsContainerColor: Color,
+    onClick: ((offset: Offset) -> Unit)?,
+    onUrlClick: ((url: String) -> Unit)?,
+    onVideoSoundToggle: ((soundOn: Boolean) -> Unit)?,
+    onPollOptionSelected: ((optionId: String) -> Unit)?,
 ) {
     // The retry ViewModel (and its resolvedUris collector) is only meaningful for a note that
     // actually has an unresolved/"not found" reference — most rendered notes don't. Instantiating

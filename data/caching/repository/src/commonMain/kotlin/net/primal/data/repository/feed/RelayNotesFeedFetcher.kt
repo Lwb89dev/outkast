@@ -12,6 +12,7 @@ import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import net.primal.core.utils.getOrDefault
 import net.primal.core.utils.runCatching
+import net.primal.core.utils.serialization.decodeFromJsonStringOrNull
 import net.primal.data.local.dao.events.EventStats
 import net.primal.data.remote.api.feed.model.FeedResponse
 import net.primal.data.repository.cache.LocalEventCache
@@ -34,6 +35,8 @@ import net.primal.domain.nostr.eventIdTagValues
 import net.primal.domain.nostr.findFirstIdentifier
 import net.primal.domain.nostr.hasEventIdTag
 import net.primal.domain.nostr.isComment
+import net.primal.domain.nostr.isDisplayablePictureNote
+import net.primal.domain.nostr.isReply
 import net.primal.domain.nostr.pubkeyTagValues
 import net.primal.domain.nostr.relay.RelayEventQuerier
 import net.primal.domain.nostr.relay.RelayFilter
@@ -214,19 +217,37 @@ internal class RelayNotesFeedFetcher(
         )
     }
 
-    private fun NostrEvent.isShownInFeed(includeReplies: Boolean): Boolean =
-        when (kind) {
+    private fun NostrEvent.isShownInFeed(includeReplies: Boolean): Boolean {
+        val now = Clock.System.now().epochSeconds
+        return when (kind) {
             NostrEventKind.ShortTextNote.value -> includeReplies || !tags.hasEventIdTag()
             NostrEventKind.ShortTextNoteRepost.value -> true
+            NostrEventKind.PictureNote.value ->
+                isDisplayablePictureNote(now) && (includeReplies || !tags.isReply())
+            NostrEventKind.GenericRepost.value -> embedsDisplayablePicture(now)
             else -> false
         }
+    }
+
+    /** A top-level text note, or a picture post that is not itself a reply. */
+    private fun NostrEvent.isNetworkNote(): Boolean {
+        val now = Clock.System.now().epochSeconds
+        val text = kind == NostrEventKind.ShortTextNote.value && !tags.hasEventIdTag()
+        val picture = isDisplayablePictureNote(now) && !tags.isReply()
+        return text || picture
+    }
 
     /**
-     * A media grid draws plain notes only: a repost is somebody else's picture, and counting it
-     * would also spend part of each window's [limit] on events that are then thrown away.
+     * A media grid draws the person's own pictures: a kind 1 note whose text carries media, or a
+     * NIP-68 picture. A repost is somebody else's picture, and counting it would also spend part
+     * of each window's limit on events that are then thrown away.
      */
     private fun NostrEvent.isShownInMediaGrid(): Boolean =
-        kind == NostrEventKind.ShortTextNote.value && carriesMedia()
+        when (kind) {
+            NostrEventKind.ShortTextNote.value -> carriesMedia()
+            NostrEventKind.PictureNote.value -> isDisplayablePictureNote(Clock.System.now().epochSeconds)
+            else -> false
+        }
 
     /** One window of history: every author chunk asked for its newest [limit] events of [kinds]. */
     private suspend fun queryWindow(
@@ -301,9 +322,9 @@ internal class RelayNotesFeedFetcher(
      * locally and from the relays only for the rest, and the page is then cut by the notes' own
      * timestamps like every other feed, so the mediator's `until` cursor keeps its usual meaning.
      *
-     * Only kind 1 notes come back: they are the one kind the relay-served feeds turn into feed
-     * posts with their content intact. A bookmark that points at anything else is left out rather
-     * than shown as an empty card.
+     * Kind 1 notes and NIP-68 pictures come back: those are the kinds this feed can draw with their
+     * content intact. A bookmark that points at anything else is left out rather than shown as an
+     * empty card.
      */
     private suspend fun fetchBookmarkedNotesPage(
         userId: String,
@@ -314,9 +335,10 @@ internal class RelayNotesFeedFetcher(
         val bookmarkedIds = loadBookmarkedNoteIds(userId)
         if (bookmarkedIds.isEmpty()) return NotesFeedPage(page = emptyList(), referencedNotes = emptyList())
 
+        val now = Clock.System.now().epochSeconds
         val page = fetchReferencedNotes(referencedIds = bookmarkedIds)
             .distinctBy { it.id }
-            .filter { it.kind == NostrEventKind.ShortTextNote.value }
+            .filter { it.kind == NostrEventKind.ShortTextNote.value || it.isDisplayablePictureNote(now) }
             .filter { until == null || it.createdAt <= until }
             .filter { since == null || it.createdAt >= since }
             .sortedByDescending { it.createdAt }
@@ -421,7 +443,7 @@ internal class RelayNotesFeedFetcher(
         val shortlist = candidates
             .asSequence()
             .distinctBy { it.id }
-            .filter { it.kind == NostrEventKind.ShortTextNote.value && !it.tags.hasEventIdTag() }
+            .filter { it.isNetworkNote() }
             .filter { it.pubKey !in friends && it.pubKey != userId }
             .sortedWith(compareByDescending<NostrEvent> { tally[it.id]?.size ?: 0 }.thenByDescending { it.createdAt })
             .take(NETWORK_PAGE_SIZE)
@@ -763,8 +785,13 @@ internal class RelayNotesFeedFetcher(
         private val FEED_NOTE_KINDS = listOf(
             NostrEventKind.ShortTextNote.value,
             NostrEventKind.ShortTextNoteRepost.value,
+            NostrEventKind.GenericRepost.value,
+            NostrEventKind.PictureNote.value,
         )
-        private val MEDIA_NOTE_KINDS = listOf(NostrEventKind.ShortTextNote.value)
+        private val MEDIA_NOTE_KINDS = listOf(
+            NostrEventKind.ShortTextNote.value,
+            NostrEventKind.PictureNote.value,
+        )
 
         // --- The network feed ---------------------------------------------------------------------------
 
@@ -851,14 +878,24 @@ private class AuthorsWindow(
     }
 }
 
+/** A NIP-18 kind 16 whose embedded event is a picture we can draw. Article reposts stay out of the notes window. */
+private fun NostrEvent.embedsDisplayablePicture(nowEpochSeconds: Long): Boolean {
+    if (kind != NostrEventKind.GenericRepost.value) return false
+    val embedded = content.decodeFromJsonStringOrNull<NostrEvent>() ?: return false
+    return embedded.isDisplayablePictureNote(nowEpochSeconds)
+}
+
 internal fun List<NostrEvent>.toFeedResponse(
     metadata: List<NostrEvent>,
     referencedEvents: List<PrimalEvent> = emptyList(),
     /** See [NotesFeedPage.resumeUntil]; only read when this list is empty. */
     emptyPageCursor: Long? = null,
 ): FeedResponse {
+    val now = Clock.System.now().epochSeconds
     val notes = filter { it.kind == NostrEventKind.ShortTextNote.value || it.isComment() }
     val reposts = filter { it.kind == NostrEventKind.ShortTextNoteRepost.value }
+    val genericReposts = filter { it.embedsDisplayablePicture(now) }
+    val pictureNotes = filter { it.isDisplayablePictureNote(now) }
     val created = map { it.createdAt }
     val paging = if (created.isEmpty()) {
         ContentPrimalPaging(
@@ -881,6 +918,8 @@ internal fun List<NostrEvent>.toFeedResponse(
         notes = notes,
         articles = filter { it.kind == NostrEventKind.LongFormContent.value },
         reposts = reposts,
+        genericReposts = genericReposts,
+        pictureNotes = pictureNotes,
         zaps = emptyList(),
         referencedEvents = referencedEvents,
         primalEventStats = emptyList(),

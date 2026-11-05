@@ -7,6 +7,8 @@ import net.primal.domain.nostr.NostrEvent
 import net.primal.domain.nostr.NostrEventKind
 import net.primal.domain.nostr.eventIdTagValues
 import net.primal.domain.nostr.findFirstZapAmount
+import net.primal.domain.nostr.getTagValueOrNull
+import net.primal.domain.nostr.isUppercaseEventIdTag
 import net.primal.domain.nostr.relay.RelayEventQuerier
 
 internal data class RelayEventStatsSnapshot(
@@ -30,9 +32,8 @@ internal class RelayEventStatsFetcher(
 
         val eventsByTarget = interactions
             .flatMap { event ->
-                (event.tags.eventIdTagValues() + listOf(event).referencedNoteIds())
+                event.statTargetIds()
                     .filter { it in ids }
-                    .distinct()
                     .map { it to event }
             }
             .groupBy({ it.first }, { it.second })
@@ -45,7 +46,7 @@ internal class RelayEventStatsFetcher(
                 replies = events.count { it.isReplyTo(eventId) }.toLong(),
                 // The one counter this table had no use for until now: how many notes quote this one.
                 mentions = events.count { it.isQuoteOf(eventId) }.toLong(),
-                reposts = events.count { it.kind == NostrEventKind.ShortTextNoteRepost.value }.toLong(),
+                reposts = events.count { it.isRepost() }.toLong(),
                 zaps = events.count { it.kind == NostrEventKind.Zap.value }.toLong(),
                 satsZapped = events
                     .filter { it.kind == NostrEventKind.Zap.value }
@@ -67,7 +68,7 @@ internal class RelayEventStatsFetcher(
                 replied = events.any { it.isReplyTo(eventId) },
                 liked = ownReaction != null,
                 reaction = ownReaction?.content,
-                reposted = events.any { it.kind == NostrEventKind.ShortTextNoteRepost.value },
+                reposted = events.any { it.isRepost() },
                 zapped = events.any { it.kind == NostrEventKind.Zap.value },
             )
         }
@@ -75,11 +76,34 @@ internal class RelayEventStatsFetcher(
     }
 
     /**
-     * A text note that answers [eventId] rather than quoting it: it names it as its parent. A reply
-     * that happens to embed the note it answers is still a reply, and counts once.
+     * A text note or NIP-22 comment that answers [eventId] rather than quoting it. A top-level
+     * comment names the root in both `e` and `E` and still counts once. A nested comment counts
+     * on the root through `E` and on its parent through `e`.
      */
-    private fun NostrEvent.isReplyTo(eventId: String): Boolean =
-        kind == NostrEventKind.ShortTextNote.value && eventId in tags.eventIdTagValues() && !isQuoteOf(eventId)
+    private fun NostrEvent.isReplyTo(eventId: String): Boolean {
+        if (isQuoteOf(eventId)) return false
+        return when (kind) {
+            NostrEventKind.ShortTextNote.value -> eventId in tags.eventIdTagValues()
+            NostrEventKind.Comment.value -> eventId in commentScopeIds()
+            else -> false
+        }
+    }
+
+    /** Lowercase `e`, plus a comment's NIP-22 root `E`. The same id from both tags counts once. */
+    private fun NostrEvent.statTargetIds(): List<String> {
+        val tagged = if (kind == NostrEventKind.Comment.value) commentScopeIds() else tags.eventIdTagValues()
+        return (tagged + listOf(this).referencedNoteIds()).distinct()
+    }
+
+    private fun NostrEvent.commentScopeIds(): List<String> {
+        val rootIds = tags.mapNotNull { tag ->
+            tag.takeIf { it.isUppercaseEventIdTag() }?.getTagValueOrNull()
+        }
+        return (tags.eventIdTagValues() + rootIds).distinct()
+    }
+
+    private fun NostrEvent.isRepost(): Boolean =
+        kind == NostrEventKind.ShortTextNoteRepost.value || kind == NostrEventKind.GenericRepost.value
 
     private fun Long.toSats(): Long = if (this >= 1_000L) this / 1_000L else this
 }

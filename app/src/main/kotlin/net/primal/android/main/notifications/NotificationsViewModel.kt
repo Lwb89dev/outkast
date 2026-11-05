@@ -38,6 +38,7 @@ import net.primal.android.notifications.list.ui.NotificationUi
 import net.primal.android.user.accounts.active.ActiveAccountStore
 import net.primal.android.user.subscriptions.SubscriptionsManager
 import net.primal.core.utils.coroutines.DispatcherProvider
+import net.primal.domain.nostr.contentWarning
 import net.primal.domain.nostr.utils.asEllipsizedNpub
 import net.primal.domain.notifications.Notification
 import net.primal.domain.notifications.NotificationGroup
@@ -258,6 +259,7 @@ class NotificationsViewModel @Inject constructor(
                 isPrivate = actionOnPost.isPrivate,
                 threadRootId = actionOnPost.threadRootId(),
                 threadParentId = actionOnPost.immediateParentId(),
+                contentWarning = actionOnPost.tags.contentWarning(),
             )
         }
     }

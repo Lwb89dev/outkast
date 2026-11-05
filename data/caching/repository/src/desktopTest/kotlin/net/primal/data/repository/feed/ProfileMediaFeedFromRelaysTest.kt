@@ -37,7 +37,12 @@ class ProfileMediaFeedFromRelaysTest {
 
             assertEquals(listOf(listOf(SOMEONE)), querier.noteFilters.map { it.authors })
             assertEquals(
-                listOf(listOf(NostrEventKind.ShortTextNote.value)),
+                listOf(
+                    listOf(
+                        NostrEventKind.ShortTextNote.value,
+                        NostrEventKind.PictureNote.value,
+                    ),
+                ),
                 querier.noteFilters.map { it.kinds },
                 "a repost is somebody else's picture, and would only use up the window",
             )
@@ -84,6 +89,29 @@ class ProfileMediaFeedFromRelaysTest {
             val response = fetcher(querier).fetchMedia(limit = 20)
 
             assertEquals(listOf("described"), response.notes.map { it.id })
+        }
+
+    @Test
+    fun `a kind 20 picture is kept beside kind 1 photos`() =
+        runTest {
+            val querier = ScriptedQuerier(
+                windows = listOf(
+                    listOf(
+                        note(id = "words", at = 101, content = "just words"),
+                        note(
+                            id = "picture",
+                            at = 100,
+                            content = "tramonto",
+                            tags = listOf(imeta("https://cdn.example/a.jpg", "image/jpeg")),
+                        ).copy(kind = NostrEventKind.PictureNote.value),
+                    ),
+                ),
+            )
+
+            val response = fetcher(querier).fetchMedia(limit = 20)
+
+            assertEquals(emptyList(), response.notes.map { it.id })
+            assertEquals(listOf("picture"), response.pictureNotes.map { it.id })
         }
 
     @Test
@@ -159,7 +187,14 @@ class ProfileMediaFeedFromRelaysTest {
             )
 
             assertEquals(
-                listOf(listOf(NostrEventKind.ShortTextNote.value, NostrEventKind.ShortTextNoteRepost.value)),
+                listOf(
+                    listOf(
+                        NostrEventKind.ShortTextNote.value,
+                        NostrEventKind.ShortTextNoteRepost.value,
+                        NostrEventKind.GenericRepost.value,
+                        NostrEventKind.PictureNote.value,
+                    ),
+                ),
                 querier.noteFilters.map { it.kinds },
                 "the notes tab keeps asking for reposts too",
             )

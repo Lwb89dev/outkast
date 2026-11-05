@@ -9,6 +9,23 @@ the LibreNostr/OUTKAST fork on top of the imported `3.5.25` baseline.
 
 ## [Unreleased]
 
+## [2.4.0] - 2026-11-05
+
+### Added
+
+- **NIP-68 picture notes.** A kind 20 picture posted from another client now shows up as an ordinary
+  note: home feed, profile, media grid, bookmarks, Network, the live subscription, notifications,
+  threads, quotes and Explore (trending hashtags and zapped notes). The caption stays the text of the
+  note, the pictures come from `imeta` (plus plain `url` and `image` tags), and the hashtags are kept.
+  A picture that is a reply stays on the replies feed, the same way a kind 1 reply does. A content
+  warning hides the body and the pictures until you tap Show; the header and the actions stay.
+  Reposting a picture publishes a NIP-18 kind 16 generic repost, and that repost appears in the feed
+  when the note inside it is a picture that can be shown. Kind 1111 comments count as replies,
+  including a nested comment that names the thread root with an uppercase `E` tag.
+- Outkast still publishes its own notes as kind 1, so clients that only read kind 1 keep seeing them.
+  Close-friends posts and pictures whose `imeta` carries an encryption key are left out. An expired
+  picture is dropped. A story that has not expired yet shows as an ordinary picture.
+
 ## [2.3.0] - 2026-11-02
 
 ### Added

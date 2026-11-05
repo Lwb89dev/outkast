@@ -26,6 +26,30 @@ private data class EventIdUriPair(
     val uri: String,
 )
 
+/** Picture and link rows for a note that is shown without being written to the event-uri table. */
+internal fun PostData.asEventLinks(): List<EventLink> =
+    listOf(this).flatMapPostsAsEventUriPO(
+        cdnResources = emptyMap(),
+        linkPreviews = emptyMap(),
+        videoThumbnails = emptyMap(),
+    ).mapIndexed { index, uri ->
+        EventLink(
+            eventId = uri.eventId,
+            position = index,
+            url = uri.url,
+            type = uri.type,
+            mimeType = uri.mimeType,
+            variants = uri.variants,
+            title = uri.title,
+            description = uri.description,
+            thumbnail = uri.thumbnail,
+            authorAvatarUrl = uri.authorAvatarUrl,
+            originalWidth = uri.originalWidth,
+            originalHeight = uri.originalHeight,
+            durationInSeconds = uri.durationInSeconds,
+        )
+    }
+
 fun List<PostData>.flatMapPostsAsEventUriPO(
     cdnResources: Map<String, CdnResource>,
     linkPreviews: Map<String, EventLinkPreviewData>,

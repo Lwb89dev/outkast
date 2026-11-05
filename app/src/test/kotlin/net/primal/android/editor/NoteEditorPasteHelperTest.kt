@@ -21,6 +21,7 @@ class NoteEditorPasteHelperTest {
         nevent != null && (
             nevent.kind == null ||
                 nevent.kind == NostrEventKind.ShortTextNote.value ||
+                nevent.kind == NostrEventKind.PictureNote.value ||
                 nevent.kind == NostrEventKind.Highlight.value
             )
     }
@@ -207,6 +208,7 @@ class NoteEditorPasteHelperTest {
 
         val accepted = nevent.kind == null ||
             nevent.kind == NostrEventKind.ShortTextNote.value ||
+            nevent.kind == NostrEventKind.PictureNote.value ||
             nevent.kind == NostrEventKind.Highlight.value
 
         accepted shouldBe true

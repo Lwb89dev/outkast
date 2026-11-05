@@ -6,7 +6,10 @@ import net.primal.android.events.polls.votes.asPollUi
 import net.primal.android.notes.feed.model.EventStatsUi
 import net.primal.android.notes.feed.model.FeedPostUi
 import net.primal.android.notes.feed.model.asNoteNostrUriUi
+import net.primal.core.utils.serialization.decodeFromJsonStringOrNull
 import net.primal.domain.links.ReferencedNote
+import net.primal.domain.nostr.NostrEvent
+import net.primal.domain.nostr.contentWarning
 import net.primal.domain.nostr.utils.parseHashtags
 
 fun ReferencedNote.asFeedPostUi() =
@@ -28,6 +31,7 @@ fun ReferencedNote.asFeedPostUi() =
         stats = EventStatsUi(),
         hashtags = this.content.parseHashtags(),
         rawNostrEventJson = this.raw,
+        contentWarning = this.raw.decodeFromJsonStringOrNull<NostrEvent>()?.tags?.contentWarning(),
         replyToAuthorHandle = null,
         poll = this.pollInfo?.asPollUi(),
     )

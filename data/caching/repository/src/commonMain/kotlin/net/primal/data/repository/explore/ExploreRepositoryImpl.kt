@@ -34,6 +34,7 @@ import net.primal.data.repository.mappers.remote.extractZapRequestOrNull
 import net.primal.data.repository.mappers.remote.latestMetadataByPubkey
 import net.primal.data.repository.mappers.remote.mapAsEventZapDO
 import net.primal.data.repository.mappers.remote.mapAsPostDataPO
+import net.primal.data.repository.mappers.remote.toPicturePostDataOrNull
 import net.primal.domain.common.UserProfileSearchItem
 import net.primal.domain.explore.ExplorePeopleData
 import net.primal.domain.explore.ExploreRepository
@@ -83,19 +84,27 @@ class ExploreRepositoryImpl(
             val profilesMap = profiles.associateBy { it.ownerId }
             val eventZaps = receipts.mapAsEventZapDO(profilesMap = profilesMap)
             val noteIds = eventZaps.map { it.eventId }.distinct()
-            val notes = runCatching {
+            val fetchedNotes = runCatching {
                 relayEventQuerier.query(
                     RelayFilter(
-                        kinds = listOf(NostrEventKind.ShortTextNote.value),
+                        kinds = listOf(
+                            NostrEventKind.ShortTextNote.value,
+                            NostrEventKind.PictureNote.value,
+                        ),
                         ids = noteIds,
                         limit = noteIds.size.coerceAtMost(500),
                     ),
                 )
-            }.getOrDefault(emptyList()).mapAsPostDataPO(
-                referencedPosts = emptyList(),
-                referencedArticles = emptyList(),
-                referencedHighlights = emptyList(),
-            )
+            }.getOrDefault(emptyList())
+            val pictures = fetchedNotes.mapNotNull { it.toPicturePostDataOrNull() }
+            val textNotes = fetchedNotes
+                .filter { it.kind != NostrEventKind.PictureNote.value }
+                .mapAsPostDataPO(
+                    referencedPosts = emptyList(),
+                    referencedArticles = emptyList(),
+                    referencedHighlights = emptyList(),
+                )
+            val notes = textNotes + pictures
             database.withTransaction {
                 database.profiles().insertOrUpdateAll(data = profiles)
                 database.eventZaps().upsertAll(data = eventZaps)
@@ -159,6 +168,7 @@ class ExploreRepositoryImpl(
                         RelayFilter(
                             kinds = listOf(
                                 NostrEventKind.ShortTextNote.value,
+                                NostrEventKind.PictureNote.value,
                                 NostrEventKind.LongFormContent.value,
                             ),
                             since = Clock.System.now().epochSeconds - TOPIC_LOOKBACK_SECONDS,

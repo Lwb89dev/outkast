@@ -66,6 +66,22 @@ class RelayEventStatsQuotesTest {
         }
 
     @Test
+    fun a_nested_comment_counts_once_on_the_root_and_a_generic_repost_counts_as_a_repost() =
+        runTest {
+            val comment = event(
+                "c1",
+                NostrEventKind.Comment.value,
+                tags = listOf(tag("e", "parent-comment"), tag("E", TARGET)),
+            )
+            val repost = event("g1", NostrEventKind.GenericRepost.value, tags = listOf(tag("e", TARGET)))
+
+            val stats = statsFor(comment, repost)
+
+            stats.replies shouldBe 1L
+            stats.reposts shouldBe 1L
+        }
+
+    @Test
     fun quotes_are_asked_for_with_a_q_filter() =
         runTest {
             val sent = mutableListOf<RelayFilter>()
@@ -106,6 +122,7 @@ class RelayEventStatsQuotesTest {
             events.filter { event ->
                 (filter.kinds == null || event.kind in filter.kinds.orEmpty()) &&
                     (filter.eventTags == null || event.hasTag("e", filter.eventTags.orEmpty())) &&
+                    (filter.rootEventTags == null || event.hasTag("E", filter.rootEventTags.orEmpty())) &&
                     (filter.quoteTags == null || event.hasTag("q", filter.quoteTags.orEmpty()))
             }
 

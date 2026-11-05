@@ -3,6 +3,7 @@ package net.primal.android.notes.feed.note
 import net.primal.android.core.errors.UiError
 import net.primal.android.notes.feed.model.PollUi
 import net.primal.domain.events.EventInteractionRepository
+import net.primal.domain.nostr.NostrEventKind
 import net.primal.domain.nostr.ReportType
 
 interface NoteContract {
@@ -47,6 +48,7 @@ interface NoteContract {
             val postId: String,
             val postAuthorId: String,
             val postNostrEvent: String,
+            val postKind: Int = NostrEventKind.ShortTextNote.value,
         ) : UiEvent()
 
         data class ZapAction(

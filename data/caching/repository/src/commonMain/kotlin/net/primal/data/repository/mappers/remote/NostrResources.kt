@@ -44,7 +44,7 @@ fun PostData.toNevent() =
     Nevent(
         userId = this.authorId,
         eventId = this.postId,
-        kind = NostrEventKind.ShortTextNote.value,
+        kind = this.kind,
         relays = emptyList(),
     )
 

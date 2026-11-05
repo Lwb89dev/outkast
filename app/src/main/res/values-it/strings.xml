@@ -180,6 +180,9 @@
     <string name="feed_reposted_suffix">ha ripubblicato</string>
     <string name="feed_see_more">Vedi altro…</string>
     <string name="feed_more">di più</string>
+    <string name="feed_sensitive_content">Contenuto sensibile</string>
+    <string name="feed_sensitive_content_reason">Contenuto sensibile: %1$s</string>
+    <string name="feed_sensitive_content_show">Mostra</string>
     <string name="timestamp_since_just_now">Ora</string>
     <string name="timestamp_since_minutes">%1$smin</string>
     <string name="timestamp_since_hours">%1$sh</string>

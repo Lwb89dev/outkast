@@ -123,6 +123,7 @@ fun NoteCardDialogs(
                         postId = data.postId,
                         postAuthorId = data.authorId,
                         postNostrEvent = data.rawNostrEventJson,
+                        postKind = data.kind,
                     ),
                 )
             },

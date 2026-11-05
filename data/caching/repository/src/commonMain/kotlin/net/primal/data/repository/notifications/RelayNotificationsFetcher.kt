@@ -245,15 +245,24 @@ internal class RelayNotificationsFetcher(
             NotificationGroup.ALL -> listOf(
                 NostrEventKind.ShortTextNote.value,
                 NostrEventKind.Comment.value,
+                NostrEventKind.PictureNote.value,
                 NostrEventKind.FollowList.value,
                 NostrEventKind.ShortTextNoteRepost.value,
+                NostrEventKind.GenericRepost.value,
                 NostrEventKind.Reaction.value,
                 NostrEventKind.Zap.value,
             )
             NotificationGroup.ZAPS -> listOf(NostrEventKind.Zap.value)
             NotificationGroup.REPLIES, NotificationGroup.MENTIONS ->
-                listOf(NostrEventKind.ShortTextNote.value, NostrEventKind.Comment.value)
-            NotificationGroup.REPOSTS -> listOf(NostrEventKind.ShortTextNoteRepost.value)
+                listOf(
+                    NostrEventKind.ShortTextNote.value,
+                    NostrEventKind.Comment.value,
+                    NostrEventKind.PictureNote.value,
+                )
+            NotificationGroup.REPOSTS -> listOf(
+                NostrEventKind.ShortTextNoteRepost.value,
+                NostrEventKind.GenericRepost.value,
+            )
         }
 
     private suspend fun query(filter: RelayFilter): List<NostrEvent> =
@@ -266,12 +275,13 @@ internal class RelayNotificationsFetcher(
         val type = when (kind) {
             NostrEventKind.FollowList.value -> NotificationType.NEW_USER_FOLLOWED_YOU
             NostrEventKind.Reaction.value -> if (target != null) NotificationType.YOUR_POST_WAS_LIKED else null
-            NostrEventKind.ShortTextNoteRepost.value ->
+            NostrEventKind.ShortTextNoteRepost.value, NostrEventKind.GenericRepost.value ->
                 if (target != null) NotificationType.YOUR_POST_WAS_REPOSTED else null
             NostrEventKind.Zap.value -> if (target != null) NotificationType.YOUR_POST_WAS_ZAPPED else null
             // A NIP-22 comment answers through its lowercase `e` just as a reply does through its
-            // `e`, and the first `e` tag is the one that names the parent in both.
-            NostrEventKind.ShortTextNote.value, NostrEventKind.Comment.value -> when {
+            // `e`, and the first `e` tag is the one that names the parent in both. A picture post
+            // that mentions someone, or that answers a note, is the same kind of notice.
+            NostrEventKind.ShortTextNote.value, NostrEventKind.Comment.value, NostrEventKind.PictureNote.value -> when {
                 target != null -> NotificationType.YOUR_POST_WAS_REPLIED_TO
                 tags.pubkeyTagValues().contains(userId) -> NotificationType.YOU_WERE_MENTIONED_IN_POST
                 else -> null

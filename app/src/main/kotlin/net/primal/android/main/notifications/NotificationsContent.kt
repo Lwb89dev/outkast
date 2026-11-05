@@ -204,6 +204,7 @@ private fun NotificationPage(
                     postId = it.postId,
                     postAuthorId = it.authorId,
                     postNostrEvent = it.rawNostrEventJson,
+                    postKind = it.kind,
                 ),
             )
         },

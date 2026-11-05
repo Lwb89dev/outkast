@@ -1,12 +1,10 @@
-OUTKAST 2.3.0 adds structured NIP-20 relay responses and fixes publishing, privacy, login, compression
-and language handling.
+OUTKAST 2.4.0 shows NIP-68 picture notes (kind 20) from other clients as ordinary notes.
 
-Relay `OK` responses now retain the acceptance status, machine-readable prefix and human-readable
-reason, including per-relay details when every relay rejects an event. Early publish responses are
-queued instead of lost. Direct-message and mute-list requests never fall back to public relays the
-user did not choose. Login profile requests are cancelled when the key changes, compressed WebSocket
-frames decode correctly, and the system-language option respects Android's per-app locale. The Italian
-relay-deletion confirmation also shows the relay URL again.
+Picture posts now appear in the home feed, profiles, the media grid, bookmarks, Network, live updates,
+notifications, threads, quotes and Explore. The caption stays the text, the pictures come from `imeta`,
+and a content warning hides the body until you tap Show. Reposting a picture publishes a kind 16
+generic repost. Outkast itself still publishes kind 1 notes. Close-friends posts, encrypted pictures
+and expired pictures stay hidden.
 
 Existing accounts, databases, Keystore material, signing identity and `com.librenostr.android` upgrade
 compatibility are preserved.

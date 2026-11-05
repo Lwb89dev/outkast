@@ -3,12 +3,14 @@ package net.primal.android.notes.feed.model
 import androidx.compose.runtime.Immutable
 import fr.acinq.lightning.payment.Bolt11Invoice
 import net.primal.android.core.compose.attachment.model.EventUriUi
+import net.primal.android.core.compose.attachment.model.asEventUriUiModel
 import net.primal.android.emoji.Nip30.customEmojis
 import net.primal.android.messages.chat.model.ChatMessageUi
 import net.primal.domain.common.util.isPrimalIdentifier
 import net.primal.domain.links.EventUriNostrType
 import net.primal.domain.links.ReferencedHighlight
 import net.primal.domain.links.ReferencedZap
+import net.primal.domain.nostr.contentWarning
 import net.primal.domain.nostr.utils.LnInvoiceUtils
 import net.primal.domain.posts.FeedPost
 
@@ -24,6 +26,11 @@ data class NoteContentUi(
     val poll: PollUi? = null,
     /** NIP-30 custom emoji declared by the note: `:shortcode:` in [content] drawn as the image. */
     val customEmojis: Map<String, String> = emptyMap(),
+    /**
+     * NIP-36. Null when the note has no warning. Empty when the tag is present and gives no reason.
+     * The body stays hidden until the reader asks to see it.
+     */
+    val contentWarning: String? = null,
 ) {
     val partitions: NoteContentPartitions = computePartitions(uris = uris, nostrUris = nostrUris)
 }
@@ -73,6 +80,7 @@ fun FeedPostUi.toNoteContentUi(content: String = this.content): NoteContentUi {
         blossoms = this.authorBlossoms,
         poll = this.poll,
         customEmojis = this.customEmojis,
+        contentWarning = this.contentWarning,
     )
 }
 
@@ -94,11 +102,13 @@ fun FeedPost.toNoteContentUi(nostrUris: List<NoteNostrUriUi> = emptyList()): Not
     return NoteContentUi(
         noteId = this.eventId,
         content = this.content,
+        uris = this.links.map { it.asEventUriUiModel() }.sortedBy { it.position },
         nostrUris = nostrUris.sortedBy { it.position },
         hashtags = this.hashtags,
         invoices = emptyList(),
         blossoms = emptyList(),
         customEmojis = this.tags.customEmojis(),
+        contentWarning = this.tags.contentWarning(),
     )
 }
 

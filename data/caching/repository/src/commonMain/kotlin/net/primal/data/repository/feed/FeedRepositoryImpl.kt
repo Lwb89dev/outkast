@@ -257,6 +257,8 @@ internal class FeedRepositoryImpl(
                 .filter {
                     it.kind == NostrEventKind.ShortTextNote.value ||
                         it.kind == NostrEventKind.ShortTextNoteRepost.value ||
+                        it.kind == NostrEventKind.GenericRepost.value ||
+                        it.kind == NostrEventKind.PictureNote.value ||
                         it.isComment()
                 }
                 .map { it.id }
@@ -391,7 +393,10 @@ internal class FeedRepositoryImpl(
         )
 
         relayEventQuerier?.let { querier ->
-            val eventIds = (snapshot.notes + snapshot.articles + snapshot.reposts)
+            val eventIds = (
+                snapshot.notes + snapshot.articles + snapshot.reposts +
+                    snapshot.genericReposts + snapshot.pictureNotes
+                )
                 .map { it.id }
                 .distinct()
             if (eventIds.isNotEmpty()) {
@@ -437,6 +442,8 @@ internal class FeedRepositoryImpl(
                         kinds = listOf(
                             NostrEventKind.ShortTextNote.value,
                             NostrEventKind.ShortTextNoteRepost.value,
+                            NostrEventKind.GenericRepost.value,
+                            NostrEventKind.PictureNote.value,
                         ),
                         authors = chunk,
                         since = since,

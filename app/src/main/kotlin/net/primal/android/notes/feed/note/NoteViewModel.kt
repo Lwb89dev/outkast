@@ -186,7 +186,7 @@ class NoteViewModel @AssistedInject constructor(
                     userId = activeAccountStore.activeUserId(),
                     eventId = repostAction.postId,
                     eventAuthorId = repostAction.postAuthorId,
-                    eventKind = NostrEventKind.ShortTextNote.value,
+                    eventKind = repostAction.postKind,
                     eventRawNostrEvent = repostAction.postNostrEvent,
                 )
             } catch (error: NostrPublishException) {

@@ -48,7 +48,7 @@ fun Nevent.toEmbeddableReferencedUriOrNull(uri: String): NoteEditorContract.Refe
                 nevent = this,
             )
 
-        NostrEventKind.ShortTextNote.value, null ->
+        NostrEventKind.ShortTextNote.value, NostrEventKind.PictureNote.value, null ->
             NoteEditorContract.ReferencedUri.Note(
                 data = null,
                 loading = true,

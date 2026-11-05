@@ -93,6 +93,7 @@ import net.primal.android.notes.feed.model.asNeventString
 import net.primal.android.notes.feed.note.NoteContract.UiEvent
 import net.primal.android.notes.feed.note.ui.FeedNoteHeader
 import net.primal.android.notes.feed.note.ui.NoteDropdownMenuIcon
+import net.primal.android.notes.feed.note.ui.SensitiveContentNotice
 import net.primal.android.notes.feed.note.ui.attachment.NoteAttachmentVideoPreview
 import net.primal.android.notes.feed.note.ui.attachment.findMediaFeedCardMediaSize
 import net.primal.android.notes.feed.note.ui.events.MediaClickEvent
@@ -100,6 +101,7 @@ import net.primal.android.notes.feed.note.ui.events.NoteCallbacks
 import net.primal.android.theme.AppTheme
 import net.primal.core.utils.detectUrls
 import net.primal.domain.links.EventUriType
+import net.primal.domain.nostr.NostrEventKind
 import net.primal.domain.nostr.ReactionType
 
 private val ActionIconSize = 17.sp
@@ -156,6 +158,7 @@ fun MediaFeedCard(
     )
 
     var expanded by rememberSaveable { mutableStateOf(false) }
+    var revealed by rememberSaveable(data.postId) { mutableStateOf(data.contentWarning == null) }
 
     MediaFeedCardBody(
         data = data,
@@ -167,6 +170,8 @@ fun MediaFeedCard(
         expanded = expanded,
         onExpandClick = { expanded = true },
         repostAnchor = repostAnchor,
+        revealed = revealed,
+        onReveal = { revealed = true },
     )
 }
 
@@ -182,6 +187,8 @@ private fun MediaFeedCardBody(
     expanded: Boolean,
     onExpandClick: () -> Unit,
     repostAnchor: AnchorHandle,
+    revealed: Boolean,
+    onReveal: () -> Unit,
 ) {
     val graphicsLayer = rememberGraphicsLayer()
     val displaySettings = LocalContentDisplaySettings.current
@@ -193,6 +200,7 @@ private fun MediaFeedCardBody(
     val isPortrait = remember(mediaUris) {
         mediaUris.firstOrNull()?.let { isPortraitVideo(it) } == true
     }
+    val hideBody = data.contentWarning != null && !revealed
 
     Column(
         modifier = Modifier
@@ -206,7 +214,7 @@ private fun MediaFeedCardBody(
                 noteCallbacks.onNoteClick?.invoke(data.postId)
             },
     ) {
-        if (!isPortrait) {
+        if (!isPortrait || hideBody) {
             MediaFeedHeader(
                 data = data,
                 state = state,
@@ -219,7 +227,13 @@ private fun MediaFeedCardBody(
             )
         }
 
-        if (mediaUris.isNotEmpty()) {
+        if (hideBody) {
+            SensitiveContentNotice(
+                reason = data.contentWarning.orEmpty(),
+                onReveal = onReveal,
+                modifier = Modifier.padding(horizontal = 12.dp),
+            )
+        } else if (mediaUris.isNotEmpty()) {
             MediaFeedMediaSection(
                 data = data,
                 state = state,
@@ -285,15 +299,18 @@ private fun MediaFeedCardBody(
 
         Spacer(modifier = Modifier.height(MediumSpacing))
 
-        MediaFeedContentSection(
-            authorName = data.authorName,
-            content = data.content,
-            hashtags = data.hashtags,
-            timestamp = data.timestamp,
-            expanded = expanded,
-            onExpandClick = onExpandClick,
-            noteCallbacks = noteCallbacks,
-        )
+        if (!hideBody) {
+            MediaFeedContentSection(
+                authorName = data.authorName,
+                content = data.content,
+                hashtags = data.hashtags,
+                timestamp = data.timestamp,
+                expanded = expanded,
+                onExpandClick = onExpandClick,
+                noteCallbacks = noteCallbacks,
+                stripUrlLines = data.kind != NostrEventKind.PictureNote.value,
+            )
+        }
     }
 }
 
@@ -532,6 +549,7 @@ private fun MediaFeedContentSection(
     expanded: Boolean,
     onExpandClick: () -> Unit,
     noteCallbacks: NoteCallbacks,
+    stripUrlLines: Boolean,
 ) {
     val localUriHandler = LocalUriHandler.current
     val highlightColor = AppTheme.colorScheme.secondary
@@ -548,11 +566,16 @@ private fun MediaFeedContentSection(
             .padding(horizontal = 12.dp)
             .padding(bottom = 16.dp),
     ) {
-        // Remove URL filtering when kind 20 events are supported.
-        val displayContent = content.lines()
-            .filterNot { it.startsWith("http://") || it.startsWith("https://") }
-            .joinToString(" ")
-            .trim()
+        // Kind 1 notes often repeat each picture URL as its own line. A NIP-68 caption already
+        // left those URLs out, and stripping every http line would drop a caption that is a link.
+        val displayContent = if (stripUrlLines) {
+            content.lines()
+                .filterNot { it.startsWith("http://") || it.startsWith("https://") }
+                .joinToString(" ")
+                .trim()
+        } else {
+            content.trim()
+        }
 
         val annotatedText = remember(authorName, displayContent, hashtags, highlightColor) {
             buildMediaFeedAnnotatedString(

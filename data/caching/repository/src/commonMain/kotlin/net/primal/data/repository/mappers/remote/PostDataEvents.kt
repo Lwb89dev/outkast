@@ -1,6 +1,6 @@
 package net.primal.data.repository.mappers.remote
 
-import kotlinx.serialization.json.jsonPrimitive
+import kotlin.time.Clock
 import net.primal.core.utils.detectUrls
 import net.primal.core.utils.serialization.encodeToJsonString
 import net.primal.data.local.dao.notes.PostData
@@ -17,8 +17,10 @@ import net.primal.domain.nostr.getPubkeyFromReplyOrRootTag
 import net.primal.domain.nostr.hasReplyMarker
 import net.primal.domain.nostr.hasRootMarker
 import net.primal.domain.nostr.isComment
-import net.primal.domain.nostr.isIMetaTag
-import net.primal.domain.nostr.isImageTag
+import net.primal.domain.nostr.isDisplayablePictureNote
+import net.primal.domain.nostr.isReply
+import net.primal.domain.nostr.pictureCaption
+import net.primal.domain.nostr.pictureImageUrls
 import net.primal.domain.nostr.serialization.toNostrJsonObject
 import net.primal.domain.nostr.utils.parseHashtags
 import net.primal.domain.nostr.utils.parseNostrUriCandidates
@@ -67,7 +69,7 @@ fun List<PrimalEvent>.mapNotNullAsPostDataPO(
         )
     }
 
-    val pictures = pictureEvents.map { it.pictureNoteAsPost() }
+    val pictures = pictureEvents.mapNotNull { it.toPicturePostDataOrNull() }
 
     return posts + pictures
 }
@@ -151,36 +153,31 @@ private fun NostrEvent.nostrEventAsPost(
     )
 }
 
-private fun NostrEvent.pictureNoteAsPost(): PostData {
-    val imageUrls = this.tags.flatMap { tag ->
-        when {
-            tag.isImageTag() -> listOfNotNull(tag.getOrNull(1)?.jsonPrimitive?.content)
-            tag.isIMetaTag() -> {
-                val values = tag.map { it.jsonPrimitive.content }
-                val combinedUrls = values.mapNotNull { value ->
-                    value.removePrefix("url ").takeIf { value.startsWith("url ") && it.isNotBlank() }
-                }
-                val separateUrl = values.windowed(size = 2, partialWindows = false)
-                    .firstOrNull { pair -> pair[0] == "url" }
-                    ?.get(1)
-                combinedUrls + listOfNotNull(separateUrl)
-            }
-            else -> emptyList()
-        }
-    }.distinct()
-    val content = imageUrls.joinToString("\n")
+/**
+ * A NIP-68 picture as a stored note: caption in [PostData.content], picture URLs in [PostData.uris]
+ * so the gallery draws them even though they are not written in the text.
+ *
+ * Null when there is nothing to draw: expired, close-friends (the file is ciphertext), or no image.
+ */
+internal fun NostrEvent.toPicturePostDataOrNull(
+    nowEpochSeconds: Long = Clock.System.now().epochSeconds,
+): PostData? {
+    if (!isDisplayablePictureNote(nowEpochSeconds)) return null
+    val images = pictureImageUrls()
+    val caption = pictureCaption()
+    val reply = if (tags.isReply()) resolveReplyReference() else ReplyReference(null, null)
     return PostData(
-        postId = this.id,
-        authorId = this.pubKey,
-        createdAt = this.createdAt,
-        kind = this.kind,
-        tags = this.tags,
-        content = content,
-        uris = content.detectUrls() + content.parseNostrUriCandidates(),
-        hashtags = emptyList(),
-        sig = this.sig,
-        raw = this.toNostrJsonObject().encodeToJsonString(),
-        replyToPostId = null,
-        replyToAuthorId = null,
+        postId = id,
+        authorId = pubKey,
+        createdAt = createdAt,
+        kind = kind,
+        tags = tags,
+        content = caption,
+        uris = (images + caption.detectUrls() + caption.parseNostrUriCandidates()).distinct(),
+        hashtags = parseHashtags(),
+        sig = sig,
+        raw = toNostrJsonObject().encodeToJsonString(),
+        replyToPostId = reply.replyToPostId,
+        replyToAuthorId = reply.replyToAuthorId,
     )
 }

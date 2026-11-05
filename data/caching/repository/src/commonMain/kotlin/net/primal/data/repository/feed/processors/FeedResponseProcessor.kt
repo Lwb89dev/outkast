@@ -21,6 +21,7 @@ import net.primal.data.repository.mappers.remote.flatMapPostsAsReferencedNostrUr
 import net.primal.data.repository.mappers.remote.mapAsEventZapDO
 import net.primal.data.repository.mappers.remote.mapAsPollResponseVotes
 import net.primal.data.repository.mappers.remote.mapAsPostDataPO
+import net.primal.data.repository.mappers.remote.toPicturePostDataOrNull
 import net.primal.data.repository.mappers.remote.mapAsProfileDataPO
 import net.primal.data.repository.mappers.remote.mapAsReferencedNostrUriDO
 import net.primal.data.repository.mappers.remote.mapAsZapPollVotes
@@ -71,6 +72,13 @@ internal suspend inline fun FeedResponse.persistToDatabase(userId: String, datab
         referencedArticles = allArticles,
         referencedHighlights = referencedHighlights,
     )
+    // Kind 20 never travels in `notes`: its pictures are `imeta` tags, and mapping it as a text
+    // note stored an empty body. A kind 16 repost carries the picture inside its content, and the
+    // feed joins the repost to that picture's row, so the picture has to be stored too.
+    val picturePosts = pictureNotes.mapNotNull { it.toPicturePostDataOrNull() }
+    val repostedPictures = (reposts + genericReposts)
+        .mapNotNull { it.content.decodeFromJsonStringOrNull<NostrEvent>() }
+        .mapNotNull { it.toPicturePostDataOrNull() }
 
     val primalUserNames = this.primalUserNames.parseAndMapPrimalUserNames()
     val primalPremiumInfo = this.primalPremiumInfo.parseAndMapPrimalPremiumInfo()
@@ -92,7 +100,12 @@ internal suspend inline fun FeedResponse.persistToDatabase(userId: String, datab
     val profileIdToProfileDataMap = profiles.asMapByKey { it.ownerId }
     val eventIdMap = profileIdToProfileDataMap.mapValues { it.value.eventId }
 
-    val allPosts = (referencedPosts + feedPosts).map { postData ->
+    // Keep the original post list intact, duplicates included: a later copy of the same id is what
+    // the upsert stores, and the uri rows are keyed off that walk. Pictures are appended only when
+    // that id is not already a post, which is the kind 20 case (it never sits in `notes`).
+    val knownPostIds = (referencedPosts + feedPosts).mapTo(HashSet()) { it.postId }
+    val extraPictures = (picturePosts + repostedPictures).filter { it.postId !in knownPostIds }
+    val allPosts = (referencedPosts + feedPosts + extraPictures).map { postData ->
         postData.copy(authorMetadataId = eventIdMap[postData.authorId])
     }
 
@@ -112,7 +125,7 @@ internal suspend inline fun FeedResponse.persistToDatabase(userId: String, datab
     val pollVotes = this.pollResponses.mapAsPollResponseVotes() + this.zaps.mapAsZapPollVotes()
 
     val eventZaps = zaps.mapAsEventZapDO(profilesMap = profiles.associateBy { it.ownerId })
-    val reposts = reposts.mapNotNullAsRepostDataPO()
+    val reposts = (reposts + genericReposts).mapNotNullAsRepostDataPO()
     val postStats = primalEventStats.mapNotNullAsEventStatsPO()
     val userPostStats = primalEventUserStats.mapNotNullAsEventUserStatsPO(userId = userId)
 
@@ -267,7 +280,7 @@ internal suspend fun FeedResponse.persistNoteRepliesAndArticleCommentsToDatabase
 ) {
     val cdnResources = this.cdnResources.flatMapNotNullAsCdnResource().asMapByKey { it.url }
     val articles = this.articles.mapNotNullAsArticleDataPO(cdnResources = cdnResources)
-    val conversationIds = (notes + polls).map { it.id }.distinct()
+    val conversationIds = (notes + polls + pictureNotes).map { it.id }.distinct()
 
     database.withTransaction {
         if (conversationIds.isNotEmpty()) {

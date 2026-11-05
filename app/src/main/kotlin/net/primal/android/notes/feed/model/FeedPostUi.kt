@@ -13,6 +13,7 @@ import net.primal.domain.nostr.MAX_RELAY_HINTS
 import net.primal.domain.nostr.Nevent
 import net.primal.domain.nostr.Nip19TLV.toNeventString
 import net.primal.domain.nostr.utils.asEllipsizedNpub
+import net.primal.domain.nostr.contentWarning
 import net.primal.domain.posts.FeedPost
 import net.primal.domain.posts.immediateParentId
 import net.primal.domain.posts.threadRootId
@@ -64,6 +65,8 @@ data class FeedPostUi(
     val threadParentId: String? = null,
     /** NIP-30 custom emoji the note declares in its `emoji` tags, shortcode to image URL. */
     val customEmojis: Map<String, String> = emptyMap(),
+    /** NIP-36. Null when absent. Empty when the tag is present and gives no reason. */
+    val contentWarning: String? = null,
 )
 
 fun FeedPost.asFeedPostUi(): FeedPostUi {
@@ -116,6 +119,7 @@ fun FeedPost.asFeedPostUi(): FeedPostUi {
         threadRootId = this.threadRootId(),
         threadParentId = this.immediateParentId(),
         customEmojis = this.tags.customEmojis(),
+        contentWarning = this.tags.contentWarning(),
     )
     val feedContent = computeFeedContent(content = this.content, uris = uris, nostrUris = nostrUris)
     val feedNoteContent = postUi.toNoteContentUi(content = feedContent)

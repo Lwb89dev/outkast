@@ -35,7 +35,7 @@ internal class FeedProcessor(
         clearFeed: Boolean,
     ) {
         val pagingEvent = response.paging
-        val incomingFeedEvents = response.notes + response.polls + response.reposts
+        val incomingFeedEvents = response.timelineEvents()
         // A relay snapshot with no feed events is indistinguishable from "every relay timed out".
         // Clearing the feed for it would drop the cached page and leave the user with a blank
         // screen that no longer has any local content to fall back on, so never replace a feed
@@ -106,3 +106,7 @@ internal class FeedProcessor(
         )
     }
 }
+
+/** Notes, reposts and picture posts that belong on the timeline. Anything else in the response is context. */
+internal fun FeedResponse.timelineEvents(): List<NostrEvent> =
+    (notes + polls + reposts + genericReposts + pictureNotes).distinctBy { it.id }

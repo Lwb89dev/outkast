@@ -395,7 +395,10 @@ internal class NoteFeedRemoteMediator(
 
     private suspend fun refreshRelayEventStats(response: FeedResponse) {
         val statsFetcher = relayEventStatsFetcher ?: return
-        val eventIds = (response.notes + response.articles + response.reposts).map { it.id }.distinct()
+        val eventIds = (
+            response.notes + response.articles + response.reposts +
+                response.genericReposts + response.pictureNotes
+            ).map { it.id }.distinct()
         if (eventIds.isEmpty()) return
         val stats = statsFetcher.fetch(eventIds = eventIds, userId = userId)
         persistStatsSnapshot(stats, invalidate = false)
