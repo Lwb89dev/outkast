@@ -209,7 +209,7 @@ private fun RevealedNoteContent(
                 overflow = overflow,
                 textSelectable = textSelectable,
                 onClick = clickHandler,
-                inlineContent = rememberCustomEmojiInlineContent(data.customEmojis),
+                inlineContent = rememberCustomEmojiInlineContent(data.customEmojis) + rememberHashtagInlineContent(),
             )
         }
 

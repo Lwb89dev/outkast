@@ -1,10 +1,10 @@
-OUTKAST 2.4.0 shows NIP-68 picture notes (kind 20) from other clients as ordinary notes.
+OUTKAST 2.5.0 replaces the purple circle after `#nostr`, `#grownostr` and `#asknostr` with a running
+ostrich, Nostr's own mascot.
 
-Picture posts now appear in the home feed, profiles, the media grid, bookmarks, Network, live updates,
-notifications, threads, quotes and Explore. The caption stays the text, the pictures come from `imeta`,
-and a content warning hides the body until you tap Show. Reposting a picture publishes a kind 16
-generic repost. Outkast itself still publishes kind 1 notes. Close-friends posts, encrypted pictures
-and expired pictures stay hidden.
+The ostrich is a bundled silhouette tinted Nostr purple and drawn inline at 1.3 times the size of the
+text, so it follows the font size and works offline. It sits after the hashtag and outside its clickable
+span, matches regardless of case, and also shows in the direct-message conversation list. `#bitcoin`
+keeps its orange ₿.
 
 Existing accounts, databases, Keystore material, signing identity and `com.librenostr.android` upgrade
 compatibility are preserved.

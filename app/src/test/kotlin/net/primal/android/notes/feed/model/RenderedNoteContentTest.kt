@@ -45,16 +45,15 @@ class RenderedNoteContentTest {
         // The suffix sits after the annotation's own end, so tapping/copying the hashtag itself is unaffected.
         val hashtagAnnotation = result.getStringAnnotations(HASHTAG_ANNOTATION_TAG, 0, result.length).single()
         result.text.substring(hashtagAnnotation.start, hashtagAnnotation.end) shouldBe "#Bitcoin"
-        // Unlike the hashtag body (highlightColor) and unlike the purple circle (already a colored
-        // glyph), the bitcoin sign needs its own explicit style to render in Bitcoin's brand orange.
+        // The bitcoin sign needs its own explicit style to render in Bitcoin's brand orange.
         val signIndex = result.text.indexOf('₿')
         result.spanStyles.single { signIndex in it.start until it.end }.item shouldBe
             SpanStyle(color = Color(0xFFF7931A))
     }
 
     @Test
-    fun `the community hashtags get the purple circle, matching bitcoin's orange treatment`() {
-        listOf("#nostr", "#grownostr", "#asknostr").forEach { tag ->
+    fun `the community hashtags get an inline ostrich outside the clickable span regardless of case`() {
+        listOf("#nostr", "#grownostr", "#asknostr", "#Nostr", "#NOSTR").forEach { tag ->
             val content = rendered(
                 text = "gm $tag",
                 annotations = listOf(
@@ -62,9 +61,42 @@ class RenderedNoteContentTest {
                 ),
             )
 
-            content.toAnnotatedString(seeMoreText = "see more", highlightColor = color).text shouldBe
-                "gm $tag 🟣"
+            val result = content.toAnnotatedString(seeMoreText = "see more", highlightColor = color)
+
+            result.text shouldBe "gm $tag \uFFFC"
+            val inline = result.getStringAnnotations(0, result.length)
+                .single { it.item == NOSTR_HASHTAG_INLINE_CONTENT_ID }
+            result.text.substring(inline.start, inline.end) shouldBe "\uFFFC"
+            val hashtag = result.getStringAnnotations(HASHTAG_ANNOTATION_TAG, 0, result.length).single()
+            result.text.substring(hashtag.start, hashtag.end) shouldBe tag
+            hashtag.end shouldBe inline.start - 1
         }
+    }
+
+    @Test
+    fun `repeated ostrich suffixes preserve later mentions custom emoji and see-more offsets`() {
+        val text = "#nostr #NOSTR @alice :wave:"
+        val content = rendered(
+            text = text,
+            annotations = listOf(
+                ContentAnnotation(tag = HASHTAG_ANNOTATION_TAG, item = "#nostr", start = 0, end = 6),
+                ContentAnnotation(tag = HASHTAG_ANNOTATION_TAG, item = "#NOSTR", start = 7, end = 13),
+                ContentAnnotation(tag = PROFILE_ID_ANNOTATION_TAG, item = "alice", start = 14, end = 20),
+                ContentAnnotation(tag = CUSTOM_EMOJI_ANNOTATION_TAG, item = "wave", start = 21, end = 27),
+            ),
+            shouldEllipsize = true,
+        )
+
+        val result = content.toAnnotatedString(seeMoreText = "see more", highlightColor = color)
+
+        result.text shouldBe "#nostr \uFFFC #NOSTR \uFFFC @alice :wave: see more"
+        result.getStringAnnotations(0, result.length).count { it.item == NOSTR_HASHTAG_INLINE_CONTENT_ID } shouldBe 2
+        val mention = result.getStringAnnotations(PROFILE_ID_ANNOTATION_TAG, 0, result.length).single()
+        result.text.substring(mention.start, mention.end) shouldBe "@alice"
+        val emoji = result.getStringAnnotations(0, result.length).single { it.item == "nip30:wave" }
+        result.text.substring(emoji.start, emoji.end) shouldBe ":wave:"
+        val seeMore = result.spanStyles.last()
+        result.text.substring(seeMore.start, seeMore.end) shouldBe "see more"
     }
 
     @Test

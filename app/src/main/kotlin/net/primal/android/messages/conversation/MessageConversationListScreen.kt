@@ -91,6 +91,7 @@ import net.primal.android.messages.conversation.model.MessageConversationUi
 import net.primal.android.notes.feed.model.NoteContentUi
 import net.primal.android.notes.feed.model.rememberSharedEventLabels
 import net.primal.android.notes.feed.model.replaceSharedEventsWithLabels
+import net.primal.android.notes.feed.note.ui.rememberHashtagInlineContent
 import net.primal.android.notes.feed.note.ui.renderContentAsAnnotatedString
 import net.primal.android.theme.AppTheme
 import net.primal.domain.messages.ConversationRelation
@@ -426,6 +427,7 @@ private fun ConversationListItem(
                 maxLines = 2,
                 style = AppTheme.typography.bodySmall,
                 color = AppTheme.extraColorScheme.onSurfaceVariantAlt2,
+                inlineContent = rememberHashtagInlineContent(),
             )
         },
     )

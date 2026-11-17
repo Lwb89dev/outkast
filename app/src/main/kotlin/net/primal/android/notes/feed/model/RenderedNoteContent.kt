@@ -19,6 +19,7 @@ internal const val URL_ANNOTATION_TAG = "url"
 internal const val NOTE_ANNOTATION_TAG = "note"
 internal const val HASHTAG_ANNOTATION_TAG = "hashtag"
 internal const val NOSTR_ADDRESS_ANNOTATION_TAG = "naddr"
+internal const val NOSTR_HASHTAG_INLINE_CONTENT_ID = "hashtag:nostr"
 
 /**
  * A NIP-30 `:shortcode:` the note declared an image for. Unlike the tags above it is not a link:
@@ -198,24 +199,26 @@ private fun MutableList<ContentAnnotation>.addCustomEmojiAnnotations(
 }
 
 /**
- * A short, decorative glyph appended right after specific hashtags, in the community's own brand
- * color for that topic (the same idea as X's colored cashtags). Purely cosmetic: it is plain text
- * appended after the clickable span, never part of it, so tapping the hashtag is unaffected and a
- * copy-paste of the note carries it along like any other character.
- *
- * [color] is only needed for a glyph Unicode does not already render in color: the circle emoji
- * below is a full-color glyph on its own, but U+20BF BITCOIN SIGN is a plain text character that
- * takes whatever color its span is given, so bitcoin's needs one and the circle does not.
+ * A decorative glyph or bundled inline image after a hashtag, outside its clickable span.
+ * Unicode has no ostrich emoji, so Nostr uses an image with an object-replacement character as
+ * alternate text. Bitcoin keeps its text glyph, styled in the community's brand orange.
  */
-private data class HashtagSuffix(val glyph: String, val color: Color? = null)
+private data class HashtagSuffix(
+    val glyph: String,
+    val color: Color? = null,
+    val inlineContentId: String? = null,
+)
+
+private val NOSTR_HASHTAG_SUFFIX = HashtagSuffix(
+    glyph = "\uFFFC",
+    inlineContentId = NOSTR_HASHTAG_INLINE_CONTENT_ID,
+)
 
 private val HASHTAG_SUFFIXES: Map<String, HashtagSuffix> = mapOf(
-    "bitcoin" to HashtagSuffix(glyph = " ₿", color = Color(0xFFF7931A)), // Bitcoin's own brand orange
-    // Unicode has no ostrich emoji (Nostr's own mascot); a purple circle matches the bitcoin
-    // treatment above with the community's purple instead of drawing a custom inline icon.
-    "nostr" to HashtagSuffix(glyph = " 🟣"), // U+1F7E3 large purple circle
-    "grownostr" to HashtagSuffix(glyph = " 🟣"),
-    "asknostr" to HashtagSuffix(glyph = " 🟣"),
+    "bitcoin" to HashtagSuffix(glyph = "₿", color = Color(0xFFF7931A)),
+    "nostr" to NOSTR_HASHTAG_SUFFIX,
+    "grownostr" to NOSTR_HASHTAG_SUFFIX,
+    "asknostr" to NOSTR_HASHTAG_SUFFIX,
 )
 
 private fun hashtagSuffix(hashtagText: String): HashtagSuffix? =
@@ -255,7 +258,12 @@ fun RenderedNoteContent.toAnnotatedString(seeMoreText: String, highlightColor: C
             if (annotation.tag == HASHTAG_ANNOTATION_TAG) {
                 hashtagSuffix(annotation.item)?.let { suffix ->
                     val suffixStart = length
-                    append(suffix.glyph)
+                    append(' ')
+                    if (suffix.inlineContentId != null) {
+                        appendInlineContent(id = suffix.inlineContentId, alternateText = suffix.glyph)
+                    } else {
+                        append(suffix.glyph)
+                    }
                     if (suffix.color != null) {
                         addStyle(style = SpanStyle(color = suffix.color), start = suffixStart, end = length)
                     }

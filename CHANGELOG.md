@@ -9,6 +9,18 @@ the LibreNostr/OUTKAST fork on top of the imported `3.5.25` baseline.
 
 ## [Unreleased]
 
+## [2.5.0] - 2026-11-17
+
+### Changed
+
+- **A running ostrich after `#nostr`, `#grownostr` and `#asknostr`.** The purple circle emoji that
+  followed these hashtags is replaced by a bundled ostrich silhouette, Nostr's own mascot, tinted the
+  same Nostr purple. It is drawn inline at 1.3 times the size of the surrounding text, so it follows
+  the font size and works offline. It sits after the hashtag and outside its clickable span, so
+  tapping the hashtag still opens it, and the hashtag matches regardless of case (`#Nostr`, `#NOSTR`).
+  The ostrich also shows in the preview line of the direct-message conversation list. `#bitcoin`
+  keeps its orange ₿.
+
 ## [2.4.0] - 2026-11-05
 
 ### Added
