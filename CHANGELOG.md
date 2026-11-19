@@ -9,6 +9,8 @@ the LibreNostr/OUTKAST fork on top of the imported `3.5.25` baseline.
 
 ## [Unreleased]
 
+## [2.6.0] - 2026-11-19
+
 ### Added
 
 - **Draw on a photo.** The photo editor has a new Draw tool: a freehand pen, a straight line, an arrow, a
