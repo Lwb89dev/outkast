@@ -139,6 +139,7 @@ class NoteViewModel @AssistedInject constructor(
                     userId = userId,
                     eventId = postLikeAction.postId,
                     eventAuthorId = postLikeAction.postAuthorId,
+                    optionalTags = postLikeAction.optionalTags,
                     reaction = postLikeAction.reaction,
                 )
             } catch (error: NostrPublishException) {

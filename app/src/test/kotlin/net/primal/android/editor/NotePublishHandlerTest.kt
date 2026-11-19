@@ -878,6 +878,59 @@ class NotePublishHandlerTest {
         }
 
     @Test
+    fun publishShortTextNote_replyToAZapstoreAppComment_isANip22CommentRootedAtTheApp() =
+        runTest {
+            val nostrPublisher = mockk<NostrPublisher>(relaxed = true)
+            val appPublisher = "44dc0ab0606436c14454d7ecf3581b7b4f1b48857fd9851896a07dcf2b72b2bb"
+            val appAddress = "32267:$appPublisher:com.librenostr.android"
+            val commentId = "5c22562ca9874d355f66601807681ac0afa6e54ab3a311a633b14920895f1762"
+            val commenterId = "8a719d42".padEnd(64, '0')
+            // The tags Zapstore writes on a comment that answers another comment under an app page.
+            val comment = buildFeedPost(
+                postId = commentId,
+                authorId = commenterId,
+                kind = NostrEventKind.Comment.value,
+                tags = listOf(
+                    buildJsonArray { add("A"); add(appAddress) },
+                    buildJsonArray { add("K"); add("32267") },
+                    buildJsonArray { add("P"); add(appPublisher) },
+                    buildJsonArray { add("e"); add("ae0cc9fbdec78339f1f74014945c8f3e403fef42435924a26593e67a927f81f9") },
+                    buildJsonArray { add("k"); add("1111") },
+                    buildJsonArray { add("p"); add(expectedUserId) },
+                    buildJsonArray { add("i"); add("com.librenostr.android") },
+                    buildJsonArray { add("v"); add("2.5.0") },
+                ),
+            )
+            val notePublishHandler = buildNotePublishHandler(
+                nostrPublisher = nostrPublisher,
+                feedRepository = mockk { coEvery { findPostsById(commentId) } returns comment },
+            )
+
+            notePublishHandler.publishShortTextNote(
+                userId = expectedUserId,
+                content = "You're welcome!",
+                rootNoteNevent = buildNoteNevent(commentId),
+                replyToNoteNevent = buildNoteNevent(commentId),
+            )
+
+            coVerify {
+                nostrPublisher.signPublishImportNostrEvent(
+                    withArg { event ->
+                        event.kind shouldBe NostrEventKind.Comment.value
+                        event.tags.first { it[0].jsonPrimitive.content == "A" }[1].jsonPrimitive.content shouldBe
+                            appAddress
+                        event.tags.first { it[0].jsonPrimitive.content == "K" }[1].jsonPrimitive.content shouldBe "32267"
+                        event.tags.first { it[0].jsonPrimitive.content == "e" }[1].jsonPrimitive.content shouldBe
+                            commentId
+                        event.tags.first { it[0].jsonPrimitive.content == "k" }[1].jsonPrimitive.content shouldBe "1111"
+                        event.tags.first { it[0].jsonPrimitive.content == "p" }[1].jsonPrimitive.content shouldBe commenterId
+                    },
+                    any(),
+                )
+            }
+        }
+
+    @Test
     fun publishShortTextNote_replyToALegacyKind1CommentOnAnArticle_staysAKind1Reply() =
         runTest {
             val nostrPublisher = mockk<NostrPublisher>(relaxed = true)

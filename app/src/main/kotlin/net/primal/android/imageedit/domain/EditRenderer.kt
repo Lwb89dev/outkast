@@ -31,7 +31,7 @@ class ImagePixelSource(private val image: RgbImage) : PixelSource {
 
 /**
  * Draws a recipe on a picture: one resampling for the whole geometry, then the tone and color steps, then sharpening
- * and the vignette.
+ * and the vignette, and last the annotations drawn over it.
  *
  * It works in horizontal bands, reading from the original only the box each band needs, so a 50-megapixel photo can
  * be drawn at full size without holding it (or its result) in memory as arrays; a preview is simply one band. Rows
@@ -79,6 +79,7 @@ object EditRenderer {
             val rows = bottom - top
             val out = IntArray(rows * outWidth)
             System.arraycopy(band, (top - from) * outWidth, out, 0, out.size)
+            AnnotationRaster.draw(r.annotations, r.geometry.crop, out, outWidth, outHeight, top, rows)
             sink(top, rows, out)
             top = bottom
         }

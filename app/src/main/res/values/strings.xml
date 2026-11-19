@@ -1424,6 +1424,20 @@
     <string name="photo_edit_geo_straighten">Straighten</string>
     <string name="photo_edit_geo_perspective_vertical">Vertical perspective</string>
     <string name="photo_edit_geo_perspective_horizontal">Horizontal perspective</string>
+    <string name="photo_edit_tool_draw">Draw</string>
+    <string name="photo_edit_draw_pen">Pen</string>
+    <string name="photo_edit_draw_line">Line</string>
+    <string name="photo_edit_draw_arrow">Arrow</string>
+    <string name="photo_edit_draw_rectangle">Rectangle</string>
+    <string name="photo_edit_draw_circle">Circle</string>
+    <string name="photo_edit_draw_fill">Fill</string>
+    <string name="photo_edit_draw_undo">Undo</string>
+    <string name="photo_edit_draw_clear">Clear drawing</string>
+    <string name="photo_edit_draw_thickness">Thickness</string>
+    <string name="photo_edit_draw_color">Color %1$s</string>
+    <string name="photo_edit_draw_custom_color">Custom color</string>
+    <string name="photo_edit_draw_hue">Hue</string>
+    <string name="photo_edit_draw_picker_area">Saturation and brightness</string>
     <string name="photo_edit_crop_area">Crop area, %1$d%% to %2$d%% across and %3$d%% to %4$d%% down</string>
 
     <!-- Your algorithms (the Discover panel of Orbit) and the screen that creates one -->

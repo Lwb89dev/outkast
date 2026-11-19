@@ -1,5 +1,6 @@
 package net.primal.android.notes.feed.note
 
+import kotlinx.serialization.json.JsonArray
 import net.primal.android.core.errors.UiError
 import net.primal.android.notes.feed.model.PollUi
 import net.primal.domain.events.EventInteractionRepository
@@ -24,12 +25,14 @@ interface NoteContract {
          * Reacts to a note: a plain like by default, or with [reaction] (an emoji) when the user picked
          * one. [replacePrevious] is for a note that already carries the user's reaction: the old one is
          * taken back first, since a reaction cannot be edited and two would count twice.
+         * [optionalTags] ride along on the reaction event: the `emoji` tag of a custom emoji reaction.
          */
         data class PostLikeAction(
             val postId: String,
             val postAuthorId: String,
             val reaction: String = EventInteractionRepository.DEFAULT_REACTION,
             val replacePrevious: Boolean = false,
+            val optionalTags: List<JsonArray> = emptyList(),
         ) : UiEvent()
 
         /** Takes the user's reaction back. */

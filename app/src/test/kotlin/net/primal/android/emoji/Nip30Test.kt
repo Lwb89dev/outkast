@@ -115,4 +115,20 @@ class Nip30Test {
         }
         BuiltInEmojiPacks.localDrawableFor("https://example.com/ostrich-happy.png") shouldBe null
     }
+
+    @Test
+    fun reaction_ofACustomEmoji_isItsShortcodeWithTheEmojiTag() {
+        val emoji = CustomEmoji(shortcode = "ostrich_love", url = "https://example.com/love.png")
+
+        Nip30.reactionContent(emoji) shouldBe ":ostrich_love:"
+        Nip30.reactionTags(emoji) shouldContainExactly
+            listOf(tag("emoji", "ostrich_love", "https://example.com/love.png"))
+    }
+
+    @Test
+    fun reaction_ofACustomEmoji_readsBackAsTheSameEmoji() {
+        val emoji = CustomEmoji(shortcode = "ostrich_zap", url = "https://example.com/zap.png")
+
+        Nip30.reactionTags(emoji).customEmojis() shouldContainExactly mapOf(emoji.shortcode to emoji.url)
+    }
 }

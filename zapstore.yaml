@@ -1,13 +1,26 @@
 repository: https://github.com/Lwb89dev/outkast
-# Keep the legacy prefix while the GitHub latest release is still LibreNostr;
-# OUTKAST releases use the new prefix without changing the application ID.
-match: '(outkast|librenostr)-\d+\.\d+\.\d+-arm64-v8a\.apk$'
+# Every OUTKAST release attaches outkast-<version>-arm64-v8a.apk, the only ABI that is published.
+match: 'outkast-\d+\.\d+\.\d+-arm64-v8a\.apk$'
+
+# Explicit values win over fetched metadata. These mirror
+# fastlane/metadata/android/en-US, whose full description is HTML, so the Markdown lives here.
 name: OUTKAST
-description: Relay-first Nostr client for Android. Fork of Primal, without Primal cache servers as a requirement.
+summary: Permissionless social publishing on Nostr, direct through your relays.
+description: |
+  **OUTKAST** is an independent social client for Android. You don't need permission to exist online.
+
+  Follow people, publish posts, discover conversations, message privately and zap creators through the open Nostr network. OUTKAST talks directly to your relays and keeps its working state on your device.
+
+  Your Nostr identity remains yours. Bring an existing identity or create one, choose your relays, connect an NWC wallet when you want to zap, and use Tor routing when you need it.
+
+  No centralized recommendation feed. No OUTKAST account. No custodial wallet.
+
+  Built on the LibreNostr and Primal Android foundations (MIT).
 license: MIT
 website: https://github.com/Lwb89dev/outkast
-icon: ./assets/icons/icon-outkast.png
+tags: [nostr, social]
+
+icon: ./fastlane/metadata/android/en-US/images/icon.png
 release_notes: ./CHANGELOG.md
 metadata_sources:
     - github
-pubkey: npub1vjxq75czca0nswp2f5kgtfyzhynuccdjs29q098rd3kv09k7s6nq39hh7v

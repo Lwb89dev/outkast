@@ -18,6 +18,8 @@ import net.primal.android.imageedit.data.PhotoEditLoader
 import net.primal.android.imageedit.data.toBitmap
 import net.primal.android.imageedit.data.toRgbImage
 import net.primal.android.imageedit.domain.Adjustments
+import net.primal.android.imageedit.domain.Annotation
+import net.primal.android.imageedit.domain.AnnotationKind
 import net.primal.android.imageedit.domain.AutoEnhance
 import net.primal.android.imageedit.domain.Crop
 import net.primal.android.imageedit.domain.CropShape
@@ -32,7 +34,7 @@ import net.primal.core.utils.onFailure
 import net.primal.core.utils.runCatching
 
 /** The groups of tools along the bottom of the editor. */
-enum class EditTool { LIGHT, COLOR, DETAIL, FILTERS, CROP }
+enum class EditTool { LIGHT, COLOR, DETAIL, FILTERS, CROP, DRAW }
 
 /**
  * Everything the photo editor holds while it is open: the recipe being edited, the reduced copy of the photo it is
@@ -71,6 +73,22 @@ class PhotoEditorState(
     var cropShape by mutableStateOf(CropShape.FREE)
         private set
 
+    /** What the draw tool puts down next: a freehand stroke or one of the shapes. */
+    var drawKind by mutableStateOf(AnnotationKind.PEN)
+        private set
+
+    /** Packed ARGB of the line the draw tool puts down. */
+    var drawColor by mutableStateOf(DEFAULT_DRAW_COLOR)
+        private set
+
+    /** The thickness of that line, as a fraction of the longer side of the picture. */
+    var drawWidth by mutableStateOf(Annotation.DEFAULT_WIDTH)
+        private set
+
+    /** Rectangles and circles are filled rather than outlined. */
+    var drawFilled by mutableStateOf(false)
+        private set
+
     var preview by mutableStateOf<Bitmap?>(null)
         private set
 
@@ -100,18 +118,16 @@ class PhotoEditorState(
      * therefore never triggered, the preview stayed empty, and the picture only appeared when the original was shown
      * by tapping (that one is set directly).
      */
-    private data class DrawRequest(val recipe: EditRecipe, val tool: EditTool, val sourceReady: Boolean)
+    private data class DrawRequest(val recipe: EditRecipe, val sourceReady: Boolean)
 
-    private val shown = MutableStateFlow(DrawRequest(EditRecipe.NONE, EditTool.LIGHT, sourceReady = false))
+    private val shown = MutableStateFlow(DrawRequest(EditRecipe.NONE, sourceReady = false))
 
     init {
         scope.launch { load() }
         scope.launch {
             // A StateFlow already skips equal values, so a slider that settles where it was draws nothing.
             shown
-                .mapLatest { request ->
-                    if (request.sourceReady) draw(shownRecipe(request.recipe, request.tool)) else null
-                }
+                .mapLatest { request -> if (request.sourceReady) draw(request.recipe) else null }
                 .collect { drawn -> if (drawn != null) preview = drawn }
         }
     }
@@ -135,15 +151,25 @@ class PhotoEditorState(
         filterThumbnails = thumbnails
         original = plain
         loading = false
-        shown.value = DrawRequest(recipe, tool, sourceReady = true)
+        publishRequest()
     }
 
     /**
+     * What the preview picture is drawn from. The annotations are left out on purpose: the screen draws them over the
+     * picture itself, so a stroke appears the moment the finger lifts and putting one down never redraws the photo.
      * While the crop tool is open the whole (turned, straightened) picture is shown so the crop can be drawn over it,
      * and dragging the crop does not redraw anything.
      */
-    private fun shownRecipe(recipe: EditRecipe, tool: EditTool): EditRecipe =
-        if (tool == EditTool.CROP) recipe.copy(geometry = recipe.geometry.copy(crop = Crop.FULL)) else recipe
+    private fun shownRecipe(recipe: EditRecipe, tool: EditTool): EditRecipe {
+        val plain = recipe.copy(annotations = emptyList())
+        return if (tool == EditTool.CROP) plain.copy(geometry = plain.geometry.copy(crop = Crop.FULL)) else plain
+    }
+
+    private fun publishRequest() {
+        // A StateFlow does not emit a value equal to the one it holds: a tool change or a stroke that leaves the shown
+        // recipe as it was draws nothing.
+        shown.value = DrawRequest(shownRecipe(recipe, tool), sourceReady = source != null)
+    }
 
     private suspend fun draw(recipe: EditRecipe): Bitmap? {
         val picture = source ?: return null
@@ -163,12 +189,12 @@ class PhotoEditorState(
 
     fun selectTool(next: EditTool) {
         tool = next
-        shown.value = DrawRequest(recipe, tool, sourceReady = source != null)
+        publishRequest()
     }
 
     private fun edit(change: (EditRecipe) -> EditRecipe) {
         recipe = change(recipe).clamped()
-        shown.value = DrawRequest(recipe, tool, sourceReady = source != null)
+        publishRequest()
         saveFailed = false
     }
 
@@ -181,9 +207,55 @@ class PhotoEditorState(
 
     fun geometry(change: (Geometry) -> Geometry) = edit { it.copy(geometry = change(it.geometry)) }
 
-    fun rotate() = geometry { it.copy(quarterTurns = it.quarterTurns + 1, crop = Crop.FULL) }
+    /** A quarter turn clockwise; what was drawn turns with the picture. */
+    fun rotate() =
+        edit {
+            it.copy(
+                geometry = it.geometry.copy(quarterTurns = it.geometry.quarterTurns + 1, crop = Crop.FULL),
+                annotations = it.annotations.map(Annotation::rotatedClockwise),
+            )
+        }
 
-    fun flip() = geometry { it.copy(flipHorizontal = !it.flipHorizontal) }
+    /**
+     * Mirrors the picture; what was drawn is mirrored with it. The flip is applied before the quarter turns, so on a
+     * picture turned a quarter or three the mirrored direction on screen is top to bottom.
+     */
+    fun flip() =
+        edit {
+            val sideways = it.geometry.quarterTurns % 2 == 0
+            it.copy(
+                geometry = it.geometry.copy(flipHorizontal = !it.geometry.flipHorizontal),
+                annotations = it.annotations.map { drawing -> drawing.mirrored(horizontal = sideways) },
+            )
+        }
+
+    // --- Drawing -------------------------------------------------------------------------------------
+
+    fun selectDrawKind(kind: AnnotationKind) {
+        drawKind = kind
+    }
+
+    fun chooseDrawColor(argb: Int) {
+        drawColor = argb
+    }
+
+    fun chooseDrawWidth(width: Float) {
+        drawWidth = width.coerceIn(Annotation.MIN_WIDTH, Annotation.MAX_WIDTH)
+    }
+
+    fun chooseDrawFilled(filled: Boolean) {
+        drawFilled = filled
+    }
+
+    /** Puts one finished stroke or shape on top of everything drawn so far. */
+    fun addAnnotation(annotation: Annotation) {
+        if (annotation.isDrawable) edit { it.copy(annotations = it.annotations + annotation) }
+    }
+
+    /** Takes back the last thing drawn. */
+    fun undoAnnotation() = edit { it.copy(annotations = it.annotations.dropLast(1)) }
+
+    fun clearAnnotations() = edit { it.copy(annotations = emptyList()) }
 
     /** Locks the crop to [shape], fitting the largest crop of that shape into the picture. */
     fun lockCropShape(shape: CropShape) {
@@ -233,5 +305,6 @@ class PhotoEditorState(
     private companion object {
         const val PREVIEW_EDGE = 1400
         const val THUMBNAIL_EDGE = 140
+        const val DEFAULT_DRAW_COLOR = 0xFFFF3B30.toInt()
     }
 }

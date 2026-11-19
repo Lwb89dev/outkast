@@ -53,17 +53,18 @@ import net.primal.android.imageedit.domain.CropTool
 import net.primal.android.theme.AppTheme
 
 /**
- * The photo as edited. Hold it (outside the crop tool) to see the original; in the crop tool the crop rectangle is
- * drawn over it.
+ * The photo as edited. Hold it (outside the crop and draw tools) to see the original; in the crop tool the crop
+ * rectangle is drawn over it, and in the draw tool the finger draws on it.
  */
 @Composable
 fun PhotoEditorPreview(state: PhotoEditorState, modifier: Modifier = Modifier) {
     var comparing by remember { mutableStateOf(false) }
     val cropping = state.tool == EditTool.CROP
+    val drawing = state.tool == EditTool.DRAW
     val shown = if (comparing && !cropping) state.original else state.preview
     Box(
-        modifier = modifier.fillMaxSize().pointerInput(cropping) {
-            if (!cropping) {
+        modifier = modifier.fillMaxSize().pointerInput(cropping, drawing) {
+            if (!cropping && !drawing) {
                 detectTapGestures(
                     onPress = {
                         comparing = true
@@ -74,7 +75,7 @@ fun PhotoEditorPreview(state: PhotoEditorState, modifier: Modifier = Modifier) {
             }
         },
     ) {
-        if (shown != null) PreviewPicture(shown, state, cropping)
+        if (shown != null) PreviewPicture(shown, state, cropping, showAnnotations = !comparing)
         if (!cropping && state.changed) {
             // Holding the picture does the same; this is for whoever cannot hold (a screen reader, a shaky hand) or
             // has not found that yet.
@@ -115,17 +116,23 @@ private fun OriginalToggle(showing: Boolean, onToggle: () -> Unit, modifier: Mod
     }
 }
 
-/** The picture, with the crop rectangle over it while the crop tool is open. */
+/**
+ * The picture, with what was drawn over it, or with the crop rectangle while the crop tool is open (the crop is cut
+ * from the whole picture, so what was drawn is not shown there).
+ */
 @Composable
-private fun PreviewPicture(shown: Bitmap, state: PhotoEditorState, cropping: Boolean) {
+private fun PreviewPicture(shown: Bitmap, state: PhotoEditorState, cropping: Boolean, showAnnotations: Boolean) {
     Image(
         bitmap = shown.asImageBitmap(),
         contentDescription = null,
         contentScale = ContentScale.Fit,
         modifier = Modifier.fillMaxSize(),
     )
-    if (!cropping) return
     val aspect = shown.width.toFloat() / shown.height
+    if (!cropping) {
+        if (showAnnotations) AnnotationLayer(state, aspect)
+        return
+    }
     CropOverlay(
         imageAspect = aspect,
         crop = state.recipe.geometry.crop,
@@ -196,7 +203,7 @@ private fun CropOverlay(imageAspect: Float, crop: Crop, ratio: Float?, onChange:
 private fun percent(fraction: Float) = (fraction * 100).roundToInt()
 
 /** Where the picture is drawn inside a container of [size] (fitted and centred), in pixels. */
-private fun imageRect(size: IntSize, aspect: Float): Rect {
+internal fun imageRect(size: IntSize, aspect: Float): Rect {
     if (size.width == 0 || size.height == 0 || aspect <= 0f) return Rect(Offset.Zero, Size(1f, 1f))
     val containerAspect = size.width.toFloat() / size.height
     val (w, h) = if (aspect > containerAspect) {

@@ -13,6 +13,7 @@ import net.primal.android.core.activity.LocalZappingState
 import net.primal.android.core.compose.ConfirmActionAlertDialog
 import net.primal.android.core.compose.bubble.AnchorHandle
 import net.primal.android.core.compose.profile.approvals.ApproveBookmarkAlertDialog
+import net.primal.android.emoji.Nip30
 import net.primal.android.notes.feed.NoteRepostOrQuotePopup
 import net.primal.android.notes.feed.model.FeedPostUi
 import net.primal.android.notes.feed.model.asNeventString
@@ -76,6 +77,18 @@ fun NoteCardDialogs(
                         reaction = emoji,
                         // A second reaction would count twice: the first is taken back, then this goes out.
                         replacePrevious = data.stats.userLiked,
+                    ),
+                )
+            },
+            onCustomEmojiSelected = { emoji ->
+                dialogsState.showReactionPicker = false
+                eventPublisher(
+                    UiEvent.PostLikeAction(
+                        postId = data.postId,
+                        postAuthorId = data.authorId,
+                        reaction = Nip30.reactionContent(emoji),
+                        replacePrevious = data.stats.userLiked,
+                        optionalTags = Nip30.reactionTags(emoji),
                     ),
                 )
             },

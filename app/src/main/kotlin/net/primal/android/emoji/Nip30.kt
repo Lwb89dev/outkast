@@ -77,6 +77,15 @@ object Nip30 {
             add(JsonPrimitive(emoji.url))
         }
 
+    /**
+     * What a reaction made of a custom [emoji] carries (NIP-25 + NIP-30): the `:shortcode:` as the
+     * reaction's content and the `emoji` tag that tells a reader which image that is. The tag is what
+     * lets every client draw it, whether or not the reader has the author's packs.
+     */
+    fun reactionContent(emoji: CustomEmoji): String = ":${emoji.shortcode}:"
+
+    fun reactionTags(emoji: CustomEmoji): List<JsonArray> = listOf(emojiTag(emoji))
+
     fun emojiPackTags(identifier: String, title: String, emojis: List<CustomEmoji>): List<JsonArray> =
         buildList {
             add(stringTag("d", identifier))

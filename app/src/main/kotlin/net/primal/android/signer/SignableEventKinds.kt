@@ -23,7 +23,8 @@ import net.primal.domain.nostr.NostrEventKind
  */
 val SIGNABLE_EVENT_KINDS: List<NostrEventKind> = listOf(
     NostrEventKind.Metadata,                // profile edits
-    NostrEventKind.ShortTextNote,           // notes, replies, article comments
+    NostrEventKind.ShortTextNote,           // notes and replies
+    NostrEventKind.Comment,                 // NIP-22: replies to comments (Zapstore app pages), article comments
     NostrEventKind.FollowList,              // follow and unfollow
     NostrEventKind.EncryptedDirectMessages, // NIP-04 direct messages
     NostrEventKind.PrivateDirectMessage,    // NIP-17 rumor (kind 14)

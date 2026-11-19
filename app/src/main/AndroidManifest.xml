@@ -77,6 +77,17 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!-- NIP-21 `nostr:` links (npub, nprofile, note, nevent, naddr): what notification apps such as
+                 Pokey and web pages hand over to "open in a Nostr client". MainActivity maps them onto the
+                 nostrich.org routes below. Not verified: the scheme has no owner to verify against. -->
+            <intent-filter android:label="OUTKAST">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="nostr" />
+            </intent-filter>
             <intent-filter
                 android:autoVerify="true"
                 android:label="OUTKAST profile">

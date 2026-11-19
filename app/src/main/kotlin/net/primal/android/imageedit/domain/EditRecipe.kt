@@ -139,10 +139,15 @@ data class EditRecipe(
     val filter: EditFilter = EditFilter.NONE,
     /** 0 to 1. */
     val filterAmount: Float = 1f,
+    /** What was drawn over the photo, oldest first; the renderer paints it last, so no filter changes its colors. */
+    val annotations: List<Annotation> = emptyList(),
 ) {
     /** True when drawing the recipe would change nothing. */
     val isIdentity: Boolean
-        get() = adjustments.isNeutral && geometry.isNeutral && (filter == EditFilter.NONE || filterAmount <= 0f)
+        get() = adjustments.isNeutral &&
+            geometry.isNeutral &&
+            (filter == EditFilter.NONE || filterAmount <= 0f) &&
+            annotations.none { it.isDrawable }
 
     fun clamped() =
         EditRecipe(
@@ -150,6 +155,7 @@ data class EditRecipe(
             geometry = geometry.clamped(),
             filter = filter,
             filterAmount = filterAmount.coerceIn(0f, 1f),
+            annotations = annotations.map { it.clamped() },
         )
 
     companion object {

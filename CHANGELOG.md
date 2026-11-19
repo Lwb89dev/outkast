@@ -9,6 +9,40 @@ the LibreNostr/OUTKAST fork on top of the imported `3.5.25` baseline.
 
 ## [Unreleased]
 
+### Added
+
+- **Draw on a photo.** The photo editor has a new Draw tool: a freehand pen, a straight line, an arrow, a
+  rectangle and a circle (an ellipse when the box is not square), each outlined or, for the last two,
+  filled. Pick the color from the palette or from a custom color picker (saturation and brightness square
+  plus a hue bar), set how thick the line is, and undo the last stroke or clear them all. Drawings are part
+  of the edit like any slider: they are painted last, so a filter never changes their colors, they turn and
+  flip with the photo, they stay on what they were drawn on when the crop moves, and the saved picture is
+  rendered from the same shapes as the screen, at any size. Hold the picture to see it without them.
+
+- **Custom emoji as a reaction.** The sheet a long press on the heart opens now has a row of tabs under the
+  quick reactions: the first is every emoji your phone knows, as before, and the others are your emoji packs
+  (the same ones the composer offers). Pick one and the reaction goes out as `:shortcode:` with its `emoji`
+  tag (NIP-25 with NIP-30), so other clients draw the image too, whether or not they have your packs. On
+  your own screen the heart is still shown filled for such a reaction. Reported by Zaikaboy on Nostr, who
+  could make emoji packs but not react with them. Thank you.
+
+### Fixed
+
+- **Notification apps such as Pokey could not open a note in OUTKAST.** OUTKAST only answered to its
+  own nostrich.org links, so a `nostr:` link (what a notification app or a web page's "open in your Nostr
+  client" button hands over) was never offered to it, so a notification app had nothing to hand a tap to
+  and fell back to a web page in the browser. OUTKAST now handles `nostr:` links to a profile (`npub`,
+  `nprofile`), a note (`note`, `nevent`) and a long-form article (`naddr`), including from a cold start.
+  A link that does not decode, or points at something with no screen (an emoji pack, a secret key), is
+  ignored. Reported by Zaikaboy on Nostr, whose Pokey notifications opened njump.me instead of OUTKAST.
+  Thank you.
+
+- **Replying to a comment on a Zapstore app page failed for Amber and bunker accounts.** A reply to a
+  comment (kind 1111, NIP-22) was refused locally before it ever reached the external signer, because
+  that kind was missing from the list of kinds the app signs, so the reply showed the generic publish
+  error while ordinary notes kept working. Accounts with the key in the app were not affected. Amber
+  will ask once to approve the new kind, and can remember the choice.
+
 ## [2.5.0] - 2026-11-17
 
 ### Changed

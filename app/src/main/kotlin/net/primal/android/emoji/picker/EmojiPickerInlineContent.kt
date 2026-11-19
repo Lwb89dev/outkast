@@ -109,43 +109,61 @@ fun EmojiPickerInlineContent(
     }
 }
 
-/** One tab per pack, each showing the pack's first emoji as its icon. */
+/**
+ * One tab per pack, each showing the pack's first emoji as its icon. [leadingTab], when given, comes
+ * before the packs and is drawn with [emojiTab]; whoever passes it owns what selecting it means.
+ */
 @Composable
-private fun EmojiPackTabs(
+internal fun EmojiPackTabs(
     packs: List<EmojiPack>,
     selectedPack: EmojiPack?,
     onPackClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    leadingTab: (@Composable () -> Unit)? = null,
 ) {
     LazyRow(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
+        if (leadingTab != null) {
+            item(key = "leading-tab") { leadingTab() }
+        }
         itemsIndexed(packs, key = { _, pack -> pack.address }) { index, pack ->
-            val isSelected = pack.address == selectedPack?.address
             val icon = pack.emojis.firstOrNull() ?: return@itemsIndexed
             CustomEmojiImage(
                 url = icon.url,
                 shortcode = icon.shortcode,
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .then(
-                        if (isSelected) {
-                            Modifier.border(2.dp, AppTheme.colorScheme.primary, RoundedCornerShape(10.dp))
-                        } else {
-                            Modifier
-                        },
-                    )
-                    .clickable { onPackClick(index) }
-                    .padding(6.dp),
+                modifier = Modifier.emojiTab(
+                    isSelected = pack.address == selectedPack?.address,
+                    selectedBorderColor = AppTheme.colorScheme.primary,
+                    onClick = { onPackClick(index) },
+                ),
             )
         }
     }
 }
 
+/** The look of one tab in a row of [EmojiPackTabs]: a rounded square, outlined while selected. */
+internal fun Modifier.emojiTab(
+    isSelected: Boolean,
+    selectedBorderColor: Color,
+    onClick: () -> Unit,
+): Modifier =
+    this
+        .size(40.dp)
+        .clip(RoundedCornerShape(10.dp))
+        .then(
+            if (isSelected) {
+                Modifier.border(2.dp, selectedBorderColor, RoundedCornerShape(10.dp))
+            } else {
+                Modifier
+            },
+        )
+        .clickable(onClick = onClick)
+        .padding(6.dp)
+
 @Composable
-private fun EmojiGrid(
+internal fun EmojiGrid(
     emojis: List<CustomEmoji>,
     onEmojiClick: (CustomEmoji) -> Unit,
     modifier: Modifier = Modifier,

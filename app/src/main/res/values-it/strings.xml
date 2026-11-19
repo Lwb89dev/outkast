@@ -1249,6 +1249,20 @@
     <string name="photo_edit_geo_straighten">Raddrizza</string>
     <string name="photo_edit_geo_perspective_vertical">Prospettiva verticale</string>
     <string name="photo_edit_geo_perspective_horizontal">Prospettiva orizzontale</string>
+    <string name="photo_edit_tool_draw">Disegna</string>
+    <string name="photo_edit_draw_pen">Penna</string>
+    <string name="photo_edit_draw_line">Linea</string>
+    <string name="photo_edit_draw_arrow">Freccia</string>
+    <string name="photo_edit_draw_rectangle">Rettangolo</string>
+    <string name="photo_edit_draw_circle">Cerchio</string>
+    <string name="photo_edit_draw_fill">Riempi</string>
+    <string name="photo_edit_draw_undo">Annulla</string>
+    <string name="photo_edit_draw_clear">Cancella disegno</string>
+    <string name="photo_edit_draw_thickness">Spessore</string>
+    <string name="photo_edit_draw_color">Colore %1$s</string>
+    <string name="photo_edit_draw_custom_color">Colore personalizzato</string>
+    <string name="photo_edit_draw_hue">Tonalità</string>
+    <string name="photo_edit_draw_picker_area">Saturazione e luminosità</string>
     <string name="photo_edit_crop_area">Area di ritaglio, dal %1$d%% al %2$d%% in larghezza e dal %3$d%% al %4$d%% in altezza</string>
 
     <!-- Your algorithms (the Discover panel of Orbit) and the screen that creates one -->

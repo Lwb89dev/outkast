@@ -29,6 +29,7 @@ import net.primal.android.main.REQUESTED_TAB_KEY
 import net.primal.android.navigation.PrimalAppNavigation
 import net.primal.android.navigation.asUrlDecoded
 import net.primal.android.navigation.navigateToNostrConnectBottomSheet
+import net.primal.android.navigation.nostrUriToWebDeepLinkOrNull
 import net.primal.android.nostr.notary.NostrNotary
 import net.primal.android.nostr.notary.NostrNotary.NotarySideEffect
 import net.primal.android.nostrconnect.utils.isNostrConnectUrl
@@ -63,7 +64,10 @@ class MainActivity : PrimalActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        intent?.optOutOfNavigationTaskRestart()
+        intent?.apply {
+            mapNostrUriToWebDeepLink()
+            optOutOfNavigationTaskRestart()
+        }
 
         // Emit cold-start intent for tab/connect deep links (Navigation handles everything else).
         // Only on a fresh launch: the Activity keeps its launch intent across re-creations, so re-emitting
@@ -129,8 +133,19 @@ class MainActivity : PrimalActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        intent.mapNostrUriToWebDeepLink()
         intent.optOutOfNavigationTaskRestart()
         deepLinkIntents.tryEmit(intent)
+    }
+
+    /**
+     * A `nostr:` link (what a notification app or a web page's "open in your client" hands over) is
+     * rewritten in place to the matching nostrich.org link, which the navigation graph already routes.
+     * Done before Navigation first reads the intent, so a cold start lands on the right screen too.
+     * A link that cannot be opened is left as it came and Navigation ignores it.
+     */
+    private fun Intent.mapNostrUriToWebDeepLink() {
+        dataString?.nostrUriToWebDeepLinkOrNull()?.let { data = Uri.parse(it) }
     }
 
     /**

@@ -30,6 +30,14 @@ class SignableEventKindsTest {
     }
 
     @Test
+    fun `nip 22 comments are signable`() {
+        // Replying to a comment, such as one left on a Zapstore app page, and commenting on an
+        // article both publish a kind 1111. It was in neither list, so for Amber and bunker accounts
+        // the reply was rejected locally and surfaced as the generic publish error.
+        SIGNABLE_EVENT_KINDS shouldContain NostrEventKind.Comment
+    }
+
+    @Test
     fun `every user initiated action the app publishes is signable`() {
         val required = listOf(
             NostrEventKind.Metadata,

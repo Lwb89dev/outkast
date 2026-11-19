@@ -25,6 +25,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoFixHigh
 import androidx.compose.material.icons.outlined.BlurOn
+import androidx.compose.material.icons.outlined.Brush
 import androidx.compose.material.icons.outlined.Crop
 import androidx.compose.material.icons.outlined.Flip
 import androidx.compose.material.icons.outlined.PhotoFilter
@@ -76,6 +77,7 @@ fun PhotoEditorTools(state: PhotoEditorState, modifier: Modifier = Modifier) {
                 EditTool.DETAIL -> DetailPanel(state)
                 EditTool.FILTERS -> FilterPanel(state)
                 EditTool.CROP -> CropPanel(state)
+                EditTool.DRAW -> DrawPanel(state)
             }
         }
         ToolRow(state)
@@ -115,6 +117,9 @@ private fun ToolRow(state: PhotoEditorState) {
             }
             ToolButton(Icons.Outlined.Crop, R.string.photo_edit_tool_crop, state.tool == EditTool.CROP) {
                 state.selectTool(EditTool.CROP)
+            }
+            ToolButton(Icons.Outlined.Brush, R.string.photo_edit_tool_draw, state.tool == EditTool.DRAW) {
+                state.selectTool(EditTool.DRAW)
             }
         }
     }

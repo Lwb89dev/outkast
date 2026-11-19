@@ -151,6 +151,30 @@ class NostrNotaryTest {
             }
         }
 
+    @Test
+    fun `a remote-signer credential is let through for a NIP-22 comment`() =
+        runTest {
+            // Replying to a Zapstore comment (or to any other comment, or commenting on an article)
+            // publishes a kind 1111. The gate used to refuse it for Amber and bunker accounts, so the
+            // reply never reached the signer and surfaced as the generic publish error, while plain
+            // kind 1 notes kept working. A request that gets past the gate is rejected one step
+            // later with SigningKeyNotFoundException because this credential has no bunker pubkey.
+            val credentialsStore = fakeCredentialsStore(
+                Credential(
+                    nsec = null,
+                    npub = userId.hexToNpubHrp(),
+                    type = CredentialType.RemoteSigner,
+                    remoteSignerPubkey = null,
+                    remoteSignerRelays = listOf("wss://relay.example.com"),
+                    remoteSignerClientPrivateKey = "client-privkey-hex",
+                ),
+            )
+
+            val result = notary(credentialsStore).signNostrEvent(unsignedEvent(kind = NostrEventKind.Comment.value))
+
+            (result as SignResult.Rejected).error::class shouldBe SigningKeyNotFoundException::class
+        }
+
     private fun unsignedEvent(kind: Int = 1) =
         NostrUnsignedEvent(pubKey = userId, kind = kind, content = "hello")
 
