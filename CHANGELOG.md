@@ -9,6 +9,10 @@ the LibreNostr/OUTKAST fork on top of the imported `3.5.25` baseline.
 
 ## [Unreleased]
 
+### Changed
+
+- Replaced the standard reaction emoji browser with keyboard input, so any emoji supported by the device keyboard can be used when reacting to a note or comment. Quick reactions and custom emoji packs remain available.
+
 ## [2.6.1] - 2026-11-22
 
 ### Changed

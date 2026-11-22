@@ -1464,4 +1464,6 @@
     <string name="algorithm_create_failed">Couldn’t publish the list. Check your relays and try again.</string>
     <string name="explore_landing_browse_title">Browse</string>
     <string name="explore_landing_recent_users_empty">People you visit will show up here.</string>
+    <string name="reaction_keyboard_label">Emoji or reaction</string>
+    <string name="reaction_keyboard_send">React</string>
 </resources>

@@ -1360,4 +1360,6 @@
         <item quantity="one">Rete pronta: %1$d seguiti direttamente, %2$d in più si qualificano come amico di un amico.</item>
         <item quantity="other">Rete pronta: %1$d seguiti direttamente, %2$d in più si qualificano come amici di amici.</item>
     </plurals>
+    <string name="reaction_keyboard_label">Emoji o reazione</string>
+    <string name="reaction_keyboard_send">Reagisci</string>
 </resources>
