@@ -40,7 +40,7 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
-import net.primal.android.R
+import com.librenostr.android.R
 import net.primal.android.core.compose.AppIconThumbnail
 import net.primal.android.core.compose.PrimalBottomSheetDragHandle
 import net.primal.android.core.compose.PrimalDivider

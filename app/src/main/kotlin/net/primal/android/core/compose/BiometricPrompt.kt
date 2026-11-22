@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import net.primal.android.R
+import com.librenostr.android.R
 import net.primal.android.security.BiometricPromptParams
 import net.primal.android.security.verifyBiometricIdentity
 

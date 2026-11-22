@@ -1,8 +1,9 @@
 package net.primal.android.main
 
 import android.app.Application
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
@@ -12,6 +13,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipe
@@ -42,8 +44,10 @@ class OutkastPortalSwipeTest {
     private val scrubbedTo = mutableListOf<Int>()
     private var orbitOpened = 0
     private var clicks = 0
+    private var longClicks = 0
     private val gestureActive = mutableStateOf(false)
 
+    @OptIn(ExperimentalFoundationApi::class)
     private fun setPortalContent(activeIndex: Int) {
         composeRule.setContent {
             val portal = rememberOutkastPortalSwipeModifier(
@@ -54,7 +58,15 @@ class OutkastPortalSwipeTest {
                 onOpenOrbit = { orbitOpened++ },
             )
             Box(modifier = Modifier.size(240.dp, 48.dp).then(portal)) {
-                Box(modifier = Modifier.fillMaxSize().background(Color.Gray).clickable { clicks++ })
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Gray)
+                        .combinedClickable(
+                            onClick = { clicks++ },
+                            onLongClick = { longClicks++ },
+                        ),
+                )
             }
         }
     }
@@ -127,6 +139,19 @@ class OutkastPortalSwipeTest {
         composeRule.onRoot().performTouchInput { click(Offset(120f, 24f)) }
 
         clicks shouldBe 1
+        longClicks shouldBe 0
+        scrubbedTo.shouldBeEmpty()
+        orbitOpened shouldBe 0
+    }
+
+    @Test
+    fun longPressIsLeftToTheLongClick() {
+        setPortalContent(activeIndex = 1)
+
+        composeRule.onRoot().performTouchInput { longClick(Offset(120f, 24f)) }
+
+        longClicks shouldBe 1
+        clicks shouldBe 0
         scrubbedTo.shouldBeEmpty()
         orbitOpened shouldBe 0
     }

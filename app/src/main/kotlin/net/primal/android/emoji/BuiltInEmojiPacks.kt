@@ -1,7 +1,7 @@
 package net.primal.android.emoji
 
 import androidx.annotation.DrawableRes
-import net.primal.android.R
+import com.librenostr.android.R
 import net.primal.android.emoji.model.CustomEmoji
 import net.primal.android.emoji.model.EmojiPack
 

@@ -24,7 +24,7 @@ client  <->  Nostr relays  +  local Room/DataStore
 
 The imported codebase still contains upstream namespaces and compatibility services. Those are being removed incrementally, path by path, instead of hiding the remaining dependencies behind a rebrand.
 
-The current release is [`v2.6.0`](https://github.com/Lwb89dev/outkast/releases/tag/v2.6.0). Release APKs
+The current release is [`v2.6.1`](https://github.com/Lwb89dev/outkast/releases/tag/v2.6.1). Release APKs
 are signed, `arm64-v8a` only, and published from the [`altRelease`](https://github.com/Lwb89dev/outkast/releases)
 build variant.
 
@@ -52,7 +52,7 @@ and [`docs/SECURITY_AUDIT.md`](docs/SECURITY_AUDIT.md).
 - note composer attachments, camera/gallery selection, polls and a GIF picker backed by Wikimedia Commons previews.
 - deck mode on tablets held in landscape: several named decks of drag-and-drop columns (feeds, hashtags, profiles, Reads, notifications, messages), with notes, profiles and DMs opening inside their column; phones and portrait tablets keep the tabbed layout.
 
-The Android application ID intentionally remains `com.librenostr.android` so signed OUTKAST releases can update existing LibreNostr installations without losing identities, databases, relay settings, wallet connections or Android Keystore material. The internal namespace remains `net.primal.android` until a separately verified namespace-only migration is safe; it is not the product identity.
+The Android application ID and module namespace are both `com.librenostr.android` so signed OUTKAST releases update existing LibreNostr installations in place without losing identities, databases, relay settings, wallet connections or Android Keystore material, while matching the package declared in the source tree. Internal Kotlin source packages remain under `net.primal.android.*` so Android component class names and persistence stay stable.
 
 ### Network routing and Tor
 
@@ -143,7 +143,7 @@ The APK is written to
 
 Signed release APKs (`altRelease`, `arm64-v8a` only) are published on the
 [GitHub Releases](https://github.com/Lwb89dev/outkast/releases) page. The latest release is
-[`v2.6.0`](https://github.com/Lwb89dev/outkast/releases/tag/v2.6.0). Verify the APK signature
+[`v2.6.1`](https://github.com/Lwb89dev/outkast/releases/tag/v2.6.1). Verify the APK signature
 before installing:
 
 ```bash

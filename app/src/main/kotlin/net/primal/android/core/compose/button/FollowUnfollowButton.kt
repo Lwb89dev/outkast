@@ -8,7 +8,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import net.primal.android.R
+import com.librenostr.android.R
 import net.primal.android.theme.AppTheme
 
 @Composable

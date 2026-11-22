@@ -3,7 +3,7 @@ package net.primal.android.theme.domain
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.Typography
-import net.primal.android.R
+import com.librenostr.android.R
 import net.primal.android.theme.PrimalShapes
 import net.primal.android.theme.PrimalTypography
 import net.primal.android.theme.colors.ExtraColorScheme

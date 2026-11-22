@@ -44,11 +44,11 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.SubcomposeAsyncImage
 import coil3.memory.MemoryCache
 import coil3.request.ImageRequest
+import com.librenostr.android.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import net.primal.android.R
 import net.primal.android.core.activity.LocalPrimalTheme
 import net.primal.android.core.compose.NostrUserText
 import net.primal.android.core.compose.PrimalDivider

@@ -25,7 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import net.primal.android.R
+import com.librenostr.android.R
 import net.primal.android.auth.OnboardingTestTags
 import net.primal.android.auth.compose.OnboardingBottomBar
 import net.primal.android.auth.onboarding.account.OnboardingContract

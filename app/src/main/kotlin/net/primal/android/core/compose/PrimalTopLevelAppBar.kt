@@ -90,6 +90,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.librenostr.android.R
 import kotlin.math.abs
 import kotlinx.coroutines.launch
 import net.primal.android.core.compose.icons.PrimalIcons
@@ -324,7 +325,7 @@ private fun HomeHeaderContent(
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
-                text = stringResource(id = net.primal.android.R.string.onboarding_welcome_tagline),
+                text = stringResource(id = R.string.onboarding_welcome_tagline),
                 style = AppTheme.typography.labelMedium,
                 color = AppTheme.colorScheme.onSurface.copy(alpha = 0.62f),
             )

@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.camera.camera2.Camera2Config
 import androidx.camera.core.CameraXConfig
 import coil3.SingletonImageLoader
+import com.librenostr.android.BuildConfig
 import dagger.Lazy
 import dagger.hilt.android.HiltAndroidApp
 import io.github.aakira.napier.Antilog

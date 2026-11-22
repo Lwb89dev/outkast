@@ -38,7 +38,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import net.primal.android.R
+import com.librenostr.android.R
 import net.primal.android.core.compose.ConfirmActionAlertDialog
 import net.primal.android.core.compose.PrimalOverlayBottomBar
 import net.primal.android.core.compose.PrimalOverlayCloseButton

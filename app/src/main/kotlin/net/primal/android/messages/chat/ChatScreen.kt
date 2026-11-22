@@ -50,9 +50,9 @@ import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
+import com.librenostr.android.R
 import java.time.Instant
 import kotlin.time.Duration.Companion.minutes
-import net.primal.android.R
 import net.primal.android.core.compose.CompactTextField
 import net.primal.android.core.compose.ListNoContent
 import net.primal.android.core.compose.PrimalDivider

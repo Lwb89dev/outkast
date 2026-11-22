@@ -34,8 +34,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.librenostr.android.R
 import kotlin.random.Random
-import net.primal.android.R
 import net.primal.android.audio.player.AudioPlayerState
 import net.primal.android.audio.player.LocalAudioPlayerState
 import net.primal.android.core.compose.icons.PrimalIcons

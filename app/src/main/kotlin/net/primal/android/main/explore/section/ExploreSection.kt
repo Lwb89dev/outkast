@@ -2,7 +2,7 @@ package net.primal.android.main.explore.section
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
-import net.primal.android.R
+import com.librenostr.android.R
 import net.primal.android.core.compose.AppBarPage
 
 enum class ExploreSection {

@@ -8,7 +8,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
-import net.primal.android.R
+import com.librenostr.android.R
 import net.primal.android.core.activity.LocalZappingState
 import net.primal.android.core.compose.ConfirmActionAlertDialog
 import net.primal.android.core.compose.bubble.AnchorHandle

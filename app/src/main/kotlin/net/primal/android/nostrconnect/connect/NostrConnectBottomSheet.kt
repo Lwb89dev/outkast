@@ -18,7 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
-import net.primal.android.R
+import com.librenostr.android.R
 import net.primal.android.core.compose.PrimalBottomSheetDragHandle
 import net.primal.android.core.compose.SnackbarErrorHandler
 import net.primal.android.core.compose.signer.SignerConnectBottomSheet

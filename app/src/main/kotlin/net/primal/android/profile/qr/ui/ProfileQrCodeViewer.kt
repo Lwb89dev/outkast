@@ -55,10 +55,10 @@ import com.github.alexzhirkevich.customqrgenerator.vector.style.QrVectorFrameSha
 import com.github.alexzhirkevich.customqrgenerator.vector.style.QrVectorLogoPadding
 import com.github.alexzhirkevich.customqrgenerator.vector.style.QrVectorLogoShape
 import com.github.alexzhirkevich.customqrgenerator.vector.style.QrVectorPixelShape
+import com.librenostr.android.R
 import com.wajahatkarim.flippable.Flippable
 import com.wajahatkarim.flippable.FlippableState
 import com.wajahatkarim.flippable.rememberFlipController
-import net.primal.android.R
 import net.primal.android.core.compose.DefaultAvatarThumbnailPlaceholderListItemImage
 import net.primal.android.core.compose.PrimalDarkTextColor
 import net.primal.android.core.compose.PrimalLoadingSpinner

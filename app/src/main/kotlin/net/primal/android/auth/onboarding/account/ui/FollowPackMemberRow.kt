@@ -17,7 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import net.primal.android.R
+import com.librenostr.android.R
 import net.primal.android.auth.compose.DefaultOnboardingAvatar
 import net.primal.android.auth.onboarding.account.ui.model.FollowPackMember
 import net.primal.android.core.compose.PrimalDarkTextColor

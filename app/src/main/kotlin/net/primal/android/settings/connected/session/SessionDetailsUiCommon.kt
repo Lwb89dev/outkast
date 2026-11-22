@@ -16,7 +16,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import net.primal.android.R
+import com.librenostr.android.R
 import net.primal.android.core.utils.PrimalDateFormats
 import net.primal.android.core.utils.rememberPrimalFormattedDateTime
 import net.primal.android.settings.connected.model.SessionEventUi

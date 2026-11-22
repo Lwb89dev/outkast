@@ -65,9 +65,9 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
+import com.librenostr.android.R
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
-import net.primal.android.R
 import net.primal.android.core.compose.ListNoContent
 import net.primal.android.core.compose.NostrUserText
 import net.primal.android.core.compose.PrimalDivider

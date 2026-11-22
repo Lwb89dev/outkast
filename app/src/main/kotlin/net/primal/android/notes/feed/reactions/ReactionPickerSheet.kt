@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.emoji2.emojipicker.EmojiPickerView
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import net.primal.android.R
+import com.librenostr.android.R
 import net.primal.android.emoji.model.CustomEmoji
 import net.primal.android.emoji.picker.EmojiGrid
 import net.primal.android.emoji.picker.EmojiPackTabs

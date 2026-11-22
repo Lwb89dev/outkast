@@ -3,7 +3,7 @@ package net.primal.android.notes.feed.model
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.res.stringResource
-import net.primal.android.R
+import com.librenostr.android.R
 import net.primal.domain.links.EventUriNostrType
 
 /**

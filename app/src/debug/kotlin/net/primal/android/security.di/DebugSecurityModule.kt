@@ -3,12 +3,12 @@ package net.primal.android.security.di
 import android.content.Context
 import androidx.sqlite.db.SupportSQLiteOpenHelper
 import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
+import com.librenostr.android.BuildConfig
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import net.primal.android.BuildConfig
 import net.primal.android.security.AESEncryption
 import net.primal.android.security.Encryption
 

@@ -11,7 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import net.primal.android.R
+import com.librenostr.android.R
 import net.primal.android.core.compose.IconText
 import net.primal.android.core.compose.foundation.isAppInDarkPrimalTheme
 import net.primal.android.theme.AppTheme

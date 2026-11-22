@@ -39,8 +39,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.librenostr.android.R
 import java.time.format.FormatStyle
-import net.primal.android.R
 import net.primal.android.core.compose.AvatarOverlap
 import net.primal.android.core.compose.AvatarThumbnailsRow
 import net.primal.android.core.compose.PrimalIconTextField

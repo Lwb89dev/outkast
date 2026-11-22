@@ -37,7 +37,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import net.primal.android.R
+import com.librenostr.android.R
 import net.primal.android.core.compose.NostrUserText
 import net.primal.android.core.compose.PrimalOverlayBottomBar
 import net.primal.android.core.compose.PrimalOverlayCloseButton

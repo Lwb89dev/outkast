@@ -23,9 +23,9 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import com.librenostr.android.R
 import java.time.Duration
 import java.time.Instant
-import net.primal.android.R
 import net.primal.android.notes.feed.model.PollOptionUi
 import net.primal.android.notes.feed.model.PollType
 import net.primal.android.theme.AppTheme

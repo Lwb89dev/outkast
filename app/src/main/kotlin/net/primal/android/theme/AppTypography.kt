@@ -7,7 +7,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import net.primal.android.R
+import com.librenostr.android.R
 
 val LibreSansFontFamily = FontFamily(
     Font(resId = R.font.ubuntu_sans_variable, weight = FontWeight.Light, style = FontStyle.Normal),

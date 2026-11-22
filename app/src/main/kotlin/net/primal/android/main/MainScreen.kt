@@ -8,9 +8,12 @@ import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,8 +29,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.pager.PagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -35,6 +40,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.TopAppBarState
 import androidx.compose.material3.rememberTopAppBarState
@@ -43,6 +49,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -56,10 +63,13 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
@@ -68,15 +78,16 @@ import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.paging.PagingData
+import com.librenostr.android.R
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
-import net.primal.android.R
 import net.primal.android.core.compose.PrimalOverlay
 import net.primal.android.core.compose.PrimalTopLevelAppBar
 import net.primal.android.core.compose.PrimalTopLevelDestination
 import net.primal.android.core.compose.SnackbarErrorHandler
+import net.primal.android.core.compose.UniversalAvatarThumbnail
 import net.primal.android.core.compose.bubble.AnchorHandle
 import net.primal.android.core.compose.bubble.AnchoredBubble
 import net.primal.android.core.compose.bubble.BubblePlacement
@@ -86,10 +97,13 @@ import net.primal.android.core.compose.icons.primaliconpack.Bookmarks
 import net.primal.android.core.compose.fab.NewPostFloatingActionButton
 import net.primal.android.core.compose.runtime.DisposableLifecycleObserverEffect
 import net.primal.android.core.errors.resolveUiErrorMessage
+import net.primal.android.core.utils.formatNip05Identifier
 import net.primal.android.drawer.DrawerScreenDestination
 import net.primal.android.drawer.PrimalDrawer
 import net.primal.android.drawer.PrimalMainScaffold
 import net.primal.android.drawer.multiaccount.events.AccountSwitcherCallbacks
+import net.primal.android.drawer.multiaccount.model.UserAccountUi
+import net.primal.android.drawer.multiaccount.ui.AccountSwitcherInlineList
 import net.primal.android.explore.search.ui.SearchScope
 import net.primal.android.feeds.algorithm.YourAlgorithmsPanel
 import net.primal.android.feeds.list.FeedListOverlayContent
@@ -575,6 +589,7 @@ private fun MainScreenScaffold(
     val exploreAnchor = remember { AnchorHandle() }
     var activeOverlay by rememberSaveable { mutableStateOf<ActiveOverlay?>(null) }
     var orbitVisible by rememberSaveable { mutableStateOf(false) }
+    var orbitInitialSection by rememberSaveable { mutableStateOf(OrbitSection.Main) }
     var homeHasNewNotes by rememberSaveable { mutableStateOf(false) }
     val readPickerVisible = activeOverlay == ActiveOverlay.ReadPicker
     val exploreSectionPickerVisible = activeOverlay == ActiveOverlay.ExploreSectionPicker
@@ -720,16 +735,26 @@ private fun MainScreenScaffold(
                 activeDestination = activeTab,
                 edgeZoneWidth = edgeZoneWidth,
                 orbitVisible = orbitVisible,
+                orbitInitialSection = orbitInitialSection,
                 portalGestureActive = portalGestureActive,
                 onScrubToWorld = scrubToWorld,
                 badges = mainState.badges.copy(
                     unreadFeedCount = if (homeHasNewNotes) 1 else 0,
                 ),
+                activeAccount = mainState.activeAccount,
+                otherAccounts = mainState.otherAccounts,
                 homeFeeds = homeState.feeds.ifEmpty {
                     defaultLibreNostrNoteFeeds(mainState.activeAccountId).map { it.asFeedUi() }
                 },
                 activeHomeFeed = sharedState.homeActiveFeed.value,
-                onOpenOrbit = { orbitVisible = true },
+                onOpenOrbit = {
+                    orbitInitialSection = OrbitSection.Main
+                    orbitVisible = true
+                },
+                onOpenAccounts = {
+                    orbitInitialSection = OrbitSection.Accounts
+                    orbitVisible = true
+                },
                 onDismissOrbit = { orbitVisible = false },
                 onDestinationChanged = ::changeDestination,
                 onExploreSectionsClick = ::openExploreSections,
@@ -753,6 +778,22 @@ private fun MainScreenScaffold(
                 onSettingsClick = {
                     orbitVisible = false
                     navController.navigateToSettings()
+                },
+                onSwitchAccount = { userId ->
+                    orbitVisible = false
+                    mainEventPublisher(MainContract.UiEvent.SwitchAccount(userId = userId))
+                },
+                onLogoutAccount = { userId ->
+                    orbitVisible = false
+                    onDrawerDestinationClick(DrawerScreenDestination.SignOut(userId = userId))
+                },
+                onAddExistingAccountClick = {
+                    orbitVisible = false
+                    accountSwitcherCallbacks.onAddExistingAccountClick()
+                },
+                onCreateNewAccountClick = {
+                    orbitVisible = false
+                    accountSwitcherCallbacks.onCreateNewAccountClick()
                 },
             )
         },
@@ -803,18 +844,24 @@ private val OUTKAST_WORLDS = listOf(
     PrimalTopLevelDestination.Explore,
 )
 
+private const val MAX_ORBIT_QUICK_ACCOUNTS = 3
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun OutkastGestureNavigation(
     activeDestination: PrimalTopLevelDestination,
     edgeZoneWidth: Dp,
     orbitVisible: Boolean,
+    orbitInitialSection: OrbitSection,
     portalGestureActive: MutableState<Boolean>,
     onScrubToWorld: (Int) -> Unit,
     badges: net.primal.android.user.domain.Badges,
+    activeAccount: UserAccountUi?,
+    otherAccounts: List<UserAccountUi>,
     homeFeeds: List<FeedUi>,
     activeHomeFeed: FeedUi?,
     onOpenOrbit: () -> Unit,
+    onOpenAccounts: () -> Unit,
     onDismissOrbit: () -> Unit,
     onDestinationChanged: (PrimalTopLevelDestination) -> Unit,
     onExploreSectionsClick: () -> Unit,
@@ -823,6 +870,10 @@ private fun OutkastGestureNavigation(
     onFeedSelected: (FeedUi) -> Unit,
     onProfileClick: () -> Unit,
     onSettingsClick: () -> Unit,
+    onSwitchAccount: (String) -> Unit,
+    onLogoutAccount: (String) -> Unit,
+    onAddExistingAccountClick: () -> Unit,
+    onCreateNewAccountClick: () -> Unit,
 ) {
     val activeIndex = OUTKAST_WORLDS.indexOf(activeDestination).coerceAtLeast(0)
 
@@ -838,16 +889,22 @@ private fun OutkastGestureNavigation(
                 .padding(bottom = 12.dp),
             activeDestination = activeDestination,
             pageIndex = activeIndex,
+            activeAccount = activeAccount,
+            hasMultipleAccounts = otherAccounts.isNotEmpty(),
             gestureActive = portalGestureActive,
             onScrubToWorld = onScrubToWorld,
             onOpenOrbit = onOpenOrbit,
+            onOpenAccounts = onOpenAccounts,
         )
     }
 
     if (orbitVisible) {
         OutkastOrbitSheet(
+            initialSection = orbitInitialSection,
             activeDestination = activeDestination,
             badges = badges,
+            activeAccount = activeAccount,
+            otherAccounts = otherAccounts,
             homeFeeds = homeFeeds,
             activeHomeFeed = activeHomeFeed,
             onDismiss = onDismissOrbit,
@@ -858,22 +915,32 @@ private fun OutkastGestureNavigation(
             onFeedSelected = onFeedSelected,
             onProfileClick = onProfileClick,
             onSettingsClick = onSettingsClick,
+            onSwitchAccount = onSwitchAccount,
+            onLogoutAccount = onLogoutAccount,
+            onAddExistingAccountClick = onAddExistingAccountClick,
+            onCreateNewAccountClick = onCreateNewAccountClick,
         )
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun OutkastPortalHandle(
     modifier: Modifier,
     activeDestination: PrimalTopLevelDestination,
     pageIndex: Int,
+    activeAccount: UserAccountUi?,
+    hasMultipleAccounts: Boolean,
     gestureActive: MutableState<Boolean>,
     onScrubToWorld: (Int) -> Unit,
     onOpenOrbit: () -> Unit,
+    onOpenAccounts: () -> Unit,
 ) {
     val tokens = AppTheme.outkastTokens
+    val haptic = LocalHapticFeedback.current
+    val pillShape = CircleShape
     // Dragging along the portal runs through the worlds for fast navigation, dragging up opens
-    // Orbit, a tap opens it too (the click below).
+    // Orbit, a tap opens Orbit, and a long-press jumps straight to the account switcher.
     val portalSwipeModifier = rememberOutkastPortalSwipeModifier(
         activeIndex = pageIndex,
         lastIndex = OUTKAST_WORLDS.lastIndex,
@@ -882,9 +949,17 @@ private fun OutkastPortalHandle(
         onOpenOrbit = onOpenOrbit,
     )
     Surface(
-        modifier = modifier.then(portalSwipeModifier),
-        onClick = onOpenOrbit,
-        shape = RoundedCornerShape(50),
+        modifier = modifier
+            .then(portalSwipeModifier)
+            .clip(pillShape)
+            .combinedClickable(
+                onClick = onOpenOrbit,
+                onLongClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onOpenAccounts()
+                },
+            ),
+        shape = pillShape,
         color = tokens.dockSurface.copy(alpha = 0.94f),
         border = BorderStroke(1.dp, tokens.softOutline),
         shadowElevation = 10.dp,
@@ -892,16 +967,26 @@ private fun OutkastPortalHandle(
         Row(
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
+            if (hasMultipleAccounts && activeAccount != null) {
+                UniversalAvatarThumbnail(
+                    avatarSize = 20.dp,
+                    avatarCdnImage = activeAccount.avatarCdnImage,
+                    avatarBlossoms = activeAccount.avatarBlossoms,
+                )
+            }
             OUTKAST_WORLDS.forEachIndexed { index, _ ->
+                val dotColor = if (index == pageIndex) {
+                    tokens.accent
+                } else {
+                    AppTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                }
                 Box(
                     modifier = Modifier
                         .size(if (index == pageIndex) 7.dp else 4.dp)
-                        .clip(androidx.compose.foundation.shape.CircleShape)
-                        .background(
-                            if (index == pageIndex) tokens.accent else AppTheme.colorScheme.onSurface.copy(alpha = 0.3f),
-                        ),
+                        .clip(CircleShape)
+                        .background(dotColor),
                 )
             }
             Text(
@@ -916,8 +1001,11 @@ private fun OutkastPortalHandle(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun OutkastOrbitSheet(
+    initialSection: OrbitSection,
     activeDestination: PrimalTopLevelDestination,
     badges: net.primal.android.user.domain.Badges,
+    activeAccount: UserAccountUi?,
+    otherAccounts: List<UserAccountUi>,
     homeFeeds: List<FeedUi>,
     activeHomeFeed: FeedUi?,
     onDismiss: () -> Unit,
@@ -928,8 +1016,12 @@ private fun OutkastOrbitSheet(
     onFeedSelected: (FeedUi) -> Unit,
     onProfileClick: () -> Unit,
     onSettingsClick: () -> Unit,
+    onSwitchAccount: (String) -> Unit,
+    onLogoutAccount: (String) -> Unit,
+    onAddExistingAccountClick: () -> Unit,
+    onCreateNewAccountClick: () -> Unit,
 ) {
-    var section by rememberSaveable { mutableStateOf(OrbitSection.Main) }
+    var section by rememberSaveable(initialSection) { mutableStateOf(initialSection) }
     val fallbackActiveFeed = activeHomeFeed ?: homeFeeds.firstOrNull()
     androidx.compose.material3.ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -939,14 +1031,19 @@ private fun OutkastOrbitSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 18.dp, vertical = 20.dp),
         ) {
             when (section) {
                 OrbitSection.Main -> OrbitMainSection(
                     activeDestination = activeDestination,
                     badges = badges,
+                    activeAccount = activeAccount,
+                    otherAccounts = otherAccounts,
                     onHomeClick = { section = OrbitSection.Home },
                     onAlgorithmsClick = { section = OrbitSection.Algorithms },
+                    onAccountsClick = { section = OrbitSection.Accounts },
+                    onQuickSwitchAccount = onSwitchAccount,
                     onDestinationChanged = onDestinationChanged,
                     onMessagesClick = onMessagesClick,
                     onBookmarksClick = onBookmarksClick,
@@ -972,6 +1069,21 @@ private fun OutkastOrbitSheet(
                     onBack = { section = OrbitSection.Main },
                     onDiscoverClick = onExploreSectionsClick,
                     onFeedSelected = onFeedSelected,
+                )
+                OrbitSection.Accounts -> OrbitAccountsSection(
+                    activeAccount = activeAccount,
+                    otherAccounts = otherAccounts,
+                    onBack = { section = OrbitSection.Main },
+                    onAccountClick = { userId ->
+                        if (userId == activeAccount?.pubkey) {
+                            onDismiss()
+                        } else {
+                            onSwitchAccount(userId)
+                        }
+                    },
+                    onLogoutClick = onLogoutAccount,
+                    onAddExistingAccountClick = onAddExistingAccountClick,
+                    onCreateNewAccountClick = onCreateNewAccountClick,
                 )
             }
             Spacer(modifier = Modifier.height(20.dp))
@@ -1016,27 +1128,167 @@ private fun OutkastOrbitTile(
     }
 }
 
-private enum class OrbitSection { Main, Home, Algorithms }
+private enum class OrbitSection { Main, Home, Algorithms, Accounts }
+
+@Composable
+private fun OrbitAccountBar(
+    activeAccount: UserAccountUi,
+    otherAccounts: List<UserAccountUi>,
+    onAccountsClick: () -> Unit,
+    onQuickSwitchAccount: (String) -> Unit,
+) {
+    val tokens = AppTheme.outkastTokens
+    val shape = RoundedCornerShape(22.dp)
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 14.dp),
+        onClick = onAccountsClick,
+        shape = shape,
+        color = AppTheme.colorScheme.surfaceVariant,
+        border = BorderStroke(1.dp, tokens.softOutline),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            UniversalAvatarThumbnail(
+                avatarSize = 36.dp,
+                avatarCdnImage = activeAccount.avatarCdnImage,
+                avatarBlossoms = activeAccount.avatarBlossoms,
+            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = activeAccount.displayName,
+                    style = AppTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = AppTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                val nip05 = activeAccount.internetIdentifier?.formatNip05Identifier()
+                if (!nip05.isNullOrBlank()) {
+                    Text(
+                        text = nip05,
+                        style = AppTheme.typography.labelSmall,
+                        color = AppTheme.colorScheme.onSurface.copy(alpha = 0.62f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+            if (otherAccounts.isNotEmpty()) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    otherAccounts.take(MAX_ORBIT_QUICK_ACCOUNTS).forEach { account ->
+                        key(account.pubkey) {
+                            UniversalAvatarThumbnail(
+                                modifier = Modifier
+                                    .border(1.dp, tokens.softOutline, CircleShape)
+                                    .clip(CircleShape),
+                                avatarSize = 30.dp,
+                                avatarCdnImage = account.avatarCdnImage,
+                                avatarBlossoms = account.avatarBlossoms,
+                                onClick = { onQuickSwitchAccount(account.pubkey) },
+                            )
+                        }
+                    }
+                }
+            }
+            Icon(
+                modifier = Modifier.size(20.dp),
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = stringResource(id = R.string.account_switcher_sheet_title),
+                tint = AppTheme.colorScheme.onSurface.copy(alpha = 0.62f),
+            )
+        }
+    }
+}
+
+@Composable
+private fun OrbitAccountsSection(
+    activeAccount: UserAccountUi?,
+    otherAccounts: List<UserAccountUi>,
+    onBack: () -> Unit,
+    onAccountClick: (String) -> Unit,
+    onLogoutClick: (String) -> Unit,
+    onAddExistingAccountClick: () -> Unit,
+    onCreateNewAccountClick: () -> Unit,
+) {
+    var isEditMode by remember { mutableStateOf(false) }
+
+    OrbitSectionHeader(
+        title = stringResource(id = R.string.account_switcher_sheet_title),
+        onBack = onBack,
+        trailing = if (activeAccount != null) {
+            {
+                TextButton(onClick = { isEditMode = !isEditMode }) {
+                    Text(
+                        text = if (isEditMode) {
+                            stringResource(id = R.string.account_switcher_done)
+                        } else {
+                            stringResource(id = R.string.account_switcher_edit)
+                        },
+                        color = AppTheme.extraColorScheme.onSurfaceVariantAlt2,
+                        style = AppTheme.typography.bodyLarge,
+                    )
+                }
+            }
+        } else {
+            null
+        },
+    )
+
+    if (activeAccount != null) {
+        AccountSwitcherInlineList(
+            activeAccount = activeAccount,
+            accounts = otherAccounts,
+            isEditMode = isEditMode,
+            inactiveContainerColor = AppTheme.colorScheme.surface,
+            onAccountClick = onAccountClick,
+            onLogoutClick = onLogoutClick,
+            onAddExistingAccountClick = onAddExistingAccountClick,
+            onCreateNewAccountClick = onCreateNewAccountClick,
+        )
+    }
+}
 
 @Composable
 private fun OrbitMainSection(
     activeDestination: PrimalTopLevelDestination,
     badges: net.primal.android.user.domain.Badges,
+    activeAccount: UserAccountUi?,
+    otherAccounts: List<UserAccountUi>,
     onHomeClick: () -> Unit,
     onAlgorithmsClick: () -> Unit,
+    onAccountsClick: () -> Unit,
+    onQuickSwitchAccount: (String) -> Unit,
     onDestinationChanged: (PrimalTopLevelDestination) -> Unit,
     onMessagesClick: () -> Unit,
     onBookmarksClick: () -> Unit,
     onProfileClick: () -> Unit,
     onSettingsClick: () -> Unit,
 ) {
+    if (activeAccount != null) {
+        OrbitAccountBar(
+            activeAccount = activeAccount,
+            otherAccounts = otherAccounts,
+            onAccountsClick = onAccountsClick,
+            onQuickSwitchAccount = onQuickSwitchAccount,
+        )
+    }
     Text(
         text = stringResource(id = R.string.outkast_orbit_title),
         style = AppTheme.typography.headlineSmall,
         color = AppTheme.colorScheme.onSurface,
     )
     Text(
-        modifier = Modifier.padding(top = 4.dp, bottom = 18.dp),
+        modifier = Modifier.padding(top = 4.dp, bottom = 14.dp),
         text = stringResource(id = R.string.outkast_orbit_hint),
         style = AppTheme.typography.bodyMedium,
         color = AppTheme.colorScheme.onSurface.copy(alpha = 0.62f),
@@ -1114,7 +1366,7 @@ private data class OrbitTileData(
 private fun OrbitTileRow(first: OrbitTileData, second: OrbitTileData) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         listOf(first, second).forEach { tile ->
             OutkastOrbitTile(
@@ -1131,7 +1383,11 @@ private fun OrbitTileRow(first: OrbitTileData, second: OrbitTileData) {
 }
 
 @Composable
-private fun OrbitSectionHeader(title: String, onBack: () -> Unit) {
+private fun OrbitSectionHeader(
+    title: String,
+    onBack: () -> Unit,
+    trailing: (@Composable () -> Unit)? = null,
+) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -1140,7 +1396,12 @@ private fun OrbitSectionHeader(title: String, onBack: () -> Unit) {
             Text(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp), text = "←")
         }
         Spacer(modifier = Modifier.width(12.dp))
-        Text(text = title, style = AppTheme.typography.headlineSmall)
+        Text(
+            modifier = Modifier.weight(1f),
+            text = title,
+            style = AppTheme.typography.headlineSmall,
+        )
+        trailing?.invoke()
     }
 }
 

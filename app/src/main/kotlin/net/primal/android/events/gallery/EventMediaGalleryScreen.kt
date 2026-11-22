@@ -77,10 +77,10 @@ import coil3.request.SuccessResult
 import coil3.toBitmap
 import com.github.panpf.zoomimage.CoilZoomAsyncImage
 import com.github.panpf.zoomimage.rememberCoilZoomState
+import com.librenostr.android.R
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
-import net.primal.android.R
 import net.primal.android.audio.player.PauseAudioPlayer
 import net.primal.android.core.compose.AppBarIcon
 import net.primal.android.core.compose.HorizontalPagerIndicator

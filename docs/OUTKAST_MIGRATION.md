@@ -24,7 +24,7 @@ OUTKAST is an in-place product upgrade, not a new Android application. The follo
 | Area | Stable value / strategy | Reason |
 |---|---|---|
 | Android identity | `applicationId = com.librenostr.android` | Existing installs and release signatures remain upgrade-compatible. |
-| Kotlin namespace | `net.primal.android` for this phase | Renaming packages is source-only work but touches manifests, generated code and reflection; it is isolated from the user-facing rebrand. |
+| Android namespace | `namespace = com.librenostr.android` | Matches `applicationId` in `app/build.gradle.kts`; internal Kotlin packages and explicit manifest component class names remain under `net.primal.android.*` for full upgrade compatibility. |
 | FileProvider and signer authorities | Derived from `${applicationId}` | Existing integrations continue resolving the same authorities. |
 | Credentials and account stores | Existing DataStore filenames and serializers | Keys, account lists and active identity survive the upgrade. |
 | Android Keystore | Existing alias and package identity | Encrypted release credentials remain decryptable. |

@@ -21,10 +21,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.librenostr.android.R
 import fr.acinq.lightning.payment.Bolt11Invoice
 import java.text.NumberFormat
 import java.time.Instant
-import net.primal.android.R
 import net.primal.android.core.compose.AppBarIcon
 import net.primal.android.core.compose.asFromNowFormat
 import net.primal.android.core.compose.button.PrimalLoadingButton

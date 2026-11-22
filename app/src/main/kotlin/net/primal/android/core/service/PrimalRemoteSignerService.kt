@@ -26,6 +26,7 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import coil.ImageLoader
 import coil.request.ImageRequest
 import coil.transform.CircleCropTransformation
+import com.librenostr.android.R
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
@@ -36,12 +37,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import net.primal.android.MainActivity
-import net.primal.android.R
 import net.primal.android.core.di.RemoteSignerServiceFactory
 import net.primal.android.core.receiver.EndSessionReceiver
 import net.primal.android.core.receiver.RECEIVER_SESSION_ID
 import net.primal.android.core.utils.authorNameUiFriendly
 import net.primal.android.user.accounts.UserAccountsStore
+import net.primal.android.user.accounts.active.ActiveAccountStore
 import net.primal.android.user.credentials.CredentialsStore
 import net.primal.android.user.domain.asKeyPair
 import net.primal.domain.account.model.RemoteAppSession
@@ -67,6 +68,9 @@ class PrimalRemoteSignerService : Service(), DefaultLifecycleObserver {
 
     @Inject
     lateinit var accountsStore: UserAccountsStore
+
+    @Inject
+    lateinit var activeAccountStore: ActiveAccountStore
 
     private var signer: RemoteSignerService? = null
 
@@ -130,6 +134,12 @@ class PrimalRemoteSignerService : Service(), DefaultLifecycleObserver {
         // silently stacking duplicates that double-fire notification work.
         observeOngoingSessions()
         observeSessionEventsPendingUserAction()
+        scope.launch {
+            signer = remoteSignerServiceFactory.create(
+                credentialsStore.getOrCreateInternalSignerCredentials().asKeyPair(),
+            )
+            signer?.initialize()
+        }
     }
 
     override fun onStartCommand(
@@ -154,15 +164,16 @@ class PrimalRemoteSignerService : Service(), DefaultLifecycleObserver {
             },
         )
 
+        return START_NOT_STICKY
+    }
+
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        super.onTaskRemoved(rootIntent)
         scope.launch {
-            signer = remoteSignerServiceFactory.create(
-                credentialsStore.getOrCreateInternalSignerCredentials().asKeyPair(),
-            )
-
-            signer?.initialize()
+            val enabled = activeAccountStore.activeUserAccount().pushNotificationsEnabled &&
+                NotificationManagerCompat.from(this@PrimalRemoteSignerService).areNotificationsEnabled()
+            if (!enabled) stopSelf()
         }
-
-        return START_STICKY
     }
 
     private fun hideActiveAppNotification(sessionId: String) {

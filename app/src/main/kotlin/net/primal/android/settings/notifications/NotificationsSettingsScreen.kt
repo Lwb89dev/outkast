@@ -42,10 +42,10 @@ import androidx.core.app.NotificationManagerCompat
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
+import com.librenostr.android.R
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
-import net.primal.android.R
 import net.primal.android.core.compose.PrimalDivider
 import net.primal.android.core.compose.PrimalScaffold
 import net.primal.android.core.compose.PrimalSwitch

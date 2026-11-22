@@ -51,8 +51,8 @@ fun extractSigningConfigProperties(storeName: String): SigningConfigProperties? 
     )
 }
 
-val appVersionCode = 57
-val appVersionName = "2.6.0"
+val appVersionCode = 58
+val appVersionName = "2.6.1"
 
 // ELF header layout, used by verifyBuiltInTorLibrary below.
 val ELF_HEADER_BYTES = 20
@@ -116,7 +116,7 @@ ksp {
 }
 
 android {
-    namespace = "net.primal.android"
+    namespace = "com.librenostr.android"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {

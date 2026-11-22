@@ -2,7 +2,7 @@ package net.primal.android.feeds
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
-import net.primal.android.R
+import com.librenostr.android.R
 import net.primal.android.core.utils.ellipsizeMiddle
 import net.primal.core.utils.getOrDefault
 import net.primal.core.utils.runCatching

@@ -15,7 +15,7 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
-import net.primal.android.R
+import com.librenostr.android.R
 
 @Composable
 fun PrimalLoadingSpinner(size: Dp = 96.dp, paddingValues: PaddingValues = PaddingValues(all = 0.dp)) {

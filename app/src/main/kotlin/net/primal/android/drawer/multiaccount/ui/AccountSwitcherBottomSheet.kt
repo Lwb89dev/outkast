@@ -41,7 +41,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import net.primal.android.R
+import com.librenostr.android.R
 import net.primal.android.core.compose.NostrUserText
 import net.primal.android.core.compose.UniversalAvatarThumbnail
 import net.primal.android.core.compose.icons.PrimalIcons
@@ -99,7 +99,9 @@ fun AccountSwitcherBottomSheet(
                     accounts = accounts,
                     onAccountClick = { userId ->
                         sheetState.hideAndRun(coroutineScope = uiScope, onDismissRequest = onDismissRequest) {
-                            onAccountClick(userId)
+                            if (userId != activeAccount.pubkey) {
+                                onAccountClick(userId)
+                            }
                         }
                     },
                 )
@@ -125,6 +127,69 @@ fun AccountSwitcherBottomSheet(
                         }
                     },
                 )
+            }
+        }
+    }
+}
+
+@Composable
+fun AccountSwitcherInlineList(
+    modifier: Modifier = Modifier,
+    activeAccount: UserAccountUi,
+    accounts: List<UserAccountUi>,
+    isEditMode: Boolean,
+    onAccountClick: (String) -> Unit,
+    onLogoutClick: ((String) -> Unit)? = null,
+    onCreateNewAccountClick: (() -> Unit)? = null,
+    onAddExistingAccountClick: (() -> Unit)? = null,
+    inactiveContainerColor: Color = AppTheme.colorScheme.surface,
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        AnimatedContent(
+            targetState = isEditMode,
+            transitionSpec = { transitionSpecBetweenStages() },
+            label = "AccountSwitcherInlineList",
+        ) { editMode ->
+            Column(
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                AccountListItem(
+                    isEditMode = editMode,
+                    account = activeAccount,
+                    isActive = true,
+                    inactiveContainerColor = inactiveContainerColor,
+                    onAccountClick = onAccountClick,
+                    onLogoutClick = onLogoutClick,
+                )
+                accounts.filter { it.pubkey != activeAccount.pubkey }.forEach { account ->
+                    AccountListItem(
+                        isEditMode = editMode,
+                        account = account,
+                        inactiveContainerColor = inactiveContainerColor,
+                        onAccountClick = onAccountClick,
+                        onLogoutClick = onLogoutClick,
+                    )
+                }
+            }
+        }
+
+        if (onAddExistingAccountClick != null || onCreateNewAccountClick != null) {
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                if (onAddExistingAccountClick != null) {
+                    PlainTextButton(
+                        text = stringResource(id = R.string.account_switcher_add_existing_account),
+                        onClick = onAddExistingAccountClick,
+                    )
+                }
+                if (onCreateNewAccountClick != null) {
+                    PlainTextButton(
+                        text = stringResource(id = R.string.account_switcher_create_new_account),
+                        onClick = onCreateNewAccountClick,
+                    )
+                }
             }
         }
     }
@@ -193,11 +258,12 @@ private fun AccountListItem(
     onLogoutClick: ((String) -> Unit)?,
     onAccountClick: (String) -> Unit,
     isActive: Boolean = false,
+    inactiveContainerColor: Color = AppTheme.extraColorScheme.surfaceVariantAlt2,
 ) {
     val backgroundColor = if (isActive && !isEditMode) {
         AppTheme.extraColorScheme.surfaceVariantAlt1
     } else {
-        AppTheme.extraColorScheme.surfaceVariantAlt2
+        inactiveContainerColor
     }
 
     ListItem(
@@ -206,7 +272,7 @@ private fun AccountListItem(
         ),
         modifier = modifier
             .clip(AppTheme.shapes.medium)
-            .clickable { onAccountClick(account.pubkey) },
+            .clickable(enabled = !isEditMode) { onAccountClick(account.pubkey) },
         leadingContent = {
             Row(
                 verticalAlignment = Alignment.CenterVertically,

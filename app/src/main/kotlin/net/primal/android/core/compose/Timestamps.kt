@@ -5,11 +5,11 @@ import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import com.librenostr.android.R
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
-import net.primal.android.R
 
 private const val MINUTE = 60
 private const val HOUR = MINUTE * 60

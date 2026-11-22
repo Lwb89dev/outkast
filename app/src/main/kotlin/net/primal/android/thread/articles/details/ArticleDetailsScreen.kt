@@ -55,9 +55,9 @@ import androidx.lifecycle.Lifecycle
 import coil3.compose.SubcomposeAsyncImage
 import coil3.memory.MemoryCache
 import coil3.request.ImageRequest
+import com.librenostr.android.R
 import java.text.NumberFormat
 import kotlinx.coroutines.launch
-import net.primal.android.R
 import net.primal.android.articles.feed.ui.ArticleDropdownMenu
 import net.primal.android.core.activity.LocalActiveAccountId
 import net.primal.android.core.activity.LocalZappingState

@@ -25,7 +25,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import net.primal.android.R
+import com.librenostr.android.R
 import net.primal.android.core.compose.button.PrimalLoadingButton
 import net.primal.android.notes.feed.model.NoteContentUi
 import net.primal.android.notes.feed.note.ui.NoteContent

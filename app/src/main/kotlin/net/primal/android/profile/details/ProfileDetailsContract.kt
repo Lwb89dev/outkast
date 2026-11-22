@@ -84,5 +84,6 @@ interface ProfileDetailsContract {
         val onDrawerQrCodeClick: (String) -> Unit,
         val onFollowsClick: (String, ProfileFollowsType) -> Unit,
         val onNewPostClick: () -> Unit,
+        val onSwitchAccountClick: () -> Unit = {},
     )
 }

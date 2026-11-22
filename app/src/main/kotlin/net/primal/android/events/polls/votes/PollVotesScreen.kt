@@ -45,9 +45,9 @@ import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import com.librenostr.android.R
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
-import net.primal.android.R
 import net.primal.android.core.compose.HeightAdjustableLoadingLazyListPlaceholder
 import net.primal.android.core.compose.ListNoContent
 import net.primal.android.core.compose.PrimalDivider

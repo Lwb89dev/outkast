@@ -47,7 +47,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import net.primal.android.R
+import com.librenostr.android.R
 import net.primal.android.imageedit.domain.Annotation
 import net.primal.android.imageedit.domain.AnnotationKind
 import net.primal.android.theme.AppTheme

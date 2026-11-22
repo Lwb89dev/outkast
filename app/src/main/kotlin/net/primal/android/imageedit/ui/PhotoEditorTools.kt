@@ -55,8 +55,8 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
+import com.librenostr.android.R
 import java.util.Locale
-import net.primal.android.R
 import net.primal.android.imageedit.domain.Adjustments
 import net.primal.android.imageedit.domain.CropShape
 import net.primal.android.imageedit.domain.EditFilter

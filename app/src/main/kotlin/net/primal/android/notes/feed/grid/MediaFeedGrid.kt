@@ -23,8 +23,8 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
+import com.librenostr.android.R
 import io.github.aakira.napier.Napier
-import net.primal.android.R
 import net.primal.android.core.compose.GridLoadingPlaceholder
 import net.primal.android.core.compose.ListNoContent
 import net.primal.android.core.compose.PremiumFeedPaywall

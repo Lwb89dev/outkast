@@ -21,7 +21,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
-import net.primal.android.R
+import com.librenostr.android.R
 import net.primal.android.core.compose.AppIconThumbnail
 import net.primal.android.settings.connected.permissions.ConnectedAppPermissionsScreen
 import net.primal.android.settings.connected.permissions.local.LocalAppPermissionsContract.UiEvent

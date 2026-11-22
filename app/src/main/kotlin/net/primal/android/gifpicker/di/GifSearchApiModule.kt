@@ -1,11 +1,11 @@
 package net.primal.android.gifpicker.di
 
+import com.librenostr.android.BuildConfig
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
-import net.primal.android.BuildConfig
 import net.primal.data.remote.api.gifs.GifSearchApi
 import net.primal.data.remote.api.gifs.GifSearchApiFactory
 

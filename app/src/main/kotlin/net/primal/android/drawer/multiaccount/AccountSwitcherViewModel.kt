@@ -8,6 +8,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -15,6 +16,7 @@ import net.primal.android.drawer.multiaccount.model.UserAccountUi
 import net.primal.android.drawer.multiaccount.model.asUserAccountUi
 import net.primal.android.user.accounts.UserAccountsStore
 import net.primal.android.user.accounts.active.ActiveAccountStore
+import net.primal.android.user.domain.UserAccount
 import net.primal.android.user.repository.UserRepository
 
 @HiltViewModel
@@ -38,8 +40,7 @@ class AccountSwitcherViewModel @Inject constructor(
 
     init {
         observeEvents()
-        observeActiveAccount()
-        observeUserAccounts()
+        observeAccounts()
     }
 
     private fun observeEvents() =
@@ -53,35 +54,30 @@ class AccountSwitcherViewModel @Inject constructor(
 
     private fun setActiveAccount(userId: String) =
         viewModelScope.launch {
+            if (userId == activeAccountStore.activeUserId()) return@launch
             userRepository.setActiveAccount(userId = userId)
             setEffect(AccountSwitcherContract.SideEffect.AccountSwitched)
         }
 
-    private fun observeActiveAccount() =
+    private fun observeAccounts() =
         viewModelScope.launch {
-            activeAccountStore.activeUserAccount
-                .collect { activeAccount ->
-                    setState {
-                        copy(
-                            userAccounts = userAccounts.sortAndFilterAccounts(activeUserId = activeAccount.pubkey),
-                            activeAccount = activeAccount.asUserAccountUi(),
-                        )
-                    }
+            combine(
+                activeAccountStore.activeUserAccount,
+                accountsStore.userAccounts,
+            ) { activeAccount, accounts ->
+                val resolvedActive = activeAccount.takeUnless { it == UserAccount.EMPTY }?.asUserAccountUi()
+                val otherAccounts = accounts
+                    .map { it.asUserAccountUi() }
+                    .sortAndFilterAccounts(activeUserId = resolvedActive?.pubkey)
+                resolvedActive to otherAccounts
+            }.collect { (activeAccount, otherAccounts) ->
+                setState {
+                    copy(
+                        activeAccount = activeAccount,
+                        userAccounts = otherAccounts,
+                    )
                 }
-        }
-
-    private fun observeUserAccounts() =
-        viewModelScope.launch {
-            accountsStore.userAccounts
-                .collect { accounts ->
-                    setState {
-                        copy(
-                            userAccounts = accounts.map {
-                                it.asUserAccountUi()
-                            }.sortAndFilterAccounts(activeUserId = activeAccount?.pubkey),
-                        )
-                    }
-                }
+            }
         }
 
     private fun List<UserAccountUi>.sortAndFilterAccounts(activeUserId: String?) =

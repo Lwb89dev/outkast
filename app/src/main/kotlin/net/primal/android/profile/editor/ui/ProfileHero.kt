@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
-import net.primal.android.R
+import com.librenostr.android.R
 import net.primal.android.imageedit.ui.rememberPhotoEditGate
 import net.primal.android.theme.AppTheme
 

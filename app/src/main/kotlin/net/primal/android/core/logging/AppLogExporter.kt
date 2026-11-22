@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import com.librenostr.android.BuildConfig
 import java.io.File
 import java.io.FileOutputStream
 import java.util.zip.ZipEntry
@@ -16,7 +17,6 @@ import kotlinx.datetime.format
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
-import net.primal.android.BuildConfig
 import net.primal.core.utils.fold
 import net.primal.core.utils.runCatching
 

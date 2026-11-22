@@ -30,7 +30,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import net.primal.android.R
+import com.librenostr.android.R
 import net.primal.android.core.compose.button.PrimalLoadingButton
 import net.primal.android.feeds.list.ui.model.FeedUi
 import net.primal.android.theme.AppTheme

@@ -8,8 +8,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
+import com.librenostr.android.R
 import io.github.aakira.napier.Napier
-import net.primal.android.R
 
 fun <T : Any> LazyListScope.handleRefreshLoadState(
     pagingItems: LazyPagingItems<T>,

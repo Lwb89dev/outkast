@@ -19,8 +19,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.librenostr.android.R
 import java.time.Instant
-import net.primal.android.R
 import net.primal.android.core.compose.AvatarThumbnailsRow
 import net.primal.android.core.compose.NostrUserText
 import net.primal.android.core.compose.UniversalAvatarThumbnail

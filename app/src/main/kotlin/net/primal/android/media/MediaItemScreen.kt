@@ -36,8 +36,8 @@ import coil3.request.SuccessResult
 import coil3.request.crossfade
 import coil3.toBitmap
 import com.github.panpf.zoomimage.CoilZoomAsyncImage
+import com.librenostr.android.R
 import kotlinx.coroutines.launch
-import net.primal.android.R
 import net.primal.android.core.compose.AppBarIcon
 import net.primal.android.core.compose.PrimalScaffold
 import net.primal.android.core.compose.SnackbarErrorHandler

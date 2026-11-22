@@ -11,8 +11,8 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.viewpager.widget.ViewPager.LayoutParams
+import com.librenostr.android.R
 import io.noties.markwon.Markwon
-import net.primal.android.R
 import net.primal.android.core.utils.copyText
 import net.primal.android.theme.AppTheme
 

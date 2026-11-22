@@ -18,9 +18,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.librenostr.android.R
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
-import net.primal.android.R
 import net.primal.android.theme.AppTheme
 
 @Composable

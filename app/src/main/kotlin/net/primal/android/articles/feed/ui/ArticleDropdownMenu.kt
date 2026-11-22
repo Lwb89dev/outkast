@@ -14,8 +14,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import com.librenostr.android.R
 import kotlinx.coroutines.launch
-import net.primal.android.R
 import net.primal.android.core.compose.ConfirmActionAlertDialog
 import net.primal.android.core.compose.dropdown.DropdownPrimalMenu
 import net.primal.android.core.compose.dropdown.DropdownPrimalMenuItem

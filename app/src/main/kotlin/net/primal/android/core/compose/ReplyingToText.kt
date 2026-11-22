@@ -7,7 +7,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
-import net.primal.android.R
+import com.librenostr.android.R
 import net.primal.android.theme.AppTheme
 
 @Composable

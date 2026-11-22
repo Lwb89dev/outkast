@@ -35,7 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import net.primal.android.R
+import com.librenostr.android.R
 import net.primal.android.core.compose.ConfirmActionAlertDialog
 import net.primal.android.core.compose.button.PrimalLoadingButton
 import net.primal.android.imageedit.data.PhotoEditExporter

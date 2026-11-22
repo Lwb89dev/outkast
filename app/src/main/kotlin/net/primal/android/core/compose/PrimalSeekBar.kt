@@ -31,9 +31,9 @@ import androidx.compose.ui.semantics.setProgress
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import com.librenostr.android.R
 import java.util.Locale
 import java.util.concurrent.TimeUnit
-import net.primal.android.R
 import net.primal.android.theme.AppTheme
 
 private const val SECONDS_IN_A_MINUTE = 60

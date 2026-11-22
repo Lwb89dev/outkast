@@ -38,9 +38,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.librenostr.android.R
 import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.delay
-import net.primal.android.R
 import net.primal.android.core.compose.BiometricPrompt
 import net.primal.android.core.compose.IconText
 import net.primal.android.core.compose.PrimalDivider

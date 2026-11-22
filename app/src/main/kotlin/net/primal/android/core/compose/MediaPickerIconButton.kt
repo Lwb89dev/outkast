@@ -24,11 +24,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import com.librenostr.android.BuildConfig
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import net.primal.android.BuildConfig
 import net.primal.android.core.compose.icons.OutkastNavigationIcons
 import net.primal.android.imageedit.ui.rememberPhotoEditGate
 import net.primal.android.theme.AppTheme

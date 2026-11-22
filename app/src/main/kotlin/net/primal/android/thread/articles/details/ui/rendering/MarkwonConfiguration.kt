@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.res.ResourcesCompat
 import coil.imageLoader
+import com.librenostr.android.R
 import io.noties.markwon.AbstractMarkwonPlugin
 import io.noties.markwon.Markwon
 import io.noties.markwon.MarkwonConfiguration
@@ -36,7 +37,6 @@ import io.noties.markwon.image.coil.CoilImagesPlugin
 import io.noties.markwon.inlineparser.BangInlineProcessor
 import io.noties.markwon.inlineparser.MarkwonInlineParser
 import io.noties.markwon.movement.MovementMethodPlugin
-import net.primal.android.R
 import net.primal.android.articles.highlights.JoinedHighlightsUi
 import net.primal.android.core.activity.LocalContentDisplaySettings
 import net.primal.android.core.activity.LocalPrimalTheme

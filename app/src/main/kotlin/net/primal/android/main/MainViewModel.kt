@@ -18,10 +18,12 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import net.primal.android.core.updater.DataUpdater
 import net.primal.android.core.updater.SessionSyncCoordinator
+import net.primal.android.drawer.multiaccount.model.asUserAccountUi
 import net.primal.android.main.MainContract.UiEvent
 import net.primal.android.main.MainContract.UiState
 import net.primal.android.user.accounts.UserAccountsStore
 import net.primal.android.user.accounts.active.ActiveAccountStore
+import net.primal.android.user.domain.UserAccount
 import net.primal.android.user.repository.UserRepository
 import net.primal.android.user.subscriptions.SubscriptionsManager
 import net.primal.domain.messages.ChatRepository
@@ -67,8 +69,7 @@ class MainViewModel @Inject constructor(
 
     init {
         observeEvents()
-        observeActiveAccount()
-        observeUserAccounts()
+        observeAccounts()
         observeBadgesUpdates()
         observeLocalUnreadBadges()
     }
@@ -79,6 +80,7 @@ class MainViewModel @Inject constructor(
                 when (it) {
                     UiEvent.RequestUserDataUpdate -> dataUpdater.updateData()
                     UiEvent.SwitchToNextAccount -> switchToNextAccount()
+                    is UiEvent.SwitchAccount -> switchAccount(userId = it.userId)
                     UiEvent.DismissExploreHint -> dismissExploreHint()
                     UiEvent.NotificationsViewed -> setState {
                         notificationsSeenBaseline = lastLocalUnseenCount
@@ -88,15 +90,29 @@ class MainViewModel @Inject constructor(
             }
         }
 
-    private fun observeActiveAccount() =
+    private fun observeAccounts() =
         viewModelScope.launch {
-            activeAccountStore.activeUserAccount.collect {
+            combine(
+                activeAccountStore.activeUserAccount,
+                accountsStore.userAccounts,
+            ) { activeAccount, accounts ->
+                val resolvedActive = activeAccount.takeUnless { it == UserAccount.EMPTY }
+                val otherAccounts = accounts
+                    .filter { it.pubkey != activeAccount.pubkey }
+                    .sortedByDescending { it.lastAccessedAt }
+                    .map { it.asUserAccountUi() }
+                Triple(activeAccount, resolvedActive?.asUserAccountUi(), otherAccounts to (accounts.size > 1))
+            }.collect { (activeAccount, activeAccountUi, othersAndMulti) ->
+                val (otherAccounts, hasMultiple) = othersAndMulti
                 setState {
                     copy(
-                        activeAccountId = it.pubkey,
-                        activeAccountAvatarCdnImage = it.avatarCdnImage,
-                        activeAccountBlossoms = it.blossomServers,
-                        showExploreHint = it.shouldShowExploreHint,
+                        activeAccountId = activeAccount.pubkey,
+                        activeAccountAvatarCdnImage = activeAccount.avatarCdnImage,
+                        activeAccountBlossoms = activeAccount.blossomServers,
+                        activeAccount = activeAccountUi,
+                        otherAccounts = otherAccounts,
+                        hasMultipleAccounts = hasMultiple,
+                        showExploreHint = activeAccount.shouldShowExploreHint,
                     )
                 }
             }
@@ -109,13 +125,6 @@ class MainViewModel @Inject constructor(
             }
         }
 
-    private fun observeUserAccounts() =
-        viewModelScope.launch {
-            accountsStore.userAccounts.collect { accounts ->
-                setState { copy(hasMultipleAccounts = accounts.size > 1) }
-            }
-        }
-
     private fun switchToNextAccount() =
         viewModelScope.launch {
             val activeUserId = activeAccountStore.activeUserId()
@@ -123,7 +132,13 @@ class MainViewModel @Inject constructor(
                 .filter { it.pubkey != activeUserId }
                 .maxByOrNull { it.lastAccessedAt }
                 ?: return@launch
-            userRepository.setActiveAccount(userId = nextAccount.pubkey)
+            switchAccount(userId = nextAccount.pubkey)
+        }
+
+    private fun switchAccount(userId: String) =
+        viewModelScope.launch {
+            if (userId.isBlank() || userId == activeAccountStore.activeUserId()) return@launch
+            userRepository.setActiveAccount(userId = userId)
             setEffect(MainContract.SideEffect.AccountSwitched)
         }
 
@@ -140,6 +155,7 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             activeAccountStore.activeUserId
                 .flatMapLatest { userId ->
+                    notificationsSeenBaseline = null
                     if (userId.isBlank()) {
                         flowOf(0 to 0)
                     } else {

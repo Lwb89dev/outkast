@@ -30,8 +30,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.librenostr.android.R
 import kotlinx.coroutines.launch
-import net.primal.android.R
 import net.primal.android.core.compose.PrimalDefaults
 import net.primal.android.core.compose.button.PrimalFilledButton
 import net.primal.android.core.ext.onFocusSelectAll

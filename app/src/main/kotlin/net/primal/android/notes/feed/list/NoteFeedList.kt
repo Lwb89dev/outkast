@@ -31,6 +31,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import com.librenostr.android.R
 import java.util.*
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -44,7 +45,6 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import net.primal.android.R
 import net.primal.android.core.compose.CommonTestTags
 import net.primal.android.core.activity.LocalContentDisplaySettings
 import net.primal.android.core.compose.foundation.rememberLazyListStatePagingWorkaround

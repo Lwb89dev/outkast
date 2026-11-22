@@ -17,7 +17,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
@@ -45,8 +48,8 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.librenostr.android.R
 import kotlinx.coroutines.launch
-import net.primal.android.R
 import net.primal.android.core.compose.AvatarOverlap
 import net.primal.android.core.compose.AvatarThumbnailsRow
 import net.primal.android.core.compose.IconText
@@ -125,6 +128,7 @@ fun ProfileHeaderDetails(
         onDrawerQrCodeClick = { state.profileId?.let { callbacks.onDrawerQrCodeClick(it) } },
         onProfileClick = { noteCallbacks.onProfileClick?.invoke(it) },
         onHashtagClick = { noteCallbacks.onHashtagClick?.invoke(it) },
+        onSwitchAccountClick = callbacks.onSwitchAccountClick,
     )
 }
 
@@ -142,6 +146,7 @@ private fun ProfileHeaderDetails(
     onUnfollow: () -> Unit,
     onProfileClick: (String) -> Unit,
     onHashtagClick: (String) -> Unit,
+    onSwitchAccountClick: () -> Unit = {},
 ) {
     val localUriHandler = LocalUriHandler.current
 
@@ -190,6 +195,7 @@ private fun ProfileHeaderDetails(
                 profileId = profileId,
                 displayName = state.profileDetails?.authorDisplayName ?: profileId.asEllipsizedNpub(),
                 internetIdentifier = state.profileDetails?.internetIdentifier,
+                onSwitchAccountClick = if (state.isActiveUser == true) onSwitchAccountClick else null,
             )
         }
 
@@ -335,9 +341,18 @@ private fun UserDisplayName(
     profileId: String,
     displayName: String,
     internetIdentifier: String?,
+    onSwitchAccountClick: (() -> Unit)? = null,
 ) {
     Row(
-        modifier = modifier.padding(top = 12.dp, bottom = 3.dp, end = 16.dp),
+        modifier = modifier
+            .then(
+                if (onSwitchAccountClick != null) {
+                    Modifier.clickable(onClick = onSwitchAccountClick)
+                } else {
+                    Modifier
+                },
+            )
+            .padding(top = 12.dp, bottom = 3.dp, end = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         NostrUserText(
@@ -356,6 +371,14 @@ private fun UserDisplayName(
             ),
             profileId = profileId,
         )
+        if (onSwitchAccountClick != null) {
+            Icon(
+                modifier = Modifier.size(22.dp),
+                imageVector = Icons.Filled.KeyboardArrowDown,
+                contentDescription = stringResource(id = R.string.account_switcher_sheet_title),
+                tint = AppTheme.extraColorScheme.onSurfaceVariantAlt2,
+            )
+        }
     }
 }
 

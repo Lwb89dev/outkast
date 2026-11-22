@@ -17,7 +17,9 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.map
@@ -56,17 +58,18 @@ class NotificationsViewModel @Inject constructor(
     private val subscriptionsManager: SubscriptionsManager,
 ) : ViewModel() {
 
-    /** Follows can be turned off entirely; the feed has to follow the switch without a restart. */
-    private val showFollowNotifications: Flow<Boolean> = activeAccountStore.activeUserAccount
-        .map { it.showFollowNotifications }
-        .distinctUntilChanged()
+    /** Follows can be turned off entirely; the feed has to follow both that toggle and account switches. */
+    private val activeNotificationsConfig: Flow<Pair<String, Boolean>> = combine(
+        activeAccountStore.activeUserId.filter { it.isNotBlank() },
+        activeAccountStore.activeUserAccount.map { it.showFollowNotifications },
+    ) { userId, showFollows -> userId to showFollows }.distinctUntilChanged()
 
     private val seenPagerCache: Map<NotificationGroup, Flow<PagingData<NotificationUi>>> =
         NotificationGroup.entries.associateWith { group ->
-            showFollowNotifications
-                .flatMapLatest { showFollows ->
+            activeNotificationsConfig
+                .flatMapLatest { (userId, showFollows) ->
                     notificationRepository.observeSeenNotifications(
-                        userId = activeAccountStore.activeUserId(),
+                        userId = userId,
                         group = group,
                         showFollows = showFollows,
                         utcOffsetSeconds = currentUtcOffsetSeconds(),
@@ -78,10 +81,10 @@ class NotificationsViewModel @Inject constructor(
 
     private val unseenCache: Map<NotificationGroup, Flow<List<List<NotificationUi>>>> =
         NotificationGroup.entries.associateWith { group ->
-            showFollowNotifications
-                .flatMapLatest { showFollows ->
+            activeNotificationsConfig
+                .flatMapLatest { (userId, showFollows) ->
                     notificationRepository.observeUnseenNotifications(
-                        ownerId = activeAccountStore.activeUserId(),
+                        ownerId = userId,
                         group = group,
                         showFollows = showFollows,
                     )

@@ -13,7 +13,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
 import androidx.compose.ui.unit.em
-import net.primal.android.R
+import com.librenostr.android.R
 import net.primal.android.notes.feed.model.NOSTR_HASHTAG_INLINE_CONTENT_ID
 
 private val NostrPurple = Color(0xFF8B5CF6)

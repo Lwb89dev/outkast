@@ -2,7 +2,7 @@ package net.primal.android.core.compose.notifications
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.painter.Painter
-import net.primal.android.R
+import com.librenostr.android.R
 import net.primal.android.core.compose.res.painterResource
 import net.primal.domain.notifications.NotificationType
 

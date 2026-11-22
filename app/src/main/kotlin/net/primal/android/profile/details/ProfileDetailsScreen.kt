@@ -51,8 +51,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
+import com.librenostr.android.R
 import kotlinx.coroutines.launch
-import net.primal.android.R
 import net.primal.android.articles.feed.ArticleFeedList
 import net.primal.android.core.compose.ListNoContent
 import net.primal.android.core.compose.PrimalLoadingSpinner

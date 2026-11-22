@@ -23,7 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import net.primal.android.R
+import com.librenostr.android.R
 import net.primal.android.core.compose.icons.PrimalIcons
 import net.primal.android.core.compose.icons.primaliconpack.DrawerProfileFilled
 import net.primal.android.core.compose.icons.primaliconpack.LightningBoltFilled

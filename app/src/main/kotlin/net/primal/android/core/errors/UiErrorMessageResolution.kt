@@ -1,7 +1,7 @@
 package net.primal.android.core.errors
 
 import android.content.Context
-import net.primal.android.R
+import com.librenostr.android.R
 import net.primal.core.networking.blossom.BlossomException
 
 private const val MAX_UPLOAD_FAILURE_DETAIL_LENGTH = 220

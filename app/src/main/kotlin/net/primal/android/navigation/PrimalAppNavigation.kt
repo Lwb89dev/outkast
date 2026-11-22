@@ -22,6 +22,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.platform.LocalContext
@@ -70,7 +73,10 @@ import net.primal.android.core.compose.fab.NewPostFloatingActionButton
 import net.primal.android.core.pip.PiPManagerProvider
 import net.primal.android.deck.DeckScreen
 import net.primal.android.drawer.DrawerScreenDestination
+import net.primal.android.drawer.multiaccount.AccountSwitcherContract
+import net.primal.android.drawer.multiaccount.AccountSwitcherViewModel
 import net.primal.android.drawer.multiaccount.events.AccountSwitcherCallbacks
+import net.primal.android.drawer.multiaccount.ui.AccountSwitcherBottomSheet
 import net.primal.android.editor.NoteEditorContract
 import net.primal.android.editor.NoteEditorScreen
 import net.primal.android.editor.di.noteEditorViewModel
@@ -1720,6 +1726,7 @@ private fun NavGraphBuilder.mediaItem(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 private fun NavGraphBuilder.profile(
     route: String,
     arguments: List<NamedNavArgument>,
@@ -1735,6 +1742,17 @@ private fun NavGraphBuilder.profile(
     popExitTransition = { primalSlideOutHorizontallyToEnd },
 ) {
     val viewModel = hiltViewModel<ProfileDetailsViewModel>(it)
+    val accountSwitcherViewModel = hiltViewModel<AccountSwitcherViewModel>(it)
+    val accountSwitcherState by accountSwitcherViewModel.state.collectAsState()
+    var accountSwitcherVisible by remember { mutableStateOf(false) }
+
+    LaunchedEffect(accountSwitcherViewModel) {
+        accountSwitcherViewModel.effects.collect { effect ->
+            when (effect) {
+                AccountSwitcherContract.SideEffect.AccountSwitched -> navController.navigateToHome()
+            }
+        }
+    }
 
     ApplyEdgeToEdge()
     LockToOrientationPortrait()
@@ -1754,9 +1772,25 @@ private fun NavGraphBuilder.profile(
             onMediaItemClick = { navController.navigateToMediaItem(it) },
             onSearchClick = { navController.navigateToAdvancedSearch(initialPostedBy = listOf(it)) },
             onNewPostClick = { navController.navigateToNoteEditor(null) },
+            onSwitchAccountClick = { accountSwitcherVisible = true },
         ),
         noteCallbacks = noteCallbacksHandler(navController),
     )
+
+    val activeAccount = accountSwitcherState.activeAccount
+    if (accountSwitcherVisible && activeAccount != null) {
+        AccountSwitcherBottomSheet(
+            activeAccount = activeAccount,
+            accounts = accountSwitcherState.userAccounts,
+            onDismissRequest = { accountSwitcherVisible = false },
+            onLogoutClick = { profileId -> navController.navigateToLogout(profileId = profileId) },
+            onCreateNewAccountClick = { navController.navigateToOnboarding() },
+            onAddExistingAccountClick = { navController.navigateToLogin() },
+            onAccountClick = { userId ->
+                accountSwitcherViewModel.setEvent(AccountSwitcherContract.UiEvent.SwitchAccount(userId = userId))
+            },
+        )
+    }
 }
 
 private fun NavGraphBuilder.profileEditor(route: String, navController: NavController) =

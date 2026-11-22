@@ -57,10 +57,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import com.librenostr.android.R
 import java.util.UUID
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import net.primal.android.R
 import net.primal.android.core.compose.PrimalDefaults
 import net.primal.android.core.compose.foundation.keyboardVisibilityAsState
 import net.primal.android.core.compose.preview.PrimalPreview

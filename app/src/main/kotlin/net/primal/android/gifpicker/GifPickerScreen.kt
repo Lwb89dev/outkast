@@ -58,7 +58,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import net.primal.android.R
+import com.librenostr.android.R
 import net.primal.android.core.compose.PrimalAsyncImage
 import net.primal.android.core.compose.PrimalScaffold
 import net.primal.android.core.compose.SnackbarErrorHandler

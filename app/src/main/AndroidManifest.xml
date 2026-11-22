@@ -42,7 +42,7 @@
     </queries>
 
     <application
-        android:name=".PrimalApp"
+        android:name="net.primal.android.PrimalApp"
         android:allowBackup="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:enableOnBackInvokedCallback="false"
@@ -63,11 +63,11 @@
             android:value="true" />
 
         <receiver
-            android:name=".core.receiver.EndSessionReceiver"
+            android:name="net.primal.android.core.receiver.EndSessionReceiver"
             android:exported="false" />
 
         <activity
-            android:name=".MainActivity"
+            android:name="net.primal.android.MainActivity"
             android:configChanges="orientation|screenSize|layoutDirection|screenLayout|smallestScreenSize"
             android:exported="true"
             android:supportsPictureInPicture="true"
@@ -241,7 +241,7 @@
         </activity>
 
         <activity
-            android:name=".signer.provider.SignerActivity"
+            android:name="net.primal.android.signer.provider.SignerActivity"
             android:configChanges="orientation|screenSize|layoutDirection|screenLayout|smallestScreenSize"
             android:exported="false"
             android:launchMode="singleTop"
@@ -251,7 +251,7 @@
             android:windowSoftInputMode="adjustResize" />
 
         <service
-            android:name=".core.service.PrimalMediaSessionService"
+            android:name="net.primal.android.core.service.PrimalMediaSessionService"
             android:exported="false"
             android:foregroundServiceType="mediaPlayback">
             <intent-filter>
@@ -260,7 +260,7 @@
         </service>
 
         <service
-            android:name=".core.service.PrimalRemoteSignerService"
+            android:name="net.primal.android.core.service.PrimalRemoteSignerService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="specialUse">
@@ -284,7 +284,7 @@
             tools:node="remove" />
 
         <provider
-            android:name=".signer.provider.LocalSignerContentProvider"
+            android:name="net.primal.android.signer.provider.LocalSignerContentProvider"
             android:authorities="${applicationId}.PING;${applicationId}.SIGN_MESSAGE;${applicationId}.SIGN_EVENT;${applicationId}.NIP04_ENCRYPT;${applicationId}.NIP04_DECRYPT;${applicationId}.NIP44_ENCRYPT;${applicationId}.NIP44_DECRYPT;${applicationId}.GET_PUBLIC_KEY;${applicationId}.DECRYPT_ZAP_EVENT"
             android:exported="false" />
 

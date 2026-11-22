@@ -22,7 +22,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import net.primal.android.R
+import com.librenostr.android.R
 import net.primal.android.events.polls.ui.MIN_RESULT_BAR_FRACTION
 import net.primal.android.events.polls.ui.PollFooter
 import net.primal.android.events.polls.ui.PollOptionBar

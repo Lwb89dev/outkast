@@ -28,10 +28,10 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
+import com.librenostr.android.R
 import java.text.NumberFormat
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import net.primal.android.R
 import net.primal.android.core.compose.IconText
 import net.primal.android.core.compose.bubble.AnchorHandle
 import net.primal.android.core.compose.bubble.anchor

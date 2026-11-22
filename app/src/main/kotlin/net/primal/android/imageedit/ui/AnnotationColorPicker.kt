@@ -37,7 +37,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import net.primal.android.R
+import com.librenostr.android.R
 import net.primal.android.theme.AppTheme
 
 private const val HUE_MAX = 360f

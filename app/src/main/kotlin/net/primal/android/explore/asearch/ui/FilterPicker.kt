@@ -60,8 +60,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.text.isDigitsOnly
+import com.librenostr.android.R
 import kotlinx.coroutines.launch
-import net.primal.android.R
 import net.primal.android.core.compose.PrimalDivider
 import net.primal.android.core.compose.PrimalSliderThumb
 import net.primal.android.core.compose.button.PrimalLoadingButton

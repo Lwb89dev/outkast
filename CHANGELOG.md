@@ -9,6 +9,29 @@ the LibreNostr/OUTKAST fork on top of the imported `3.5.25` baseline.
 
 ## [Unreleased]
 
+## [2.6.1] - 2026-11-22
+
+### Changed
+
+- **Faster profile switching.** Orbit now has a quick account bar at the top with one-tap avatars for
+  your other signed-in profiles and an inline Accounts panel (no extra modal hop). When multiple
+  profiles are signed in, the bottom portal shows the active avatar and a long-press jumps straight to
+  the account switcher. You can also switch directly by tapping your name on your own profile, from
+  the Deck mode top bar, or inline under Settings → Accounts.
+- Aligned the Android app module `namespace` in `app/build.gradle.kts` with `applicationId`
+  (`com.librenostr.android`) while keeping explicit component class names for seamless in-place
+  upgrades, resolving Zapstore's "Differs from source" package declaration warning.
+
+### Fixed
+
+- Fixed a multi-account state race where switching profiles could hide the previously active account
+  from the switcher list, prevented tapping accounts in edit mode from triggering a switch, and made
+  notifications and unread badge baselines follow account switches cleanly.
+- Reject local signer requests when the requested signing identity does not match the event author.
+- Stop media playback when the app is removed from recent apps. The remote signer stops on removal
+  when notifications are disabled, and is no longer automatically restarted by Android.
+- Initialize the remote signer only once per service instance.
+
 ## [2.6.0] - 2026-11-19
 
 ### Added

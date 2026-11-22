@@ -6,7 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import net.primal.android.R
+import com.librenostr.android.R
 
 @Composable
 fun PrimalLogo(modifier: Modifier = Modifier, showBackground: Boolean = false) {

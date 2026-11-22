@@ -7,7 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import net.primal.android.R
+import com.librenostr.android.R
 
 @Composable
 fun PrimalOverlayCloseButton(onClick: () -> Unit, modifier: Modifier = Modifier) {

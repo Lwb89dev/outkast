@@ -17,8 +17,8 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
+import com.librenostr.android.R
 import java.util.*
-import net.primal.android.R
 import net.primal.android.core.compose.PrimalAsyncImage
 import net.primal.android.editor.domain.NoteAttachment
 import net.primal.android.theme.AppTheme

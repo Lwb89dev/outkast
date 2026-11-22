@@ -33,7 +33,7 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import net.primal.android.R
+import com.librenostr.android.R
 import net.primal.android.articles.feed.ArticleFeedList
 import net.primal.android.core.compose.AppBarIcon
 import net.primal.android.core.compose.OutkastLoadingSpinner

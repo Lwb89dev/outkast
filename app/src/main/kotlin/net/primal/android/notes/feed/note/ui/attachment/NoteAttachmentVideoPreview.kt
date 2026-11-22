@@ -48,10 +48,10 @@ import coil3.memory.MemoryCache
 import coil3.request.ImageRequest
 import coil3.video.VideoFrameDecoder
 import coil3.video.videoFrameMillis
+import com.librenostr.android.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
-import net.primal.android.R
 import net.primal.android.core.activity.LocalContentDisplaySettings
 import net.primal.android.core.compose.PrimalAsyncImage
 import net.primal.android.core.compose.PrimalLoadingSpinner

@@ -55,7 +55,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmap
-import net.primal.android.R
+import com.librenostr.android.R
 import net.primal.android.core.compose.AppIconThumbnail
 import net.primal.android.core.compose.PrimalBottomSheetDragHandle
 import net.primal.android.core.compose.PrimalCheckBox

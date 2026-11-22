@@ -44,8 +44,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.memory.MemoryCache
 import coil3.request.ImageRequest
+import com.librenostr.android.R
 import java.time.Instant
-import net.primal.android.R
 import net.primal.android.core.compose.IconText
 import net.primal.android.core.compose.PrimalImage
 import net.primal.android.core.compose.UniversalAvatarThumbnail

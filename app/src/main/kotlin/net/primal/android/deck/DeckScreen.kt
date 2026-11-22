@@ -35,14 +35,19 @@ import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import net.primal.android.core.compose.PrimalScaffold
+import net.primal.android.core.compose.UniversalAvatarThumbnail
 import net.primal.android.core.compose.runtime.DisposableLifecycleObserverEffect
 import net.primal.android.deck.DeckContract.MoveDirection
 import net.primal.android.deck.DeckContract.UiEvent
 import net.primal.android.drawer.DrawerScreenDestination
+import net.primal.android.drawer.multiaccount.model.UserAccountUi
+import net.primal.android.drawer.multiaccount.ui.AccountSwitcherBottomSheet
 import net.primal.android.main.MainContract
 import net.primal.android.main.MainViewModel
 import net.primal.android.navigation.navigateToHome
+import net.primal.android.navigation.navigateToLogin
 import net.primal.android.navigation.navigateToNoteEditor
+import net.primal.android.navigation.navigateToOnboarding
 import net.primal.android.navigation.noteCallbacksHandler
 import net.primal.android.notes.feed.note.ui.events.NoteCallbacks
 import net.primal.domain.decks.Deck
@@ -71,6 +76,7 @@ fun DeckScreen(
     // between the two on rotation never double-fires these — periodic profile/follow/mute-list
     // refresh and the post-account-switch redirect need to happen here too, not just there.
     val mainViewModel = hiltViewModel<MainViewModel>(navBackStackEntry)
+    val mainState by mainViewModel.state.collectAsState()
     DisposableLifecycleObserverEffect(mainViewModel) {
         if (it == Lifecycle.Event.ON_START) mainViewModel.setEvent(MainContract.UiEvent.RequestUserDataUpdate)
     }
@@ -83,22 +89,18 @@ fun DeckScreen(
     }
 
     var showAddColumnSheet by remember { mutableStateOf(false) }
+    var showAccountSwitcher by remember { mutableStateOf(false) }
     var showCreateDeckDialog by remember { mutableStateOf(false) }
     var deckToRename by remember { mutableStateOf<Deck?>(null) }
     var deckToDelete by remember { mutableStateOf<Deck?>(null) }
 
     PrimalScaffold(
         topBar = {
-            TopAppBar(
-                title = {},
-                actions = {
-                    IconButton(onClick = { navController.navigateToNoteEditor() }) {
-                        Icon(imageVector = Icons.Default.Edit, contentDescription = null)
-                    }
-                    IconButton(onClick = { onDrawerDestinationClick(DrawerScreenDestination.Settings) }) {
-                        Icon(imageVector = Icons.Default.Settings, contentDescription = null)
-                    }
-                },
+            DeckTopAppBar(
+                activeAccount = mainState.activeAccount,
+                onAccountClick = { showAccountSwitcher = true },
+                onNewPostClick = { navController.navigateToNoteEditor() },
+                onSettingsClick = { onDrawerDestinationClick(DrawerScreenDestination.Settings) },
             )
         },
         floatingActionButton = {
@@ -171,6 +173,18 @@ fun DeckScreen(
         )
     }
 
+    DeckAccountSwitcherSheet(
+        visible = showAccountSwitcher,
+        mainState = mainState,
+        onDismissRequest = { showAccountSwitcher = false },
+        onLogoutClick = { userId -> onDrawerDestinationClick(DrawerScreenDestination.SignOut(userId = userId)) },
+        onCreateNewAccountClick = { navController.navigateToOnboarding() },
+        onAddExistingAccountClick = { navController.navigateToLogin() },
+        onAccountClick = { userId ->
+            mainViewModel.setEvent(MainContract.UiEvent.SwitchAccount(userId = userId))
+        },
+    )
+
     if (showCreateDeckDialog) {
         DeckNameDialog(
             title = "Nuovo deck",
@@ -202,6 +216,62 @@ fun DeckScreen(
                 viewModel.setEvent(UiEvent.DeleteDeck(deckId = deck.id))
                 deckToDelete = null
             },
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DeckTopAppBar(
+    activeAccount: UserAccountUi?,
+    onAccountClick: () -> Unit,
+    onNewPostClick: () -> Unit,
+    onSettingsClick: () -> Unit,
+) {
+    TopAppBar(
+        title = {},
+        actions = {
+            if (activeAccount != null) {
+                Box(modifier = Modifier.padding(end = 6.dp)) {
+                    UniversalAvatarThumbnail(
+                        avatarSize = 30.dp,
+                        avatarCdnImage = activeAccount.avatarCdnImage,
+                        avatarBlossoms = activeAccount.avatarBlossoms,
+                        onClick = onAccountClick,
+                    )
+                }
+            }
+            IconButton(onClick = onNewPostClick) {
+                Icon(imageVector = Icons.Default.Edit, contentDescription = null)
+            }
+            IconButton(onClick = onSettingsClick) {
+                Icon(imageVector = Icons.Default.Settings, contentDescription = null)
+            }
+        },
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DeckAccountSwitcherSheet(
+    visible: Boolean,
+    mainState: MainContract.UiState,
+    onDismissRequest: () -> Unit,
+    onLogoutClick: (String) -> Unit,
+    onCreateNewAccountClick: () -> Unit,
+    onAddExistingAccountClick: () -> Unit,
+    onAccountClick: (String) -> Unit,
+) {
+    val activeAccount = mainState.activeAccount
+    if (visible && activeAccount != null) {
+        AccountSwitcherBottomSheet(
+            activeAccount = activeAccount,
+            accounts = mainState.otherAccounts,
+            onDismissRequest = onDismissRequest,
+            onLogoutClick = onLogoutClick,
+            onCreateNewAccountClick = onCreateNewAccountClick,
+            onAddExistingAccountClick = onAddExistingAccountClick,
+            onAccountClick = onAccountClick,
         )
     }
 }

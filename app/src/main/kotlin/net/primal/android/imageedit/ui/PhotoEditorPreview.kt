@@ -45,8 +45,8 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import com.librenostr.android.R
 import kotlin.math.roundToInt
-import net.primal.android.R
 import net.primal.android.imageedit.domain.Crop
 import net.primal.android.imageedit.domain.CropHandle
 import net.primal.android.imageedit.domain.CropTool

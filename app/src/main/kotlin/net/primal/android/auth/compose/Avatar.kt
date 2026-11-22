@@ -9,7 +9,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import net.primal.android.R
+import com.librenostr.android.R
 
 val defaultOnboardingAvatarBackground = Color(0xFFFFFFFF).copy(alpha = 0.3f)
 val defaultAvatarForeground = Color(0xFF1A295A).copy(0.7f)

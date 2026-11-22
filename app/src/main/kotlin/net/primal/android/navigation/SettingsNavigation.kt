@@ -3,10 +3,12 @@ package net.primal.android.navigation
 import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -14,6 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -27,14 +30,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import androidx.navigation.navigation
-import net.primal.android.R
+import com.librenostr.android.R
 import net.primal.android.core.activity.LocalPrimalTheme
 import net.primal.android.core.compose.ApplyEdgeToEdge
 import net.primal.android.core.compose.LockToOrientationPortrait
-import net.primal.android.core.compose.button.PrimalLoadingButton
 import net.primal.android.drawer.multiaccount.AccountSwitcherContract
 import net.primal.android.drawer.multiaccount.AccountSwitcherViewModel
-import net.primal.android.drawer.multiaccount.ui.AccountSwitcherBottomSheet
+import net.primal.android.drawer.multiaccount.ui.AccountSwitcherInlineList
 import net.primal.android.settings.account.AccountSettingsScreen
 import net.primal.android.settings.account.AccountSettingsViewModel
 import net.primal.android.settings.appearance.AppearanceSettingsScreen
@@ -359,18 +361,14 @@ private fun EmbeddedSettingsSection(
 }
 
 /**
- * Settings needed its own entry point into this — the drawer's [AccountSwitcher] is a small
- * avatar row tucked next to the account name, easy to miss, and someone looking for "switch
- * accounts" or "log out" naturally checks Settings first. Reuses [AccountSwitcherBottomSheet]
- * as-is rather than rebuilding the account list: it already gets switch, logout (behind its edit
- * mode, which still routes through the same confirmation screen), add, and create right.
+ * Settings renders the signed-in accounts directly inline so switching, signing out, or adding
+ * another account takes one tap without bouncing through an extra modal sheet.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AccountsSettingsEmbedded(navController: NavController) {
     val viewModel = hiltViewModel<AccountSwitcherViewModel>()
     val state by viewModel.state.collectAsState()
-    var sheetVisible by remember { mutableStateOf(false) }
+    var isEditMode by remember { mutableStateOf(false) }
 
     LaunchedEffect(viewModel) {
         viewModel.effects.collect {
@@ -380,37 +378,53 @@ private fun AccountsSettingsEmbedded(navController: NavController) {
         }
     }
 
+    val activeAccount = state.activeAccount
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Text(
-            text = stringResource(id = R.string.settings_accounts_description),
-            style = AppTheme.typography.bodyMedium,
-            color = AppTheme.colorScheme.onSurface,
-        )
-        PrimalLoadingButton(
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            text = stringResource(id = R.string.settings_accounts_manage_button),
-            onClick = { sheetVisible = true },
-        )
-    }
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text(
+                modifier = Modifier.weight(1f),
+                text = stringResource(id = R.string.settings_accounts_description),
+                style = AppTheme.typography.bodySmall,
+                color = AppTheme.extraColorScheme.onSurfaceVariantAlt2,
+            )
+            if (activeAccount != null) {
+                TextButton(onClick = { isEditMode = !isEditMode }) {
+                    Text(
+                        text = if (isEditMode) {
+                            stringResource(id = R.string.account_switcher_done)
+                        } else {
+                            stringResource(id = R.string.account_switcher_edit)
+                        },
+                        color = AppTheme.extraColorScheme.onSurfaceVariantAlt2,
+                        style = AppTheme.typography.bodyMedium,
+                    )
+                }
+            }
+        }
 
-    val activeAccount = state.activeAccount
-    if (sheetVisible && activeAccount != null) {
-        AccountSwitcherBottomSheet(
-            activeAccount = activeAccount,
-            accounts = state.userAccounts,
-            onDismissRequest = { sheetVisible = false },
-            onLogoutClick = { profileId -> navController.navigateToLogout(profileId = profileId) },
-            onCreateNewAccountClick = { navController.navigateToOnboarding() },
-            onAddExistingAccountClick = { navController.navigateToLogin() },
-            onAccountClick = { userId ->
-                viewModel.setEvent(AccountSwitcherContract.UiEvent.SwitchAccount(userId = userId))
-            },
-        )
+        if (activeAccount != null) {
+            AccountSwitcherInlineList(
+                activeAccount = activeAccount,
+                accounts = state.userAccounts,
+                isEditMode = isEditMode,
+                inactiveContainerColor = AppTheme.colorScheme.background,
+                onLogoutClick = { profileId -> navController.navigateToLogout(profileId = profileId) },
+                onCreateNewAccountClick = { navController.navigateToOnboarding() },
+                onAddExistingAccountClick = { navController.navigateToLogin() },
+                onAccountClick = { userId ->
+                    viewModel.setEvent(AccountSwitcherContract.UiEvent.SwitchAccount(userId = userId))
+                },
+            )
+        }
     }
 }
 

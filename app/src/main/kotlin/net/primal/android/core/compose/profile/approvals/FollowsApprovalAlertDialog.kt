@@ -7,7 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import net.primal.android.R
+import com.librenostr.android.R
 import net.primal.android.theme.AppTheme
 import net.primal.android.user.handler.ProfileFollowsHandler
 import net.primal.android.user.handler.ProfileFollowsHandler.Companion.foldActions

@@ -49,11 +49,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.librenostr.android.R
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import net.primal.android.R
 import net.primal.android.auth.OnboardingTestTags
 import net.primal.android.auth.compose.DefaultOnboardingAvatar
 import net.primal.android.auth.compose.OnboardingButton

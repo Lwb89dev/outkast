@@ -31,8 +31,8 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.librenostr.android.R
 import java.util.Locale
-import net.primal.android.R
 import net.primal.android.auth.OnboardingTestTags
 import net.primal.android.auth.compose.DefaultOnboardingAvatar
 import net.primal.android.auth.onboarding.account.ui.model.OnboardingFollowPack

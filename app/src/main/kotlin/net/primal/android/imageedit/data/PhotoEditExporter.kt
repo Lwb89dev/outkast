@@ -5,11 +5,11 @@ import android.graphics.Bitmap
 import android.net.Uri
 import androidx.core.content.FileProvider
 import androidx.core.graphics.createBitmap
+import com.librenostr.android.BuildConfig
 import java.io.File
 import java.io.IOException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import net.primal.android.BuildConfig
 import net.primal.android.imageedit.domain.EditRecipe
 import net.primal.android.imageedit.domain.EditRenderer
 import net.primal.android.imageedit.domain.GeometryMap

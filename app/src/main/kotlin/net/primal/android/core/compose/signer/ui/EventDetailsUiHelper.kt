@@ -3,7 +3,7 @@ package net.primal.android.core.compose.signer.ui
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import net.primal.android.R
+import com.librenostr.android.R
 import net.primal.android.theme.AppTheme
 import net.primal.domain.account.model.RequestState
 import net.primal.domain.account.model.SessionEvent

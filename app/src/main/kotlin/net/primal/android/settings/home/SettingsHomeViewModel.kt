@@ -2,6 +2,7 @@ package net.primal.android.settings.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.librenostr.android.BuildConfig
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -9,7 +10,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.launch
-import net.primal.android.BuildConfig
 import net.primal.android.core.logging.AppLogPreferences
 import net.primal.android.settings.home.SettingsHomeContract.UiEvent
 import net.primal.android.settings.home.SettingsHomeContract.UiState

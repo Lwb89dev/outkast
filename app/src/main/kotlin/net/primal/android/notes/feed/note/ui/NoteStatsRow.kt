@@ -11,7 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import net.primal.android.R
+import com.librenostr.android.R
 import net.primal.android.notes.feed.model.EventStatsUi
 import net.primal.android.theme.AppTheme
 import net.primal.domain.nostr.ReactionType

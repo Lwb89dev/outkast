@@ -50,7 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
-import net.primal.android.R
+import com.librenostr.android.R
 import net.primal.android.auth.OnboardingTestTags
 import net.primal.android.auth.compose.DefaultOnboardingAvatar
 import net.primal.android.auth.compose.OnboardingBottomBar

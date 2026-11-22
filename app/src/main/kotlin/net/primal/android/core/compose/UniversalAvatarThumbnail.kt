@@ -28,7 +28,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil3.memory.MemoryCache
 import coil3.request.ImageRequest
-import net.primal.android.R
+import com.librenostr.android.R
 import net.primal.android.core.activity.LocalContentDisplaySettings
 import net.primal.android.core.images.AvatarCoilImageLoader
 import net.primal.android.theme.AppTheme

@@ -38,6 +38,7 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
+import com.librenostr.android.R
 import fr.acinq.lightning.utils.UUID
 import io.github.aakira.napier.Napier
 import kotlin.time.Duration.Companion.seconds
@@ -45,7 +46,6 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
-import net.primal.android.R
 import net.primal.android.articles.feed.ui.FeedArticleListItem
 import net.primal.android.articles.feed.ui.FeedArticleUi
 import net.primal.android.core.compose.ListLoadingError
