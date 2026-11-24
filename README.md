@@ -24,7 +24,7 @@ client  <->  Nostr relays  +  local Room/DataStore
 
 The imported codebase still contains upstream namespaces and compatibility services. Those are being removed incrementally, path by path, instead of hiding the remaining dependencies behind a rebrand.
 
-The current release is [`v2.6.2`](https://github.com/Lwb89dev/outkast/releases/tag/v2.6.2). Release APKs
+The current release is [`v2.6.3`](https://github.com/Lwb89dev/outkast/releases/tag/v2.6.3). Release APKs
 are signed, `arm64-v8a` only, and published from the [`altRelease`](https://github.com/Lwb89dev/outkast/releases)
 build variant.
 
@@ -143,7 +143,7 @@ The APK is written to
 
 Signed release APKs (`altRelease`, `arm64-v8a` only) are published on the
 [GitHub Releases](https://github.com/Lwb89dev/outkast/releases) page. The latest release is
-[`v2.6.2`](https://github.com/Lwb89dev/outkast/releases/tag/v2.6.2). Verify the APK signature
+[`v2.6.3`](https://github.com/Lwb89dev/outkast/releases/tag/v2.6.3). Verify the APK signature
 before installing:
 
 ```bash

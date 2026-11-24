@@ -9,6 +9,8 @@ the LibreNostr/OUTKAST fork on top of the imported `3.5.25` baseline.
 
 ## [Unreleased]
 
+## [2.6.3] - 2026-11-24
+
 ### Changed
 
 - **Scrollable emoji list for reactions.** The 😀 tab of the reaction picker (long press the heart)
