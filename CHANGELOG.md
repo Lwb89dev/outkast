@@ -9,6 +9,11 @@ the LibreNostr/OUTKAST fork on top of the imported `3.5.25` baseline.
 
 ## [Unreleased]
 
+### Changed
+
+- **Scrollable emoji list for reactions.** The 😀 tab of the reaction picker (long press the heart)
+  again shows every system emoji in a scrollable grid, with the keyboard field kept below it.
+
 ## [2.6.2] - 2026-11-22
 
 ### Changed
