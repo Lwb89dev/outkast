@@ -1478,6 +1478,7 @@
     <string name="wallet_connected">Wallet connected</string>
     <string name="wallet_balance">Balance: %1$s sats</string>
     <string name="wallet_balance_loading">Reading balance…</string>
+    <string name="wallet_unreachable">The wallet is not answering. Check that it is online, or that this connection was not revoked.</string>
     <string name="wallet_balance_unavailable">This connection does not share the balance.</string>
     <string name="wallet_refresh">Refresh</string>
     <string name="wallet_relay">Relay: %1$s</string>

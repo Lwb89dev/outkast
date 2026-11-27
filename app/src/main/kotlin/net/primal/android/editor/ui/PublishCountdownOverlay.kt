@@ -109,7 +109,7 @@ fun PublishCountdownOverlay(
             }
 
             Text(
-                text = pluralStringResource(R.plurals.editor_publish_countdown_title, secondsRemaining),
+                text = pluralStringResource(R.plurals.editor_publish_countdown_title, secondsRemaining, secondsRemaining),
                 textAlign = TextAlign.Center,
                 style = AppTheme.typography.bodyLarge,
                 color = AppTheme.colorScheme.onSurface,

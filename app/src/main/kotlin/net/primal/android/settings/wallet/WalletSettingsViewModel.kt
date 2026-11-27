@@ -33,6 +33,8 @@ data class ConnectedWallet(
     val name: String? = null,
     val balanceInSats: Long? = null,
     val loadingDetails: Boolean = true,
+    /** Nothing came back at all, which is not the same as a wallet refusing to say. */
+    val unreachable: Boolean = false,
 )
 
 sealed class WalletSettingsError {
@@ -113,9 +115,18 @@ class WalletSettingsViewModel @Inject constructor(
         }
 
     private suspend fun loadDetails(userId: String) {
-        updateWallet { copy(loadingDetails = true) }
-        // Neither is required: a connection limited to paying refuses both.
-        val name = runCatching { nwcRepository.getInfo(userId).alias }.getOrNull()
+        updateWallet { copy(loadingDetails = true, unreachable = false) }
+        // Neither is required: a connection limited to paying refuses both. But a wallet that
+        // does not answer get_info will not answer get_balance either, so it is not asked twice.
+        val name = try {
+            nwcRepository.getInfo(userId).alias
+        } catch (_: NwcWalletError) {
+            null
+        } catch (error: NwcFailure) {
+            Napier.w(throwable = error) { "The wallet did not answer get_info." }
+            updateWallet { copy(balanceInSats = null, loadingDetails = false, unreachable = true) }
+            return
+        }
         updateWallet { copy(name = name ?: this.name) }
         val balance = runCatching { nwcRepository.getBalanceInSats(userId) }.getOrNull()
         updateWallet { copy(balanceInSats = balance, loadingDetails = false) }

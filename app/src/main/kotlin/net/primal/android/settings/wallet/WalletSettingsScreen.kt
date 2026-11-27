@@ -181,6 +181,7 @@ private fun ConnectedWalletDetails(wallet: ConnectedWallet, viewModel: WalletSet
             modifier = Modifier.weight(1f),
             text = when {
                 wallet.loadingDetails -> stringResource(R.string.wallet_balance_loading)
+                wallet.unreachable -> stringResource(R.string.wallet_unreachable)
                 wallet.balanceInSats != null -> stringResource(
                     R.string.wallet_balance,
                     NumberFormat.getNumberInstance().format(wallet.balanceInSats),

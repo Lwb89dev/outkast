@@ -1374,6 +1374,7 @@
     <string name="wallet_connected">Portafoglio collegato</string>
     <string name="wallet_balance">Saldo: %1$s sat</string>
     <string name="wallet_balance_loading">Lettura del saldo…</string>
+    <string name="wallet_unreachable">Il portafoglio non risponde. Controlla che sia online e che la connessione non sia stata revocata.</string>
     <string name="wallet_balance_unavailable">Questa connessione non mostra il saldo.</string>
     <string name="wallet_refresh">Aggiorna</string>
     <string name="wallet_relay">Relay: %1$s</string>
