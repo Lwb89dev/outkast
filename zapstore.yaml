@@ -21,6 +21,11 @@ website: https://github.com/Lwb89dev/outkast
 tags: [nostr, social]
 
 icon: ./fastlane/metadata/android/en-US/images/icon.png
+images:
+  - ./docs/screenshots/hero.jpg
+  - ./docs/screenshots/social.jpg
+  - ./docs/screenshots/features.jpg
+  - ./docs/screenshots/themes.jpg
 release_notes: ./CHANGELOG.md
 metadata_sources:
     - github

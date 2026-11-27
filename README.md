@@ -16,6 +16,10 @@
 
 OUTKAST is an independent social client built from the LibreNostr and [Primal Android](https://github.com/PrimalHQ/primal-android-app) foundations. It keeps the mature Android/Compose and protocol layers while presenting a simpler product organized around Feed, Discover, Inbox and You.
 
+<p align="center">
+  <img src="docs/screenshots/hero.jpg" alt="OUTKAST: X-style search, relay-native Home feed and Orbit navigation" width="100%">
+</p>
+
 The target architecture is:
 
 ```text
@@ -27,6 +31,18 @@ The imported codebase still contains upstream namespaces and compatibility servi
 The current release is [`v2.7.0`](https://github.com/Lwb89dev/outkast/releases/tag/v2.7.0). Release APKs
 are signed, `arm64-v8a` only, and published from the [`altRelease`](https://github.com/Lwb89dev/outkast/releases)
 build variant.
+
+## Screenshots
+
+<p align="center">
+  <img src="docs/screenshots/social.jpg" alt="Follow, discover, connect: Feed, X-style search, Profile and Discover" width="100%">
+</p>
+<p align="center">
+  <img src="docs/screenshots/features.jpg" alt="Built-in NWC, Tor, Web of Trust and NIP-13 Proof of Work" width="100%">
+</p>
+<p align="center">
+  <img src="docs/screenshots/themes.jpg" alt="OUTKAST Dark, OUTKAST Light and thread conversations" width="100%">
+</p>
 
 ## Current state
 
