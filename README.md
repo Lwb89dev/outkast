@@ -12,25 +12,26 @@
 <p align="center">
   <a href="https://github.com/Lwb89dev/outkast/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-6430D5?style=for-the-badge" alt="MIT License"></a>
   <a href="https://github.com/Lwb89dev/outkast"><img src="https://img.shields.io/badge/status-active%20development-222?style=for-the-badge" alt="Active development"></a>
+  <a href="https://github.com/Lwb89dev/outkast/releases/tag/v2.7.0"><img src="https://img.shields.io/badge/release-v2.7.0-EA5833?style=for-the-badge" alt="Release v2.7.0"></a>
 </p>
 
-OUTKAST is an independent social client built from the LibreNostr and [Primal Android](https://github.com/PrimalHQ/primal-android-app) foundations. It keeps the mature Android/Compose and protocol layers while presenting a simpler product organized around Feed, Discover, Inbox and You.
+OUTKAST is an independent social client built from the LibreNostr and [Primal Android](https://github.com/PrimalHQ/primal-android-app) foundations. It keeps the mature Android/Compose and protocol layers while presenting a simpler product organized around **Orbit** navigation (`Feed`, `Inbox`, `Reads`, `Explore`, `Messages`, `Bookmarks`, `You` and `Settings`).
 
 <p align="center">
   <img src="docs/screenshots/hero.jpg" alt="OUTKAST: X-style search, relay-native Home feed and Orbit navigation" width="100%">
 </p>
 
-The target architecture is:
+The architecture is:
 
 ```text
 client  <->  Nostr relays  +  local Room/DataStore
 ```
 
-The imported codebase still contains upstream namespaces and compatibility services. Those are being removed incrementally, path by path, instead of hiding the remaining dependencies behind a rebrand.
+The imported codebase still contains some upstream namespaces and compatibility packages, which are being cleaned up incrementally without breaking in-place upgrades.
 
 The current release is [`v2.7.0`](https://github.com/Lwb89dev/outkast/releases/tag/v2.7.0). Release APKs
 are signed, `arm64-v8a` only, and published from the [`altRelease`](https://github.com/Lwb89dev/outkast/releases)
-build variant.
+build variant on GitHub Releases and Zapstore.
 
 ## Screenshots
 
@@ -49,26 +50,22 @@ build variant.
 **100% of active Android data paths are relay-native.** Feeds, profiles, threads,
 notifications, direct messages, search, bookmarks, mute lists, articles and
 zaps are all read and written directly against Nostr relays; no Primal cache
-or aggregation server is required for any of them. Full detail and
+or aggregation server is used for any of them. Full detail and
 verification evidence: [`docs/RELAY_ONLY_MIGRATION_STATUS.md`](docs/RELAY_ONLY_MIGRATION_STATUS.md)
 and [`docs/SECURITY_AUDIT.md`](docs/SECURITY_AUDIT.md).
 
-- direct relay read/write through `RelayPool`, including EOSE handling, timeouts, deduplication and clean subscription shutdown;
-- relay-first feeds (**Latest**, **Latest with replies**), profiles, follow lists, threads, notifications, direct messages (NIP-04), bookmarks, mute lists and live-stream lookup;
-- relay-first Reads: article feed, article details/comments (NIP-22/NIP-23) and highlights (NIP-84);
-- relay-first Explore: profile search, popular people, trending topics/zaps and note reaction/repost action lists;
-- relay-first polls (kind 1068/6969/1018) and zap receipts (NIP-57, kind 9735), including invoice-to-zap enrichment;
-- local-key note publishing to write relays, with the published event persisted locally;
-- NWC (NIP-47) as the only in-app wallet transport; legacy centralized/embedded wallet, premium and FCM push services are removed or fail closed;
-- Android Keystore AES-GCM local credential storage, disabled Android backup, HTTPS-only/cleartext-disabled networking;
-- OUTKAST Dark and OUTKAST Light, a focused editorial Compose system, and four primary destinations: Feed, Discover, Inbox and You;
-- profile sharing through `nostrich.org/p/<npub>` and Android deep-link handling;
-- inline search: profile results appear below the search field and note/read results render in the same screen, without an intermediate results page;
-- persistent recent searches and recent profiles, capped at five entries per group and shown with profile images;
-- note composer attachments, camera/gallery selection, polls and a GIF picker backed by Wikimedia Commons previews.
-- deck mode on tablets held in landscape: several named decks of drag-and-drop columns (feeds, hashtags, profiles, Reads, notifications, messages), with notes, profiles and DMs opening inside their column; phones and portrait tablets keep the tabbed layout.
+- **Direct relay networking**: `RelayPool` read/write with EOSE handling, timeouts, deduplication, outbox/NIP-65 relay lists and clean subscription shutdown.
+- **Relay-native feeds & content**: **Latest** and **Latest with replies** feeds, **NIP-68** picture notes (kind 20), profiles, follow lists, threads, notifications, **Reads** (NIP-22/NIP-23 articles and NIP-84 highlights), **Explore** (Network, Feed Gallery, Follow Packs, trending topics & top zaps), polls (kind 1068/6969/1018) and live-stream lookup.
+- **Encrypted direct messages**: **NIP-17** gift-wrapped messages (NIP-44) with NIP-04 fallback.
+- **X-style search & NIP-50 relays**: `Top`, `Latest`, `People` and `Media` tabs, `From anyone` / `People you follow` scope, live suggestions, persistent recent searches & users, advanced search form, and operators (`"exact phrase"`, `OR`, `-word`, `#hashtag`, `@name`, `from:`, `to:`, `since:`, `until:`, `filter:media`, `filter:links`, `-filter:replies`, `min_faves:`, `min_replies:`, `min_retweets:`), querying NIP-50 full-text relays (`search.nos.today`, `relay.ditto.pub`, `nostr.wine`).
+- **Nostr Wallet Connect (NIP-47) & zaps**: connect an external Lightning wallet in Settings → Wallet (NWC) to pay zaps and invoices in-app with explicit amount confirmation and Android Keystore per-account encryption; falls back to external `lightning:` wallet intents when no NWC wallet is connected.
+- **Proof of work (NIP-13)**: on by default (16 bits for notes, comments and polls; 12 bits for reactions and direct messages), cancellable while keeping the draft, and configurable per event kind.
+- **Web of Trust & stranger filtering**: optional local Web of Trust and Proof of Work filters for replies, quotes, mentions and notifications, computed on-device without sending lists to any server.
+- **Media, composer & reactions**: attachments, Blossom uploads, photo editor with built-in **Draw** tool, polls, GIF picker (`gifs.nostr.build` with GIFverse fallback), **NIP-30** custom emoji packs & reactions, keyboard/scrollable emoji picker, and the bundled running-ostrich mascot for `#nostr` / `#grownostr` / `#asknostr`.
+- **Orbit, multi-account & Deck mode**: **Orbit** bottom portal with one-tap profile switching; **OUTKAST Dark** and **OUTKAST Light** themes; multi-column **Deck mode** on landscape tablets; `nostr:` (`npub`, `nprofile`, `note`, `nevent`, `naddr`) and `nostrich.org/p/<npub>` deep links.
+- **Local security**: Android Keystore AES-GCM credential storage, Amber (NIP-55) and bunker (NIP-46) signing, disabled Android backups, and HTTPS-only / cleartext-disabled networking; legacy centralized wallet, Breez/Spark and Primal Premium modules have been removed.
 
-The Android application ID and module namespace are both `com.librenostr.android` so signed OUTKAST releases update existing LibreNostr installations in place without losing identities, databases, relay settings, wallet connections or Android Keystore material, while matching the package declared in the source tree. Internal Kotlin source packages remain under `net.primal.android.*` so Android component class names and persistence stay stable.
+The Android `applicationId` and module `namespace` are both `com.librenostr.android` so signed OUTKAST releases update existing LibreNostr installations in place without losing identities, databases, relay settings, wallet connections or Android Keystore material, while matching the package declared in the source tree. Internal Kotlin source packages remain under `net.primal.android.*` so Android component class names and Room/DataStore persistence stay stable.
 
 ### Network routing and Tor
 
@@ -90,13 +87,12 @@ therefore distributed as an `arm64-v8a` split only.
 
 ## Remaining boundaries
 
-OUTKAST still carries compatibility boundaries inherited from upstream. In particular:
+OUTKAST still carries structural naming inherited from upstream:
 
-- wallet/premium/external-signer UI and compatibility modules remain in the imported tree; their centralized transports are fail-closed but the modules themselves (including the optional Breez/Spark native library) are still compiled in and scheduled for removal;
-- some upstream class, package and module names (e.g. `networking-primal`, `domain-primal`) still reflect the original codebase;
+- some upstream class, package and module names (e.g. `core/networking-primal`, `domain/primal`, `net.primal.android.*`) remain in the tree to preserve component class names and local persistence across upgrades;
 - historical test fixtures and event text may still reference the upstream domain; these are not live endpoints.
 
-Remaining paths and phased removal are tracked in [`docs/LIBRENOSTR_ROADMAP.md`](docs/LIBRENOSTR_ROADMAP.md).
+Remaining cleanup and phased work are tracked in [`docs/LIBRENOSTR_ROADMAP.md`](docs/LIBRENOSTR_ROADMAP.md).
 
 ## Project layout
 
@@ -104,15 +100,16 @@ Remaining paths and phased removal are tracked in [`docs/LIBRENOSTR_ROADMAP.md`]
 |---|---|
 | `app/` | Android application, Compose screens, navigation and feature wiring |
 | `core/` | Networking, caching, media, cryptography and shared UI primitives |
-| `data/` | Local databases, remote APIs and repository implementations |
-| `domain/` | Platform-independent Nostr, feed, profile and wallet models |
+| `data/` | Local databases (`CachingDatabase` v8, `AccountDatabase`), remote APIs, NWC client (`remote-nwc`) and repositories |
+| `domain/` | Platform-independent Nostr, NIP-13 PoW, WoT, feed, profile and account models |
+| `detekt-rules/` | Custom static analysis rules (`PrimalRuleSet`) |
 | `tools/arti-build/` | Pinned Rust/Arti JNI wrapper build and reproducibility scripts for built-in Tor |
-| `docs/` | Architecture notes, dependency inventory and migration roadmap |
+| `docs/` | Architecture notes, migration status, security audits and framed release screenshots |
 
 ## Building
 
-Requires JDK 21 and an Android SDK with compile SDK 37. The project uses AGP 9.2.1, Kotlin 2.4.0 and min SDK 26.
-The Android application is packaged for `arm64-v8a` only. The built-in Tor native library is already
+Requires **JDK 21** and an Android SDK with **compile SDK 37** (target SDK 36, min SDK 26). The project uses **AGP 9.2.1** and **Kotlin 2.4.0**.
+The Android application is packaged for `arm64-v8a` only. The built-in Tor native library (`libnostr_arti.so`) is already
 committed under `app/src/main/jniLibs/arm64-v8a/`; rebuilding it separately requires the pinned toolchain
 documented in [`tools/arti-build/README.md`](tools/arti-build/README.md).
 
@@ -130,7 +127,7 @@ echo "sdk.dir=$ANDROID_HOME" > local.properties
 ./gradlew :app:installDebug
 ```
 
-The AOSP debug APK has been compiled, installed and exercised through ADB during the current development cycle. Debug builds do not encrypt stored keys (`NoEncryption`); do not use a debug APK with a valuable real `nsec`.
+Debug builds do not encrypt stored keys (`NoEncryption`); do not use a debug APK with a valuable real `nsec`.
 
 ### Release builds
 
@@ -144,11 +141,10 @@ alternative.keyAlias={KeyAlias}
 alternative.keyPassword={KeyPassword}
 ```
 
-The optional `localStorage.keyAlias` property can also be supplied when configuring the release
-storage key. Build and install the signed release with:
+Optional properties `localStorage.keyAlias` and `nostrBuildGifApiKey` can also be supplied in `config.properties` (without `nostrBuildGifApiKey`, GIF search falls back to GIFverse if `gifs.nostr.build` refuses unauthenticated requests). Build and install the signed release with:
 
 ```bash
-./gradlew :app:assembleAltRelease --no-daemon
+./gradlew :app:assembleAltRelease -Plibrenostr.requireBuiltInTor=true --no-daemon
 ./gradlew :app:installAltRelease --no-daemon
 ```
 
@@ -158,12 +154,14 @@ The APK is written to
 ## Releases
 
 Signed release APKs (`altRelease`, `arm64-v8a` only) are published on the
-[GitHub Releases](https://github.com/Lwb89dev/outkast/releases) page. The latest release is
-[`v2.7.0`](https://github.com/Lwb89dev/outkast/releases/tag/v2.7.0). Verify the APK signature
+[GitHub Releases](https://github.com/Lwb89dev/outkast/releases) page (alongside `SHA256SUMS.txt`) and on
+**Zapstore** via [`zapstore.yaml`](zapstore.yaml). The latest release is
+[`v2.7.0`](https://github.com/Lwb89dev/outkast/releases/tag/v2.7.0). Verify the APK checksum and signature
 before installing:
 
 ```bash
-apksigner verify --print-certs outkast-<version>-<abi>.apk
+sha256sum -c SHA256SUMS.txt
+apksigner verify --print-certs outkast-<version>-arm64-v8a.apk
 ```
 
 ## Documentation
@@ -205,6 +203,6 @@ MIT. Upstream copyright: Copyright (c) 2023 PRIMAL SYSTEMS INC. See [LICENSE](LI
 ## Acknowledgments
 
 - [Upstream Android client](https://github.com/PrimalHQ/primal-android-app) — the client this fork starts from
-- [Quartz](https://github.com/vitorpamplona/quartz) — NIP-04 / NIP-44
+- [Quartz](https://github.com/vitorpamplona/quartz) — Nostr protocol & NIP-04 / NIP-44 cryptography
 - [Acinq](https://acinq.co) — secp256k1 and Lightning foundations
-- [Breez SDK](https://breez.technology) — inherited optional Lightning integration under audit
+- [Arti](https://gitlab.torproject.org/tpo/core/arti) — Tor Project's Rust Tor implementation powering built-in Tor
