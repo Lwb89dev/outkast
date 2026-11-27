@@ -19,6 +19,7 @@ interface ArticleDetailsContract {
         val highlights: List<JoinedHighlightsUi> = emptyList(),
         val topZaps: List<EventZapUiModel> = emptyList(),
         val comments: List<FeedPostUi> = emptyList(),
+        val hiddenComments: Int = 0,
         val selectedHighlight: JoinedHighlightsUi? = null,
         val isHighlighted: Boolean = false,
         val error: UiError? = null,
@@ -35,6 +36,7 @@ interface ArticleDetailsContract {
 
     sealed class UiEvent {
         data object RequestResolveNaddr : UiEvent()
+        data object ShowHiddenComments : UiEvent()
         data object UpdateContent : UiEvent()
         data object DismissErrors : UiEvent()
         data class ZapArticle(val zapAmount: ULong? = null, val zapDescription: String? = null) : UiEvent()

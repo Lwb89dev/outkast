@@ -26,6 +26,9 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -50,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.librenostr.android.R
 import kotlinx.coroutines.launch
+import net.primal.android.core.activity.LocalZappingState
 import net.primal.android.core.compose.AvatarOverlap
 import net.primal.android.core.compose.AvatarThumbnailsRow
 import net.primal.android.core.compose.IconText
@@ -58,6 +62,7 @@ import net.primal.android.core.compose.PulsingListItemPlaceholder
 import net.primal.android.core.compose.preview.PrimalPreview
 import net.primal.android.core.compose.profile.model.ProfileDetailsUi
 import net.primal.android.core.compose.profile.model.ProfileStatsUi
+import net.primal.android.notes.feed.zaps.ZapBottomSheet
 import net.primal.android.core.ext.openUriSafely
 import net.primal.android.core.utils.formatNip05Identifier
 import net.primal.android.notes.feed.note.ui.events.NoteCallbacks
@@ -77,13 +82,28 @@ fun ProfileHeaderDetails(
 ) {
     val uiScope = rememberCoroutineScope()
     val context = LocalContext.current
+    val zappingState = LocalZappingState.current
+    var showZapOptions by remember { mutableStateOf(false) }
 
-    fun onZapProfile(profileId: String, profileLnUrlDecoded: String) {
-        eventPublisher(
-            ProfileDetailsContract.UiEvent.ZapProfile(
-                profileId = profileId,
-                profileLnUrlDecoded = profileLnUrlDecoded,
-            ),
+    val zapProfileId = state.profileId
+    val zapLnUrl = state.profileDetails?.lnUrlDecoded
+    // The amount is chosen and confirmed first, as on a note: with a connected wallet there is no
+    // other app left to ask "are you sure".
+    if (showZapOptions && zapProfileId != null && zapLnUrl != null) {
+        ZapBottomSheet(
+            onDismissRequest = { showZapOptions = false },
+            receiverName = state.profileDetails.authorDisplayName,
+            zappingState = zappingState,
+            onZap = { amount, description ->
+                eventPublisher(
+                    ProfileDetailsContract.UiEvent.ZapProfile(
+                        profileId = zapProfileId,
+                        profileLnUrlDecoded = zapLnUrl,
+                        zapAmount = amount.toULong(),
+                        zapDescription = description,
+                    ),
+                )
+            },
         )
     }
 
@@ -110,7 +130,7 @@ fun ProfileHeaderDetails(
             val profileLud16 = state.profileDetails?.lightningAddress
             val profileLnUrlDecoded = state.profileDetails?.lnUrlDecoded
             if (profileId != null && profileLnUrlDecoded != null && profileLud16?.isLightningAddress() == true) {
-                onZapProfile(profileId = profileId, profileLnUrlDecoded = profileLnUrlDecoded)
+                showZapOptions = true
             } else {
                 onUnableToZapProfile()
             }

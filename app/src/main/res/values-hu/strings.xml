@@ -724,7 +724,6 @@
     <string name="settings_network_relay_read">Olvassa el</string>
     <string name="settings_network_relay_write">Írás</string>
     <string name="settings_zaps_title">Zaps</string>
-    <string name="settings_zaps_description">Egy koppintó zaps az alapértelmezett &amp; üzenetet küldi. Az alábbi egyedi zap beállítások beállítása:</string>
     <string name="settings_zaps_editor_emoji">Emoji</string>
     <string name="settings_zaps_editor_message">Üzenet</string>
     <string name="settings_zaps_editor_value">Érték</string>

@@ -48,6 +48,9 @@ const val RENDER_TYPE = "renderType"
 inline val SavedStateHandle.renderType: String
     get() = get<String>(RENDER_TYPE) ?: throw IllegalArgumentException("Missing required renderType argument.")
 
+const val SEARCH_SUBMIT = "searchSubmit"
+inline val SavedStateHandle.searchSubmit: Boolean get() = get<Boolean>(SEARCH_SUBMIT) ?: true
+
 const val INITIAL_QUERY = "initialQuery"
 inline val SavedStateHandle.initialQuery: String? get() = get(INITIAL_QUERY)
 

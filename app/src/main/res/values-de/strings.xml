@@ -724,7 +724,6 @@
     <string name="settings_network_relay_read">Lesen</string>
     <string name="settings_network_relay_write">Schreiben</string>
     <string name="settings_zaps_title">Zapfnäpfe</string>
-    <string name="settings_zaps_description">Single Tap Zaps senden den Standardbetrag &amp; Nachricht. Konfigurieren Sie unten benutzerdefinierte Zap-Presets:</string>
     <string name="settings_zaps_editor_emoji">Emoji</string>
     <string name="settings_zaps_editor_message">Nachricht</string>
     <string name="settings_zaps_editor_value">Wert</string>

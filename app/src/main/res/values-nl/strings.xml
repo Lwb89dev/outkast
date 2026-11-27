@@ -724,7 +724,6 @@
     <string name="settings_network_relay_read">Gelezen</string>
     <string name="settings_network_relay_write">Schrijven</string>
     <string name="settings_zaps_title">Zaps</string>
-    <string name="settings_zaps_description">Single tap zaps versturen het standaard bedrag &amp; bericht. Aangepaste zap instellingen hieronder instellen:</string>
     <string name="settings_zaps_editor_emoji">Emoji</string>
     <string name="settings_zaps_editor_message">Bericht</string>
     <string name="settings_zaps_editor_value">Waarde</string>

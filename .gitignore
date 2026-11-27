@@ -87,3 +87,6 @@ CLAUDE.local.md
 .continue/
 .aider*
 .mcp.json
+
+# Local planning prompts, not for the repository
+/docs/POW_NIP13_PROMPT.md

@@ -724,7 +724,6 @@
     <string name="settings_network_relay_read">Čitaj</string>
     <string name="settings_network_relay_write">Piši</string>
     <string name="settings_zaps_title">Zaps</string>
-    <string name="settings_zaps_description">Zaps za jedan tap pošalji uobičajeni iznos &amp; poruke. Konfigurirajte prilagođene zap presets ispod:</string>
     <string name="settings_zaps_editor_emoji">Emoji</string>
     <string name="settings_zaps_editor_message">Poruka</string>
     <string name="settings_zaps_editor_value">Vrijednost</string>

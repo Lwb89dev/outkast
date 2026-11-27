@@ -724,7 +724,6 @@
     <string name="settings_network_relay_read">Ανάγνωση</string>
     <string name="settings_network_relay_write">Εγγραφή</string>
     <string name="settings_zaps_title">Ζαπ</string>
-    <string name="settings_zaps_description">Τα zaps μιας βρύσης στέλνουν το προκαθορισμένο ποσό &amp; μηνύματος. Configure προσαρμοσμένων προεπιλογών zap παρακάτω:</string>
     <string name="settings_zaps_editor_emoji">Εμότζι</string>
     <string name="settings_zaps_editor_message">Μήνυμα</string>
     <string name="settings_zaps_editor_value">Τιμή</string>

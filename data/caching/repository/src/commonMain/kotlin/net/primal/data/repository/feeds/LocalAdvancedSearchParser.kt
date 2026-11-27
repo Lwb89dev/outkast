@@ -47,10 +47,14 @@ internal fun parseAdvancedSearchQueryLocally(query: String): AdvancedSearchParse
             "minzaps|minreplies|minreposts|pas):[^\\s]+",
     )
     val profileGroups = Regex("\\([^)]*\\)")
-    fun cleanWords() = profileGroups.replace(control.replace(normalized, ""), " ")
-        .split(Regex("\\s+"))
-        .map { it.trim('"', '\'', ',', '.', '(', ')') }
-        .filter { it.isNotBlank() }
+
+    // Quotes and OR stay: editing a saved search must not turn a phrase or an alternative into
+    // words that are all required.
+    fun cleanWords() =
+        profileGroups.replace(control.replace(normalized, ""), " ")
+            .split(Regex("\\s+"))
+            .map { it.trim(',', '(', ')') }
+            .filter { it.isNotBlank() }
     val includes = cleanWords().filter { !it.startsWith("-") && !it.startsWith("#") }.joinToString(" ")
     val excludes = cleanWords().filter { it.startsWith("-") }.joinToString(" ") { it.removePrefix("-") }
 

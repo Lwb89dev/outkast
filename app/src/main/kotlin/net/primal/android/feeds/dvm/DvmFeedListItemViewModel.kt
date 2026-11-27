@@ -101,7 +101,7 @@ class DvmFeedListItemViewModel @Inject constructor(
             )
 
             if (result is ZapResult.Failure) {
-                when (result.error) {
+                when (val failure = result.error) {
                     is ZapError.InvalidZap, is ZapError.FailedToFetchZapPayRequest,
                     is ZapError.FailedToFetchZapInvoice,
                     -> setState { copy(error = UiError.InvalidZapRequest()) }
@@ -109,6 +109,12 @@ class DvmFeedListItemViewModel @Inject constructor(
                     is ZapError.FailedToPayZap, ZapError.FailedToPublishEvent, ZapError.FailedToSignEvent,
                     is ZapError.Timeout,
                     -> setState { copy(error = UiError.FailedToPublishZapEvent()) }
+
+                    is ZapError.WalletRefused -> setState {
+                        copy(error = UiError.WalletRefusedPayment(failure.code, failure.message))
+                    }
+
+                    ZapError.PaymentUnconfirmed -> setState { copy(error = UiError.PaymentUnconfirmed) }
 
                     is ZapError.Unknown -> {
                         setState { copy(error = UiError.GenericError()) }

@@ -10,6 +10,8 @@ sealed class UiError {
     data class InvalidZapRequest(val cause: Throwable? = null) : UiError()
 
     data class FailedToPublishZapEvent(val cause: Throwable? = null) : UiError()
+    data class WalletRefusedPayment(val code: String, val reason: String) : UiError()
+    data object PaymentUnconfirmed : UiError()
     data class FailedToPublishRepostEvent(val cause: Throwable) : UiError()
     data class FailedToPublishLikeEvent(val cause: Throwable) : UiError()
     data class FailedToPublishDeleteEvent(val cause: Throwable) : UiError()

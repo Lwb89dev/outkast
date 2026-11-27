@@ -724,7 +724,6 @@
     <string name="settings_network_relay_read">Læs</string>
     <string name="settings_network_relay_write">Skriv</string>
     <string name="settings_zaps_title">Zaps</string>
-    <string name="settings_zaps_description">Single tap zaps sende standardbeløbet &amp; besked. Indstil brugerdefinerede zap- presets nedenfor:</string>
     <string name="settings_zaps_editor_emoji">Emoji</string>
     <string name="settings_zaps_editor_message">Meddelelse</string>
     <string name="settings_zaps_editor_value">Værdi</string>

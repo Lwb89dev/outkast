@@ -33,6 +33,7 @@ import net.primal.android.user.domain.Relay
 import net.primal.android.user.domain.RelayKind
 import net.primal.android.user.domain.cleanWebSocketUrl
 import net.primal.android.user.domain.mapToRelayDO
+import net.primal.android.user.domain.toRelay
 import net.primal.core.networking.sockets.NostrSocketClientFactory
 import net.primal.core.networking.sockets.RelayConnectionBackoff
 import net.primal.core.networking.tor.RouteController
@@ -81,6 +82,12 @@ class RelaysSocketManager @Inject constructor(
     // Their own pool keeps them to what they are for: reading public notes by the people followed.
     private val outboxEnrichmentPool: RelayPool = buildRelayPool()
 
+    // NIP-50 relays, used only by queries that carry a search term and never authenticated to. Its
+    // sockets are opened by the first such query, not at startup.
+    private val searchRelaysPool: RelayPool = buildRelayPool().apply {
+        changeRelays(SEARCH_RELAY_URLS.map { it.toRelay() })
+    }
+
     val userRelayPoolStatus = userRelaysPool.relayPoolStatus
     val fallbackRelayPoolStatus = fallbackRelaysPool.relayPoolStatus
 
@@ -118,6 +125,7 @@ class RelaysSocketManager @Inject constructor(
             userRelaysPool.resetConnections()
             fallbackRelaysPool.resetConnections()
             outboxEnrichmentPool.resetConnections()
+            searchRelaysPool.resetConnections()
         }
         connectPool(userRelaysPool)
         connectPool(fallbackRelaysPool)
@@ -323,6 +331,7 @@ class RelaysSocketManager @Inject constructor(
                     )
                 }
             }
+            val searchDeferred = async { querySearchRelays(filter) }
             // Never for a private-scope REQ — even when the account has no relays of its own, a
             // relay the user never chose has no business learning who they DM or mute.
             val enrichmentDeferred = async {
@@ -373,13 +382,22 @@ class RelaysSocketManager @Inject constructor(
             // coroutineScope waits for its children: the timers must not keep this call open.
             fallbackCap.cancel()
             graceTimer?.cancel()
+            val search = searchDeferred.await()
             RelayPoolQueryResult(
-                events = (account.events + public.events).distinctBy { it.id },
-                eoseRelays = account.eoseRelays + public.eoseRelays,
-                failedRelays = account.failedRelays + public.failedRelays,
-                duplicateCount = account.duplicateCount + public.duplicateCount,
+                events = (account.events + search.events + public.events).distinctBy { it.id },
+                eoseRelays = account.eoseRelays + search.eoseRelays + public.eoseRelays,
+                failedRelays = account.failedRelays + search.failedRelays + public.failedRelays,
+                duplicateCount = account.duplicateCount + search.duplicateCount + public.duplicateCount,
             )
         }
+    }
+
+    /** The NIP-50 relays, for queries that carry a search term; nothing for any other. */
+    private suspend fun querySearchRelays(filter: JsonObject): RelayPoolQueryResult {
+        if ("search" !in filter || filter.isPrivateScopeFilter()) return RelayPoolQueryResult()
+        return withTimeoutOrNull(RelayPool.SUBSCRIBE_TIMEOUT.toLong()) {
+            searchRelaysPool.query(filter = filter, timeoutMs = SEARCH_QUERY_TIMEOUT_MS)
+        } ?: RelayPoolQueryResult()
     }
 
     override suspend fun query(filter: RelayFilter): List<NostrEvent> {
@@ -461,6 +479,9 @@ class RelaysSocketManager @Inject constructor(
         // These bounds are intentionally distinct so a slow account relay cannot cancel fallback.
         const val USER_QUERY_TIMEOUT_MS = 3_500L
         const val FALLBACK_QUERY_TIMEOUT_MS = 4_000L
+
+        /** Full-text search is slower than a filter lookup; these relays answered in up to ~2 s. */
+        const val SEARCH_QUERY_TIMEOUT_MS = 5_000L
 
         /**
          * How long the public pool may keep adding events after the account relays have answered.

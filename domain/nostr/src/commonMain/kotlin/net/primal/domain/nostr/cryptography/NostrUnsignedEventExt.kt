@@ -31,14 +31,15 @@ fun NostrUnsignedEvent.signOrThrow(hexPrivateKey: ByteArray): NostrEvent {
     )
 }
 
-fun NostrUnsignedEvent.calculateEventId(): ByteArray {
-    val json = buildJsonArray {
+/** The NIP-01 serialization an event id is the SHA-256 of. */
+internal fun NostrUnsignedEvent.serializeForEventId(): String =
+    buildJsonArray {
         add(0)
         add(pubKey)
         add(createdAt)
         add(kind)
         addJsonArray { tags.forEach { add(it) } }
         add(content)
-    }
-    return CryptoUtils.sha256(json.toString().toByteArray())
-}
+    }.toString()
+
+fun NostrUnsignedEvent.calculateEventId(): ByteArray = CryptoUtils.sha256(serializeForEventId().toByteArray())

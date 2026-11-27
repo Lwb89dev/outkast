@@ -96,6 +96,7 @@ import net.primal.android.notes.feed.note.ui.attachment.PlayButton
 import net.primal.android.notes.feed.note.ui.events.MediaClickEvent
 import net.primal.android.notes.feed.note.ui.events.NoteCallbacks
 import net.primal.android.notes.feed.zaps.ZapBottomSheet
+import net.primal.android.spam.HiddenRepliesRow
 import net.primal.android.theme.AppTheme
 import net.primal.android.thread.articles.ArticleContract
 import net.primal.android.thread.articles.ArticleViewModel
@@ -885,6 +886,15 @@ private fun ArticleContentWithComments(
                     onUiError = onUiError,
                 )
                 PrimalDivider()
+            }
+        }
+
+        if (state.hiddenComments > 0) {
+            item(key = "hiddenComments") {
+                HiddenRepliesRow(
+                    count = state.hiddenComments,
+                    onShowClick = { detailsEventPublisher(UiEvent.ShowHiddenComments) },
+                )
             }
         }
 

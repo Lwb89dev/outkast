@@ -1,8 +1,8 @@
 package net.primal.data.repository.feed
 
 import io.github.aakira.napier.Napier
+import kotlin.math.ln
 import kotlin.time.Clock
-import kotlin.time.Duration.Companion.days
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -10,30 +10,68 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import net.primal.core.utils.getOrDefault
 import net.primal.core.utils.runCatching
+import net.primal.core.utils.serialization.decodeFromJsonStringOrNull
+import net.primal.data.local.dao.events.EventStats
+import net.primal.data.local.db.CachingDatabase
 import net.primal.data.remote.api.feed.model.FeedResponse
+import net.primal.data.repository.feed.search.ContentFilter
+import net.primal.data.repository.feed.search.SearchMatcher
+import net.primal.data.repository.feed.search.SearchOrder
+import net.primal.data.repository.feed.search.SearchPeople
+import net.primal.data.repository.feed.search.SearchQuery
+import net.primal.data.repository.feed.search.SearchTerm
 import net.primal.data.repository.fetch.FetchCoordinator
 import net.primal.data.repository.mappers.remote.latestMetadataByPubkey
 import net.primal.domain.feeds.extractAdvancedSearchQuery
+import net.primal.domain.nostr.ContentMetadata
 import net.primal.domain.nostr.NostrEvent
 import net.primal.domain.nostr.NostrEventKind
-import net.primal.domain.nostr.cryptography.utils.assureValidPubKeyHex
 import net.primal.domain.nostr.pubkeyTagValues
 import net.primal.domain.nostr.relay.RelayEventQuerier
 import net.primal.domain.nostr.relay.RelayFilter
+import net.primal.domain.nostr.utils.extractProfileId
+
+/** A profile this device already knows, as far as matching a typed name goes. */
+internal data class ProfileCandidate(
+    val pubkey: String,
+    val name: String?,
+    val displayName: String?,
+    val nip05: String?,
+)
+
+internal suspend fun CachingDatabase.findProfileCandidates(prefix: String): List<ProfileCandidate> =
+    profiles().findProfilesByPrefix(prefix = prefix, limit = LOCAL_PROFILE_CANDIDATES).map {
+        ProfileCandidate(
+            pubkey = it.ownerId,
+            name = it.handle,
+            displayName = it.displayName,
+            nip05 = it.internetIdentifier,
+        )
+    }
+
+private const val LOCAL_PROFILE_CANDIDATES = 20
 
 /**
- * Executes the advanced-search command against relays.
+ * Executes a search against relays.
  *
- * Primal's former parser returned a server-specific command that was then sent
- * back to the cache API. The UI already emits a readable command, so we map its
- * standard portions to NIP-50/REQ filters here and keep the final text matching
- * local. This also gives useful results on relays that do not implement NIP-50.
+ * The command comes from the search box or the advanced search screen (see [SearchQuery]). Relays
+ * get what NIP-01 and NIP-50 can express, and the rest is applied here, which also gives useful
+ * results on relays that do not implement NIP-50.
+ *
+ * Two orders exist, as on X: newest first, which pages back in time, and "Top", which ranks one
+ * larger batch by the interactions it got and has no further pages.
  */
 internal class RelayAdvancedSearchFeedFetcher(
     private val querier: RelayEventQuerier,
     private val coordinator: FetchCoordinator,
+    /** Profiles known locally whose name starts with the argument: most mentions are of people already seen. */
+    private val findLocalProfiles: suspend (String) -> List<ProfileCandidate> = { emptyList() },
 ) {
 
+    private val statsFetcher = RelayEventStatsFetcher(querier = querier, coordinator = coordinator)
+
+    // Each early return is a way a query can be unable to match anything at all.
+    @Suppress("CyclomaticComplexMethod", "ReturnCount")
     suspend fun fetch(
         userId: String,
         feedSpec: String,
@@ -42,45 +80,50 @@ internal class RelayAdvancedSearchFeedFetcher(
         until: Long? = null,
         since: Long? = null,
     ): FeedResponse {
-        val query = feedSpec.extractAdvancedSearchQuery().orEmpty()
-        val parsed = ParsedSearch(query = query, fallbackKinds = fallbackKinds)
-        val authors = parsed.authors.ifEmpty {
-            if (parsed.scope == "myfollows") loadFollowAuthors(userId) else emptyList()
-        }
-        val taggedPubkeys = if (parsed.scope == "mynotifications") listOf(userId) else null
-        val filter = RelayFilter(
-            kinds = parsed.kinds,
-            authors = authors.ifEmpty { null },
-            pubkeyTags = parsed.pubkeyTags ?: taggedPubkeys,
-            eventTags = parsed.eventTags,
-            hashtagTags = parsed.hashtags.ifEmpty { null },
-            search = parsed.searchTerms.ifEmpty { null },
-            limit = limit,
-            until = until ?: parsed.until,
-            since = since ?: parsed.since,
-        )
-        // NIP-50 is optional. If a relay ignores or rejects `search`, retry the same standard
-        // filters and apply the text predicate locally. The decision is made on what survives
-        // that predicate, not on the raw answer: a relay that ignores `search` returns arbitrary
-        // events, and trusting that non-empty page skipped the retry only for the predicate to
-        // throw all of it away, leaving the search with no results at all. The retry does not keep
-        // the UI page size: a 20-event arbitrary sample makes rare terms look as if they only
-        // have ancient results.
-        val firstMatches = query(filter).matchingSearch(parsed)
-        val events = if (firstMatches.isEmpty() && filter.search != null) {
-            query(
-                filter.copy(
-                    search = null,
-                    limit = maxOf(filter.limit ?: 0, FALLBACK_SEARCH_EVENT_LIMIT),
-                ),
-            ).matchingSearch(parsed)
-        } else {
-            firstMatches
-        }
+        val text = feedSpec.extractAdvancedSearchQuery().orEmpty()
+        val query = SearchQuery.parse(text)
+        val ranked = query.order != SearchOrder.Latest
+        // A ranking is not a timeline: there is nothing "older" to append to it.
+        if (ranked && until != null) return emptyFeedResponse()
 
-        val page = events.sortedByDescending { it.createdAt }.take(limit)
+        val follows = FollowsOnce(userId)
+        val people = resolvePeople(query, follows) ?: return emptyFeedResponse()
+        val zappedBy = resolveAll(query.zappedBy, follows) ?: return emptyFeedResponse()
+
+        val scopeAuthors = if (query.scope == "myfollows" && people.from.isEmpty()) {
+            follows.get().ifEmpty { return emptyFeedResponse() }
+        } else {
+            emptySet()
+        }
+        val notifications = if (query.scope == "mynotifications") setOf(userId) else emptySet()
+        val excludedAuthors = if (query.scope == "notmyfollows") follows.get() else emptySet()
+
+        val pageSize = if (ranked || query.minimums.any) {
+            RANKING_CANDIDATES
+        } else {
+            (limit * 2).coerceAtMost(RANKING_CANDIDATES)
+        }
+        val base = RelayFilter(
+            kinds = query.relayKinds(fallbackKinds),
+            authors = people.from.ifEmpty { scopeAuthors }.toList().ifEmpty { null },
+            pubkeyTags = (people.to + zappedBy + notifications).toList().ifEmpty { null },
+            eventTags = query.replyToEventIds.ifEmpty { null },
+            limit = pageSize,
+            until = until ?: query.until,
+            since = since ?: query.since,
+        )
+
+        val matcher = SearchMatcher(query, people)
+        fun accepts(event: NostrEvent) =
+            event.pubKey !in excludedAuthors &&
+                (notifications.isEmpty() || event.tags.pubkeyTagValues().any { it in notifications }) &&
+                matcher.matches(event)
+
+        val candidates = search(variants(query, base, people), ::accepts)
+        val page = candidates.orderedFor(query, follows).take(if (ranked) RANKING_CANDIDATES / 2 else limit)
+
         Napier.i {
-            "Advanced relay search query='$query' matches=${events.size} results=${page.size} " +
+            "Relay search order=${query.order} candidates=${candidates.size} results=${page.size} " +
                 "newest=${page.maxOfOrNull { it.createdAt }} oldest=${page.minOfOrNull { it.createdAt }}"
         }
 
@@ -103,6 +146,202 @@ internal class RelayAdvancedSearchFeedFetcher(
         return page.toFeedResponse(metadata, referencedEvents = referencedNotes.map { it.asReferencedPrimalEvent() })
     }
 
+    /**
+     * The filters to send. A relay filter cannot say "this word or that one", so an `OR` becomes
+     * one filter per alternative, and a mention becomes one for what the person wrote and one for
+     * what was written to them.
+     */
+    private fun variants(
+        query: SearchQuery,
+        base: RelayFilter,
+        people: SearchPeople,
+    ): List<RelayFilter> {
+        // Hashtags go to the `#t` index, not to full-text search: a relay honors `limit` on a tag
+        // filter by returning the newest matches (NIP-01), while a search term only has to return
+        // its best full-text matches, which skews towards old posts. A tag filter matches ANY of
+        // its values, so one group (one tag, or `#a OR #b`) goes there and the rest is checked here.
+        val tagGroup = query.groups.firstOrNull { group -> group.all { it is SearchTerm.Hashtag } }
+        val orGroup = query.groups.firstOrNull { it.size > 1 && it !== tagGroup }
+        val required = query.groups.filter { it.size == 1 && it !== tagGroup }.map { it.single() }
+        val alternatives: List<SearchTerm?> = orGroup?.take(MAX_ALTERNATIVES) ?: listOf(null)
+
+        val byText = alternatives.map { alternative ->
+            val terms = required + listOfNotNull(alternative)
+            val words = terms.mapNotNull {
+                when (it) {
+                    is SearchTerm.Word -> it.text
+                    is SearchTerm.Phrase -> it.text
+                    is SearchTerm.Hashtag -> null
+                }
+            }
+            val tags = tagGroup?.filterIsInstance<SearchTerm.Hashtag>()?.map { it.tag }
+                ?: listOfNotNull((alternative as? SearchTerm.Hashtag)?.tag)
+            base.copy(
+                search = words.joinToString(" ").ifBlank { null },
+                hashtagTags = tags.ifEmpty { null },
+            )
+        }
+
+        if (people.mentions.isEmpty() || base.authors != null) return byText.distinct()
+        val mentioned = people.mentions.toList()
+        return byText.flatMap { filter ->
+            listOf(
+                filter.copy(pubkeyTags = filter.pubkeyTags.orEmpty() + mentioned),
+                filter.copy(authors = mentioned),
+            )
+        }.distinct()
+    }
+
+    /**
+     * NIP-50 is optional. If a relay ignores or rejects `search`, retry the same standard filters
+     * and apply the text predicate locally. The decision is made on what survives that predicate,
+     * not on the raw answer: a relay that ignores `search` returns arbitrary events, and trusting
+     * that non-empty page skipped the retry only for the predicate to throw all of it away. The
+     * retry does not keep the page size: a small arbitrary sample makes rare terms look as if they
+     * only have ancient results.
+     */
+    private suspend fun search(filters: List<RelayFilter>, accepts: (NostrEvent) -> Boolean): List<NostrEvent> {
+        suspend fun run(requests: List<RelayFilter>) =
+            coroutineScope { requests.map { async { query(it) } }.awaitAll() }
+                .flatten()
+                .distinctBy { it.id }
+                .filter(accepts)
+
+        val matches = run(filters)
+        if (matches.isNotEmpty() || filters.none { it.search != null }) return matches
+        return run(
+            filters.map { it.copy(search = null, limit = maxOf(it.limit ?: 0, FALLBACK_SEARCH_EVENT_LIMIT)) }
+                .distinct(),
+        )
+    }
+
+    private suspend fun List<NostrEvent>.orderedFor(query: SearchQuery, follows: FollowsOnce): List<NostrEvent> {
+        val newestFirst = sortedByDescending { it.createdAt }
+        if (query.order == SearchOrder.Latest && !query.minimums.any) return newestFirst
+
+        val candidates = newestFirst.take(RANKING_CANDIDATES)
+        val stats = runCatching {
+            statsFetcher.fetch(eventIds = candidates.map { it.id }, userId = "").eventStats.associateBy { it.eventId }
+        }.getOrDefault(emptyMap())
+        val enough = candidates.filter { stats[it.id].meets(query) }
+
+        return when (query.order) {
+            SearchOrder.Latest -> enough
+            SearchOrder.Likes -> enough.sortedByDescending { stats[it.id]?.likes ?: 0 }
+            SearchOrder.Replies -> enough.sortedByDescending { stats[it.id]?.replies ?: 0 }
+            SearchOrder.Zaps -> enough.sortedByDescending { stats[it.id]?.satsZapped ?: 0 }
+            SearchOrder.Top -> {
+                val followed = follows.get()
+                val now = Clock.System.now().epochSeconds
+                enough.sortedByDescending { topScore(it, stats[it.id], it.pubKey in followed, now) }
+            }
+        }
+    }
+
+    private fun EventStats?.meets(query: SearchQuery): Boolean {
+        val minimums = query.minimums
+        if (!minimums.any) return true
+        val likes = this?.likes ?: 0
+        val replies = this?.replies ?: 0
+        val reposts = this?.reposts ?: 0
+        val zaps = this?.zaps ?: 0
+        return likes >= minimums.likes &&
+            replies >= minimums.replies &&
+            reposts >= minimums.reposts &&
+            zaps >= minimums.zaps &&
+            likes + replies + reposts + zaps >= minimums.interactions
+    }
+
+    /**
+     * "Top": mostly how much a post was interacted with, on a logarithmic scale so one viral post
+     * does not bury everything, with a nudge for people the account follows and a slow decay by age.
+     */
+    @Suppress("MagicNumber") // The weights of one reply, repost or zap against one like.
+    private fun topScore(event: NostrEvent, stats: EventStats?, followed: Boolean, now: Long): Double {
+        val engagement = (stats?.likes ?: 0) +
+            2 * ((stats?.reposts ?: 0) + (stats?.replies ?: 0)) +
+            3 * (stats?.zaps ?: 0)
+        val ageDays = ((now - event.createdAt).coerceAtLeast(0) / SECONDS_PER_DAY).coerceAtMost(MAX_AGE_DAYS)
+        return ln(1.0 + engagement) + (if (followed) 1.0 else 0.0) - ageDays / DECAY_DAYS
+    }
+
+    private fun SearchQuery.relayKinds(fallbackKinds: List<Int>): List<Int> {
+        // A repost's content is the reposted event as JSON: matching words in it only finds copies.
+        val base = kinds.ifEmpty { fallbackKinds.filterNot { it in REPOST_KINDS } }
+        val wantsPictures = ContentFilter.Media in requiredFilters || ContentFilter.Image in requiredFilters
+        return (if (wantsPictures) base + NostrEventKind.PictureNote.value else base).distinct()
+    }
+
+    /** @return null when somebody named in the query cannot be found, so nothing can match. */
+    @Suppress("ReturnCount")
+    private suspend fun resolvePeople(query: SearchQuery, follows: FollowsOnce): SearchPeople? {
+        val from = resolveAll(query.from, follows) ?: return null
+        val to = resolveAll(query.to, follows) ?: return null
+        val mentions = resolveAll(query.mentions, follows) ?: return null
+        // An unknown name to leave out excludes nobody, which is not a reason to find nothing.
+        val notFrom = query.notFrom.mapNotNull { resolve(it, follows) }.toSet()
+        return SearchPeople(from = from, notFrom = notFrom, to = to, mentions = mentions)
+    }
+
+    private suspend fun resolveAll(references: List<String>, follows: FollowsOnce): Set<String>? {
+        if (references.isEmpty()) return emptySet()
+        return references.mapNotNull { resolve(it, follows) }.toSet().ifEmpty { null }
+    }
+
+    /** An npub, nprofile or hex key as it is; anything else is a name to look up. */
+    @Suppress("ReturnCount")
+    private suspend fun resolve(reference: String, follows: FollowsOnce): String? {
+        if (reference.startsWith("npub1") || reference.startsWith("nprofile1")) {
+            return runCatching { reference.extractProfileId() }.getOrDefault(null)
+        }
+        if (HEX_KEY.matches(reference)) return reference.lowercase()
+
+        val name = reference.lowercase()
+        val local = runCatching { findLocalProfiles(name) }.getOrDefault(emptyList())
+        val followed = follows.get()
+        local.firstOrNull { it.pubkey in followed && it.isNamed(name) }?.let { return it.pubkey }
+
+        val remote = query(
+            RelayFilter(kinds = listOf(NostrEventKind.Metadata.value), search = name, limit = PROFILE_CANDIDATES),
+        ).latestMetadataByPubkey().mapNotNull { it.toCandidate() }
+
+        return (local + remote)
+            .map { it to it.matchRank(name, it.pubkey in followed) }
+            .filter { it.second > 0 }
+            // Stable, so among equals the people already seen stay ahead of the ones relays offered.
+            .maxByOrNull { it.second }
+            ?.first?.pubkey
+    }
+
+    private fun ProfileCandidate.names(): List<String> =
+        listOfNotNull(name, displayName, nip05, nip05?.substringBefore('@')).map { it.lowercase() }
+
+    private fun ProfileCandidate.isNamed(wanted: String) = wanted in names()
+
+    private fun ProfileCandidate.matchRank(wanted: String, followed: Boolean): Int =
+        when {
+            isNamed(wanted) -> if (followed) RANK_FOLLOWED_EXACT else RANK_EXACT
+            names().any { it.startsWith(wanted) } -> if (followed) RANK_FOLLOWED_PREFIX else RANK_PREFIX
+            else -> 0
+        }
+
+    private fun NostrEvent.toCandidate(): ProfileCandidate? {
+        val metadata = content.decodeFromJsonStringOrNull<ContentMetadata>() ?: return null
+        return ProfileCandidate(
+            pubkey = pubKey,
+            name = metadata.name,
+            displayName = metadata.displayName,
+            nip05 = metadata.nip05,
+        )
+    }
+
+    /** The follow list, read at most once per search and only when something needs it. */
+    private inner class FollowsOnce(private val userId: String) {
+        private var loaded: Set<String>? = null
+
+        suspend fun get(): Set<String> = loaded ?: loadFollowAuthors(userId).toSet().also { loaded = it }
+    }
+
     private fun List<NostrEvent>.metadataSubjectPubkeys(): List<String> =
         (map { it.pubKey } + flatMap { it.tags.pubkeyTagValues() }).distinct()
 
@@ -118,12 +357,6 @@ internal class RelayAdvancedSearchFeedFetcher(
             ).latestMetadataByPubkey()
         }.getOrDefault(emptyList())
     }
-
-    private fun List<NostrEvent>.matchingSearch(parsed: ParsedSearch): List<NostrEvent> =
-        asSequence()
-            .distinctBy { it.id }
-            .filter { it.matches(parsed) }
-            .toList()
 
     private suspend fun query(filter: RelayFilter): List<NostrEvent> =
         runCatching {
@@ -162,131 +395,23 @@ internal class RelayAdvancedSearchFeedFetcher(
                 .orEmpty()
         }.getOrDefault(emptyList())
 
-    private fun NostrEvent.matches(parsed: ParsedSearch): Boolean {
-        val content = content.lowercase()
-        val positive = parsed.positiveTerms
-        val positiveOk = when {
-            positive.isEmpty() -> true
-            // "bitcoin OR lightning" used to require both, the opposite of what was asked.
-            parsed.anyTerm -> positive.any { content.contains(it) }
-            else -> positive.all { content.contains(it) }
-        }
-        return positiveOk &&
-            parsed.negativeTerms.none { content.contains(it) } &&
-            parsed.mediaFilter?.let { it.containsMatchIn(content) } != false
-    }
-
-    private class ParsedSearch(query: String, fallbackKinds: List<Int>) {
-        private val tokens = TOKEN.findAll(query).toList()
-
-        // Only `kind:` tokens: every numeric token value used to count, so a `since:`/`until:`
-        // timestamp that fit in an Int silently turned into a kind filter nothing matched.
-        val kinds = values("kind").mapNotNull { it.toIntOrNull() }
-            .ifEmpty { fallbackKinds }
-            .distinct()
-        val authors = values("from").mapNotNull { it.toPubkeyOrNull() }.distinct()
-        val pubkeyTags = values("zappedby").mapNotNull { it.toPubkeyOrNull() }.ifEmpty { null }
-        val eventTags = values("to").filter { it.length == 64 }.distinct().ifEmpty { null }
-        val scope = values("scope").firstOrNull().orEmpty()
-        val since = values("since").firstOrNull()?.toRelayTimestamp()
-        val until = values("until").firstOrNull()?.toRelayTimestamp()
-
-        // Routed to a NIP-12 `#t` tag filter, not NIP-50 full-text search: a relay honors `limit`
-        // on a tag filter by returning the newest matches (NIP-01), but a search term is only
-        // required to return its best full-text matches, which skews toward old, heavily-discussed
-        // posts over recent ones — see RelayFilter.hashtagTags' own doc.
-        //
-        // Only ever a single hashtag: a relay's `#t` filter matches ANY of its values (NIP-01),
-        // so two-plus hashtags here would silently loosen "both tags" to "either tag." With more
-        // than one, fall back entirely to the full-text search below, which already ANDs them via
-        // positiveTerms — the same thing this fetcher did before hashtags got their own routing.
-        private val allHashtags = HASHTAG.findAll(query).map { it.groupValues[1].lowercase() }.distinct().toList()
-        val hashtags = if (allHashtags.size == 1) allHashtags else emptyList()
-
-        /** "a OR b" matches either term instead of requiring both. */
-        val anyTerm = OR_OPERATOR.containsMatchIn(query)
-
-        /** `filter:image|video|audio` — stripped from the text search, applied to the content. */
-        val mediaFilter: Regex? = MEDIA_FILTER.find(query)?.groupValues?.get(1)?.lowercase()?.let { MEDIA_URL[it] }
-
-        val searchTerms = query
-            .let { if (hashtags.isNotEmpty()) it.replace(HASHTAG, " ") else it }
-            .replace(CONTROL, " ")
-            .replace(OR_OPERATOR, " ")
-            .replace("(", " ")
-            .replace(")", " ")
-            .split(WHITESPACE)
-            .filter { it.isNotBlank() && !it.equals("pas:1", ignoreCase = true) }
-            .joinToString(" ")
-        private val terms = searchTerms.split(WHITESPACE).filter { it.isNotBlank() }.map { it.lowercase() }
-        val positiveTerms = terms.filterNot { it.startsWith("-") }
-        val negativeTerms = terms.filter { it.startsWith("-") && it.length > 1 }.map { it.removePrefix("-") }
-
-        private fun values(name: String): List<String> =
-            tokens
-                .filter { it.groupValues[1].equals(name, ignoreCase = true) }
-                .map { it.groupValues[2] }
-
-        private fun String.toPubkeyOrNull(): String? = runCatching { assureValidPubKeyHex() }.getOrNull()
-
-        private fun String.toRelayTimestamp(): Long? =
-            when (lowercase()) {
-                "yesterday" -> Clock.System.now().minus(1.days).epochSeconds
-                "lastweek" -> Clock.System.now().minus(7.days).epochSeconds
-                "lastmonth" -> Clock.System.now().minus(30.days).epochSeconds
-                "lastyear" -> Clock.System.now().minus(365.days).epochSeconds
-                else -> toLongOrNull() ?: isoDateToEpochSeconds()
-            }
-
-        /**
-         * `yyyy-MM-dd` (the advanced search screen's date picker format) as UTC midnight. It used
-         * to fall through `toLongOrNull()` and be dropped, so a custom date range did nothing.
-         */
-        // The numbers are the calendar algorithm's own constants (days per 400-year era, month
-        // offsets, ...); naming each one would only obscure a well-known published formula.
-        @Suppress("MagicNumber", "ReturnCount")
-        private fun String.isoDateToEpochSeconds(): Long? {
-            val match = ISO_DATE.matchEntire(this) ?: return null
-            val (y, m, d) = match.destructured.toList().map { it.toInt() }
-            if (m !in 1..12 || d !in 1..31) return null
-            // Days since 1970-01-01 for a proleptic Gregorian date (Howard Hinnant's algorithm).
-            val year = if (m <= 2) y - 1 else y
-            val era = (if (year >= 0) year else year - 399) / 400
-            val yearOfEra = year - era * 400
-            val dayOfYear = (153 * (m + (if (m > 2) -3 else 9)) + 2) / 5 + d - 1
-            val dayOfEra = yearOfEra * 365 + yearOfEra / 4 - yearOfEra / 100 + dayOfYear
-            val days = era.toLong() * 146_097 + dayOfEra - 719_468
-            return days * 86_400
-        }
-
-        companion object {
-            private val TOKEN =
-                Regex(
-                    "(?:^|[\\s(])((?:kind|from|to|zappedby|scope|since|until)):(\\d+|[^\\s()]+)",
-                    RegexOption.IGNORE_CASE,
-                )
-            private val CONTROL =
-                Regex(
-                    "(?:^|[\\s(])(?:kind|filter|from|to|zappedby|scope|since|until|orderby|orientation|" +
-                        "minwords|maxwords|minduration|maxduration|minscore|mininteractions|minlikes|minzaps|" +
-                        "minreplies|minreposts|repliestokind|pas):[^\\s()]+",
-                    RegexOption.IGNORE_CASE,
-                )
-            private val HASHTAG = Regex("(?:^|[\\s(])#([^\\s()]+)")
-            private val OR_OPERATOR = Regex("\\bOR\\b", RegexOption.IGNORE_CASE)
-            private val WHITESPACE = Regex("\\s+")
-            private val ISO_DATE = Regex("(\\d{4})-(\\d{2})-(\\d{2})")
-            private val MEDIA_FILTER = Regex("(?:^|[\\s(])filter:(image|video|audio)\\b", RegexOption.IGNORE_CASE)
-            private val MEDIA_URL = mapOf(
-                "image" to Regex("https?://\\S+\\.(?:jpe?g|png|gif|webp|avif)(?:\\?\\S*)?"),
-                "video" to Regex("https?://\\S+\\.(?:mp4|mov|webm|m3u8)(?:\\?\\S*)?"),
-                "audio" to Regex("https?://\\S+\\.(?:mp3|ogg|wav|m4a|flac)(?:\\?\\S*)?"),
-            )
-        }
-    }
-
     private companion object {
         private const val FALLBACK_SEARCH_EVENT_LIMIT = 500
         private const val ID_CHUNK = 50
+        private const val RANKING_CANDIDATES = 100
+        private const val PROFILE_CANDIDATES = 50
+        private const val MAX_ALTERNATIVES = 4
+        private const val SECONDS_PER_DAY = 86_400.0
+        private const val MAX_AGE_DAYS = 365.0
+        private const val DECAY_DAYS = 90.0
+        private const val RANK_FOLLOWED_EXACT = 4
+        private const val RANK_EXACT = 3
+        private const val RANK_FOLLOWED_PREFIX = 2
+        private const val RANK_PREFIX = 1
+        private val HEX_KEY = Regex("[0-9a-fA-F]{64}")
+        private val REPOST_KINDS = setOf(
+            NostrEventKind.ShortTextNoteRepost.value,
+            NostrEventKind.GenericRepost.value,
+        )
     }
 }

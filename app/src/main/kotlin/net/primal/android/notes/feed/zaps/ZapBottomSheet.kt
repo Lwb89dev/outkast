@@ -115,10 +115,12 @@ private fun ZapBottomSheetContent(
 ) {
     val zapConfig: List<ContentZapConfigItem> = zappingState.ensureZapConfig()
 
-    var customZapAmount by remember { mutableStateOf(zapConfig.first().amount.toString()) }
-    var selectedZapIndex by remember { mutableIntStateOf(0) }
-    var selectedZapComment by remember { mutableStateOf(zapConfig.first().message) }
-    var selectedZapAmount by remember { mutableLongStateOf(zapConfig.first().amount) }
+    // Opens on the account's default amount, with its preset highlighted if it is one of them.
+    val preferred = zappingState.zapDefault
+    var customZapAmount by remember { mutableStateOf(preferred.amount.toString()) }
+    var selectedZapIndex by remember { mutableIntStateOf(zapConfig.indexOfFirst { it.amount == preferred.amount }) }
+    var selectedZapComment by remember { mutableStateOf(preferred.message) }
+    var selectedZapAmount by remember { mutableLongStateOf(preferred.amount) }
 
     val keyboardController = LocalSoftwareKeyboardController.current
     val view = LocalView.current
@@ -359,7 +361,8 @@ private fun ZapOption(
                 text = defaultAmount.shortened(),
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 16.sp,
-                color = AppTheme.colorScheme.onPrimary,
+                // The tile is a surface, not a primary-colored button: onPrimary was unreadable on it.
+                color = AppTheme.colorScheme.onSurface,
             )
         }
     }

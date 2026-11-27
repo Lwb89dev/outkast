@@ -724,7 +724,6 @@
     <string name="settings_network_relay_read">採用情報</string>
     <string name="settings_network_relay_write">書き込み</string>
     <string name="settings_zaps_title">ザップス</string>
-    <string name="settings_zaps_description">シングルタップ zaps はデフォルト値 &amp; メッセージを送ります。 下記のカスタム zap プリセットを設定する:</string>
     <string name="settings_zaps_editor_emoji">エモジ</string>
     <string name="settings_zaps_editor_message">メッセージ</string>
     <string name="settings_zaps_editor_value">バリュー</string>

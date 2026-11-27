@@ -439,6 +439,16 @@ class UserRepository @Inject constructor(
             )
         }
 
+    suspend fun deleteRecentSearch(ownerId: String, query: String) =
+        withContext(dispatchers.io()) {
+            usersDatabase.recentSearches().delete(ownerId = ownerId, query = query)
+        }
+
+    suspend fun clearRecentSearches(ownerId: String) =
+        withContext(dispatchers.io()) {
+            usersDatabase.recentSearches().deleteAllByOwnerId(ownerId = ownerId)
+        }
+
     fun observeRecentSearches(ownerId: String, limit: Int): Flow<List<String>> =
         usersDatabase.recentSearches()
             .observeRecentSearches(ownerId = ownerId, limit = limit)

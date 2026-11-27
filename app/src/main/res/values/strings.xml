@@ -112,8 +112,8 @@
     </plurals>
 
     <plurals name="settings_wot_status_complete">
-        <item quantity="one">Network ready: %1$d follows directly, %2$d more qualified as a friend of a friend.</item>
-        <item quantity="other">Network ready: %1$d follows directly, %2$d more qualified as friends of friends.</item>
+        <item quantity="one">Network ready: %1$d followed directly. The feed filter accepts %2$d more, followed by 10 or more of them.</item>
+        <item quantity="other">Network ready: %1$d followed directly. The feed filter accepts %2$d more, followed by 10 or more of them.</item>
     </plurals>
 
     <string name="login_title">Sign In</string>
@@ -867,7 +867,6 @@
     <string name="settings_network_relay_write">Write</string>
 
     <string name="settings_zaps_title">Zaps</string>
-    <string name="settings_zaps_description">Single tap zaps send the default amount &amp; message. Configure custom zap presets below:</string>
     <string name="settings_zaps_editor_emoji">Emoji</string>
     <string name="settings_zaps_editor_message">Message</string>
     <string name="settings_zaps_editor_value">Value</string>
@@ -1466,4 +1465,83 @@
     <string name="explore_landing_recent_users_empty">People you visit will show up here.</string>
     <string name="reaction_keyboard_label">Emoji or reaction</string>
     <string name="reaction_keyboard_send">React</string>
+    <string name="settings_wallet_title">Wallet (NWC)</string>
+    <string name="wallet_connect_description">Connect a Lightning wallet with Nostr Wallet Connect to pay zaps and invoices without leaving OUTKAST. Create a connection in your wallet (Alby Hub, Coinos and others), then paste or scan it here. Set a spending limit there if the wallet offers one.</string>
+    <string name="wallet_connection_string">Connection string</string>
+    <string name="wallet_paste">Paste</string>
+    <string name="wallet_scan">Scan QR</string>
+    <string name="wallet_scan_stop">Close camera</string>
+    <string name="wallet_scan_hint">Point at the connection QR code of your wallet.</string>
+    <string name="wallet_connect_button">Connect wallet</string>
+    <string name="wallet_error_invalid_string">That is not a Nostr Wallet Connect string.</string>
+    <string name="wallet_error_no_answer">The wallet did not answer. Check the connection string and that the wallet is online.</string>
+    <string name="wallet_connected">Wallet connected</string>
+    <string name="wallet_balance">Balance: %1$s sats</string>
+    <string name="wallet_balance_loading">Reading balance…</string>
+    <string name="wallet_balance_unavailable">This connection does not share the balance.</string>
+    <string name="wallet_refresh">Refresh</string>
+    <string name="wallet_relay">Relay: %1$s</string>
+    <string name="wallet_connected_description">Zaps and invoices are now paid from this wallet. OUTKAST always shows the amount and waits for you to confirm. The preset zap amounts are in Settings, Zaps.</string>
+    <string name="wallet_disconnect">Disconnect</string>
+    <string name="wallet_disconnect_confirm_title">Disconnect the wallet?</string>
+    <string name="wallet_disconnect_confirm_text">OUTKAST forgets the connection. Revoke it in your wallet too if you no longer want it to work.</string>
+    <string name="wallet_zap_sent">Zapped %1$d sats ⚡</string>
+    <string name="wallet_invoice_paid">Invoice paid.</string>
+    <string name="wallet_payment_not_sent">Could not reach the wallet. Nothing was paid.</string>
+    <string name="wallet_payment_unconfirmed">The wallet did not confirm the payment. Check it in your wallet before trying again.</string>
+    <string name="wallet_no_lightning_app">No Lightning wallet app is installed.</string>
+    <string name="wallet_confirm_title">Pay %1$s sats?</string>
+    <string name="wallet_confirm_pay">Pay</string>
+    <string name="wallet_confirm_other_app">Other wallet app</string>
+    <string name="wallet_error_insufficient_balance">Not enough funds in the wallet.</string>
+    <string name="wallet_error_quota_exceeded">The spending limit of this connection is used up.</string>
+    <string name="wallet_error_not_allowed">The wallet does not allow this connection to do that.</string>
+    <string name="wallet_error_generic">The wallet refused: %1$s</string>
+    <string name="search_tab_top">Top</string>
+    <string name="search_tab_latest">Latest</string>
+    <string name="search_tab_people">People</string>
+    <string name="search_tab_media">Media</string>
+    <string name="search_recent">Recent searches</string>
+    <string name="search_clear_all">Clear all</string>
+    <string name="search_remove_recent">Remove from history</string>
+    <string name="search_clear_text">Clear text</string>
+    <string name="search_for">Search “%1$s”</string>
+    <string name="search_no_results">No results.</string>
+    <string name="search_from_anyone">From anyone</string>
+    <string name="search_from_follows">People you follow</string>
+    <string name="search_open_as_feed">Open as feed</string>
+    <string name="search_operators_hint">Search words, #hashtags or @names.\n\n\"exact phrase\"   a OR b   -word\nfrom:name   to:name\nsince:2026-01-31   until:2026-02-28\nfilter:media   filter:links   -filter:replies\nmin_faves:10</string>
+    <string name="asearch_exact_phrase_placeholder">This exact phrase…</string>
+    <string name="asearch_any_words_placeholder">Any of these words…</string>
+    <string name="asearch_hashtags_placeholder">These hashtags…</string>
+    <string name="asearch_mentioning_label">Mentioning</string>
+    <string name="settings_pow_title">Proof of work</string>
+    <string name="pow_send_explanation">Proof of work (NIP-13) is a short computation done before publishing, so that relays and apps which ask for it accept your events. It does not protect you from spam: for that use the filter at the bottom, or Settings, Web of Trust.</string>
+    <string name="pow_notes">Notes, comments and polls</string>
+    <string name="pow_reactions">Reactions</string>
+    <string name="pow_messages">Direct messages</string>
+    <string name="pow_filter">Ask strangers for proof of work</string>
+    <string name="pow_filter_explanation">Hides replies in threads, and reply and mention notifications, from people outside your follows and Web of Trust whose post carries less work than this. Many apps do not mine at all, so it hides real people too.</string>
+    <string name="pow_bits_with_attempts">%1$d bits · about %2$s attempts</string>
+    <string name="pow_bits_minimum">At least %1$d bits</string>
+    <string name="pow_mining_title">Computing proof of work</string>
+    <string name="pow_mining_description">Looking for %1$d bits before sending.</string>
+    <string name="pow_signer_dropped_work">Your signer changed the event, so it was sent without proof of work.</string>
+    <plurals name="hidden_replies">
+        <item quantity="one">%d reply from a stranger hidden</item>
+        <item quantity="other">%d replies from strangers hidden</item>
+    </plurals>
+    <string name="hidden_replies_show">Show</string>
+    <string name="settings_zaps_preselected_description">The default amount and message are preselected when you zap. Set your custom presets below:</string>
+    <string name="settings_wot_hide_strangers_title">Hide strangers\' replies and mentions</string>
+    <string name="settings_wot_hide_strangers_description">Replies, quotes and mentions from outside your network raise no notification. Under notes and articles they are hidden, with a button to show them.</string>
+    <string name="settings_wot_width_title">Who is in your network</string>
+    <plurals name="settings_wot_width_option">
+        <item quantity="one">Your follows, and anyone at least %d of them follows (widest)</item>
+        <item quantity="other">Your follows, and anyone at least %d of them follow</item>
+    </plurals>
+    <plurals name="settings_wot_width_size">
+        <item quantity="one">%d account at this width</item>
+        <item quantity="other">%d accounts at this width</item>
+    </plurals>
 </resources>

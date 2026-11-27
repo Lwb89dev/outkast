@@ -19,9 +19,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
+import androidx.compose.material.icons.outlined.AccountBalanceWallet
 import androidx.compose.material.icons.outlined.EmojiEmotions
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.Language
+import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -119,8 +121,7 @@ private fun SettingsHomeScreen(
                     items(
                         items = PrimalSettingsSection.entries.filter {
                             it != PrimalSettingsSection.ConnectedApps &&
-                                it != PrimalSettingsSection.Account &&
-                                it != PrimalSettingsSection.Zaps
+                                it != PrimalSettingsSection.Account
                         },
                         key = { it.name },
                     ) {
@@ -276,9 +277,11 @@ private fun PrimalSettingsSection.icon(): ImageVector {
         PrimalSettingsSection.ContentDisplay -> PrimalIcons.FontSize
         PrimalSettingsSection.MutedAccounts -> PrimalIcons.MuteUser
         PrimalSettingsSection.WebOfTrust -> PrimalIcons.MuteUser
+        PrimalSettingsSection.ProofOfWork -> Icons.Outlined.Shield
         PrimalSettingsSection.MediaUploads -> PrimalIcons.ImportPhotoFromGallery
         PrimalSettingsSection.EmojiPacks -> Icons.Outlined.EmojiEmotions
         PrimalSettingsSection.Notifications -> PrimalIcons.Notifications
+        PrimalSettingsSection.Wallet -> Icons.Outlined.AccountBalanceWallet
         PrimalSettingsSection.Zaps -> PrimalIcons.Zap
         PrimalSettingsSection.Language -> Icons.Outlined.Language
     }
@@ -296,9 +299,11 @@ private fun PrimalSettingsSection.title(): String {
         PrimalSettingsSection.Appearance -> stringResource(id = R.string.settings_appearance_title)
         PrimalSettingsSection.ContentDisplay -> stringResource(id = R.string.settings_content_display_title)
         PrimalSettingsSection.Notifications -> stringResource(id = R.string.settings_notifications_title)
+        PrimalSettingsSection.Wallet -> stringResource(id = R.string.settings_wallet_title)
         PrimalSettingsSection.Zaps -> stringResource(id = R.string.settings_zaps_title)
         PrimalSettingsSection.MutedAccounts -> stringResource(id = R.string.settings_muted_content_title)
         PrimalSettingsSection.WebOfTrust -> stringResource(id = R.string.settings_wot_title)
+        PrimalSettingsSection.ProofOfWork -> stringResource(id = R.string.settings_pow_title)
         PrimalSettingsSection.MediaUploads -> stringResource(id = R.string.settings_media_uploads_title)
         PrimalSettingsSection.EmojiPacks -> stringResource(id = R.string.settings_emoji_packs_title)
         PrimalSettingsSection.ConnectedApps -> stringResource(id = R.string.settings_connected_apps_title)

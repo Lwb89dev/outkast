@@ -4,14 +4,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import javax.inject.Inject
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -21,14 +22,18 @@ import net.primal.android.core.updater.SessionSyncCoordinator
 import net.primal.android.drawer.multiaccount.model.asUserAccountUi
 import net.primal.android.main.MainContract.UiEvent
 import net.primal.android.main.MainContract.UiState
+import net.primal.android.spam.StrangerFilterProvider
+import net.primal.android.spam.TrustNetworkRefresher
 import net.primal.android.user.accounts.UserAccountsStore
 import net.primal.android.user.accounts.active.ActiveAccountStore
 import net.primal.android.user.domain.UserAccount
 import net.primal.android.user.repository.UserRepository
 import net.primal.android.user.subscriptions.SubscriptionsManager
+import net.primal.core.utils.coroutines.DispatcherProvider
 import net.primal.domain.messages.ChatRepository
 import net.primal.domain.notifications.NotificationGroup
 import net.primal.domain.notifications.NotificationRepository
+import javax.inject.Inject
 
 @HiltViewModel
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -43,6 +48,9 @@ class MainViewModel @Inject constructor(
     private val subscriptionsManager: SubscriptionsManager,
     private val chatRepository: ChatRepository,
     private val notificationRepository: NotificationRepository,
+    private val strangerFilters: StrangerFilterProvider,
+    private val trustNetworkRefresher: TrustNetworkRefresher,
+    private val dispatcherProvider: DispatcherProvider,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(UiState())
@@ -72,7 +80,15 @@ class MainViewModel @Inject constructor(
         observeAccounts()
         observeBadgesUpdates()
         observeLocalUnreadBadges()
+        keepTrustNetworkFresh()
     }
+
+    private fun keepTrustNetworkFresh() =
+        viewModelScope.launch {
+            activeAccountStore.activeUserId
+                .filter { it.isNotBlank() }
+                .collect { trustNetworkRefresher.refreshIfStale(it) }
+        }
 
     private fun observeEvents() =
         viewModelScope.launch {
@@ -161,10 +177,7 @@ class MainViewModel @Inject constructor(
                     } else {
                         combine(
                             chatRepository.observeUnreadMessagesCount(userId),
-                            notificationRepository.observeUnseenNotifications(
-                                ownerId = userId,
-                                group = NotificationGroup.ALL,
-                            ).map { it.size },
+                            observeUnseenCount(userId),
                         ) { unreadMessages, unreadNotifications ->
                             unreadMessages to unreadNotifications
                         }
@@ -182,6 +195,15 @@ class MainViewModel @Inject constructor(
                     }
                 }
         }
+
+    /** A hidden stranger must not light the badge either. */
+    private fun observeUnseenCount(userId: String) =
+        combine(
+            notificationRepository.observeUnseenNotifications(ownerId = userId, group = NotificationGroup.ALL),
+            strangerFilters.observe(userId),
+        ) { notifications, filter ->
+            notifications.count { filter?.hides(it) != true }
+        }.flowOn(dispatcherProvider.io())
 
     private fun visibleUnseenNotifications(unseen: Int): Int {
         lastLocalUnseenCount = unseen

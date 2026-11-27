@@ -5,17 +5,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.aakira.napier.Napier
-import javax.inject.Inject
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import net.primal.android.articles.highlights.JoinedHighlightsUi
 import net.primal.android.articles.highlights.joinOnContent
@@ -28,6 +28,7 @@ import net.primal.android.navigation.articleNaddr
 import net.primal.android.navigation.primalName
 import net.primal.android.networking.relays.errors.NostrPublishException
 import net.primal.android.notes.feed.model.asFeedPostUi
+import net.primal.android.spam.StrangerFilterProvider
 import net.primal.android.thread.articles.details.ArticleDetailsContract.SideEffect
 import net.primal.android.thread.articles.details.ArticleDetailsContract.UiEvent
 import net.primal.android.thread.articles.details.ArticleDetailsContract.UiState
@@ -72,6 +73,7 @@ import net.primal.domain.posts.FeedRepository
 import net.primal.domain.profile.ProfileRepository
 import net.primal.domain.reads.ArticleRepository
 import net.primal.domain.reads.HighlightRepository
+import javax.inject.Inject
 
 @HiltViewModel
 class ArticleDetailsViewModel @Inject constructor(
@@ -85,7 +87,11 @@ class ArticleDetailsViewModel @Inject constructor(
     private val eventInteractionRepository: EventInteractionRepository,
     private val zapHandler: ZapHandler,
     private val dispatcherProvider: DispatcherProvider,
+    private val strangerFilters: StrangerFilterProvider,
 ) : ViewModel() {
+
+    /** The user asked, for this article only, to see what the filter had hidden. */
+    private val showHiddenComments = MutableStateFlow(false)
 
     private val _state = MutableStateFlow(UiState())
     val state = _state.asStateFlow()
@@ -153,6 +159,7 @@ class ArticleDetailsViewModel @Inject constructor(
                     }
 
                     UiEvent.RequestResolveNaddr -> resolveNaddrAndInit()
+                    UiEvent.ShowHiddenComments -> showHiddenComments.value = true
                 }
             }
         }
@@ -234,8 +241,9 @@ class ArticleDetailsViewModel @Inject constructor(
 
     private fun observeArticleComments(naddr: Naddr) =
         viewModelScope.launch {
-            articleRepository.observeArticleComments(
-                userId = activeAccountStore.activeUserId(),
+            val userId = activeAccountStore.activeUserId()
+            val comments = articleRepository.observeArticleComments(
+                userId = userId,
                 articleId = naddr.identifier,
                 articleAuthorId = naddr.userId,
             ).map { comments ->
@@ -244,8 +252,17 @@ class ArticleDetailsViewModel @Inject constructor(
                     articleAuthorId = naddr.userId,
                 )
             }
+
+            combine(comments, strangerFilters.observe(userId), showHiddenComments) { all, filter, showHidden ->
+                val visible = if (filter == null || showHidden) {
+                    all
+                } else {
+                    all.filterNot { filter.hides(it.authorId, it.rawNostrEventJson, it.isPrivate) }
+                }
+                visible to all.size - visible.size
+            }
                 .flowOn(dispatcherProvider.io())
-                .collect { setState { copy(comments = it) } }
+                .collect { (visible, hidden) -> setState { copy(comments = visible, hiddenComments = hidden) } }
         }
 
     private fun observeActiveAccount() =
@@ -285,7 +302,7 @@ class ArticleDetailsViewModel @Inject constructor(
             )
 
             if (result is ZapResult.Failure) {
-                when (result.error) {
+                when (val failure = result.error) {
                     is ZapError.InvalidZap, is ZapError.FailedToFetchZapPayRequest,
                     is ZapError.FailedToFetchZapInvoice,
                     -> setState { copy(error = UiError.InvalidZapRequest()) }
@@ -295,6 +312,12 @@ class ArticleDetailsViewModel @Inject constructor(
                     -> {
                         setState { copy(error = UiError.FailedToPublishZapEvent()) }
                     }
+
+                    is ZapError.WalletRefused -> setState {
+                        copy(error = UiError.WalletRefusedPayment(failure.code, failure.message))
+                    }
+
+                    ZapError.PaymentUnconfirmed -> setState { copy(error = UiError.PaymentUnconfirmed) }
 
                     is ZapError.Unknown -> {
                         setState { copy(error = UiError.GenericError()) }

@@ -7,8 +7,8 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
@@ -26,6 +26,7 @@ import net.primal.shared.data.local.db.LocalDatabaseFactory
  * database — only the relay side (who follows whom) is faked.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
+@Suppress("TooManyFunctions") // One function per behaviour of the algorithm.
 class WebOfTrustRepositoryImplTest {
 
     @Test
@@ -90,15 +91,44 @@ class WebOfTrustRepositoryImplTest {
     @Test
     fun `a relay that fails for one chunk does not fail the whole computation`() =
         withRepository { repository, querier ->
+            // 51 follows make two chunks: the first one, holding the failing author, is lost.
+            val follows = (1..51).map { fakePubkey(400 + it) }
+            querier.failingAuthors = setOf(follows.first())
+            querier.followLists = follows.associateWith { listOf(STRANGER) }
+
+            repository.refreshNetwork(ownerId = OWNER, firstDegreeFollows = follows.toSet())
+
+            assertQualified(repository, expectedQualified = 0)
+            assertTrue(STRANGER in repository.observeQualifiedPubkeys(OWNER, minFollowers = 1).first())
+        }
+
+    @Test
+    fun `when no relay answers the network computed before is kept`() =
+        withRepository { repository, querier ->
+            querier.followLists = mapOf(ALICE to listOf(STRANGER))
+            repository.refreshNetwork(ownerId = OWNER, firstDegreeFollows = setOf(ALICE))
+
             querier.failingAuthors = setOf(ALICE)
-            querier.followLists = mapOf(ALICE to listOf(STRANGER), BOB to listOf(STRANGER))
+            repository.refreshNetwork(ownerId = OWNER, firstDegreeFollows = setOf(ALICE))
+
+            assertTrue(repository.observeDiscoveryState(OWNER).first() is WotDiscoveryState.Failed)
+            assertEquals(setOf(ALICE, STRANGER), repository.observeQualifiedPubkeys(OWNER, minFollowers = 1).first())
+        }
+
+    @Test
+    fun `the width of the network picks how many follows a stranger needs`() =
+        withRepository { repository, querier ->
+            val twice = fakePubkey(5)
+            querier.followLists = mapOf(ALICE to listOf(STRANGER, twice), BOB to listOf(twice))
 
             repository.refreshNetwork(ownerId = OWNER, firstDegreeFollows = setOf(ALICE, BOB))
 
-            // Only BOB's vote for STRANGER came through; ALICE's chunk failed silently.
-            val state = repository.observeDiscoveryState(OWNER).first()
-            check(state is WotDiscoveryState.Complete) { "expected Complete, got $state" }
-            assertEquals(0, state.qualifiedCount)
+            suspend fun network(minFollowers: Int) = repository.observeQualifiedPubkeys(OWNER, minFollowers).first()
+            assertEquals(setOf(ALICE, BOB, STRANGER, twice), network(1))
+            assertEquals(setOf(ALICE, BOB, twice), network(2))
+            assertEquals(setOf(ALICE, BOB), network(10))
+            assertEquals(4, repository.observeNetworkSize(OWNER, minFollowers = 1).first())
+            assertTrue(repository.observeComputedAt(OWNER).first() > 0)
         }
 
     @Test
@@ -196,20 +226,23 @@ class WebOfTrustRepositoryImplTest {
         /** A distinct, well-formed 64-hex-char pubkey per seed — followingPubkeys() rejects anything shorter. */
         fun fakePubkey(seed: Int): String = seed.toString(16).padStart(64, '0')
 
-        fun followListEvent(author: String, follows: List<String>, createdAt: Long = 1_700_000_000L) =
-            NostrEvent(
-                id = "follow-list-$author-$createdAt",
-                pubKey = author,
-                createdAt = createdAt,
-                kind = NostrEventKind.FollowList.value,
-                tags = follows.map { followed ->
-                    buildJsonArray {
-                        add(JsonPrimitive("p"))
-                        add(JsonPrimitive(followed))
-                    }
-                },
-                content = "",
-                sig = "sig",
-            )
+        fun followListEvent(
+            author: String,
+            follows: List<String>,
+            createdAt: Long = 1_700_000_000L,
+        ) = NostrEvent(
+            id = "follow-list-$author-$createdAt",
+            pubKey = author,
+            createdAt = createdAt,
+            kind = NostrEventKind.FollowList.value,
+            tags = follows.map { followed ->
+                buildJsonArray {
+                    add(JsonPrimitive("p"))
+                    add(JsonPrimitive(followed))
+                }
+            },
+            content = "",
+            sig = "sig",
+        )
     }
 }

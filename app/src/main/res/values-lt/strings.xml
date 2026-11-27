@@ -724,7 +724,6 @@
     <string name="settings_network_relay_read">Skaityti</string>
     <string name="settings_network_relay_write">Rašyti</string>
     <string name="settings_zaps_title">Zaps</string>
-    <string name="settings_zaps_description">Vienas bakstelėkite Zaps siųsti numatytąją sumą &amp; pranešimą. Konfigūruoti pasirinktinius zap nustatymus žemiau:</string>
     <string name="settings_zaps_editor_emoji">Emodži</string>
     <string name="settings_zaps_editor_message">Pranešimas</string>
     <string name="settings_zaps_editor_value">Vertė</string>

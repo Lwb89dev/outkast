@@ -16,6 +16,9 @@ import kotlinx.serialization.json.buildJsonArray
 import net.primal.android.networking.relays.RelayPoolQueryResult
 import net.primal.android.networking.relays.RelaysSocketManager
 import net.primal.android.nostr.notary.NostrNotary
+import net.primal.android.pow.PowSettings
+import net.primal.android.pow.PowSettingsStore
+import net.primal.android.pow.ProofOfWorkService
 import net.primal.core.utils.coroutines.createDispatcherProvider
 import net.primal.domain.nostr.NostrEvent
 import net.primal.domain.nostr.NostrEventKind
@@ -37,6 +40,12 @@ class Nip17TransportImplTest {
     private val sender = NostrSignerInternal(KeyPair())
     private val recipient = NostrSignerInternal(KeyPair())
     private val recipientId = recipient.pubKey
+
+    private fun noProofOfWork(): PowSettingsStore {
+        val store = mockk<PowSettingsStore>()
+        coEvery { store.get(any()) } returns PowSettings(messages = false)
+        return store
+    }
 
     private fun realGiftWrapToRecipient(content: String): NostrEvent =
         runBlocking {
@@ -86,6 +95,8 @@ class Nip17TransportImplTest {
             relays = relaysReturning(wrap),
             notary = notary,
             dispatcherProvider = createDispatcherProvider(),
+            powSettingsStore = noProofOfWork(),
+            proofOfWork = ProofOfWorkService(),
         )
 
         val messages = transport.fetchMessages(userId = recipientId, limit = 10)
@@ -103,6 +114,8 @@ class Nip17TransportImplTest {
             relays = relaysReturning(wrap),
             notary = notary,
             dispatcherProvider = createDispatcherProvider(),
+            powSettingsStore = noProofOfWork(),
+            proofOfWork = ProofOfWorkService(),
         )
 
         val first = transport.fetchMessages(userId = recipientId, limit = 10)
@@ -123,6 +136,8 @@ class Nip17TransportImplTest {
             relays = relaysReturning(*wraps.toTypedArray()),
             notary = notary,
             dispatcherProvider = createDispatcherProvider(),
+            powSettingsStore = noProofOfWork(),
+            proofOfWork = ProofOfWorkService(),
         )
 
         val messages = transport.fetchMessages(userId = recipientId, limit = 10)

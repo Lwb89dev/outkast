@@ -171,7 +171,9 @@ object CachingRepositoriesModule {
             relayEventQuerier = relayEventQuerier,
         )
 
+    // One instance: the progress of a computation is held in memory and watched from elsewhere.
     @Provides
+    @Singleton
     fun provideWebOfTrustRepository(relayEventQuerier: RelayEventQuerier): WebOfTrustRepository =
         PrimalRepositoryFactory.createWebOfTrustRepository(relayEventQuerier = relayEventQuerier)
 

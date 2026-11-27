@@ -9,6 +9,49 @@ the LibreNostr/OUTKAST fork on top of the imported `3.5.25` baseline.
 
 ## [Unreleased]
 
+### Added
+
+- **Nostr Wallet Connect (NIP-47).** Settings, Wallet (NWC): paste or scan the connection string of a
+  Lightning wallet, and zaps and invoices are paid from it without leaving OUTKAST. The balance is shown
+  when the wallet shares it. The connection string is stored encrypted with the Android Keystore, per
+  account, and removed on logout. Nothing is paid without a confirmation that shows the amount. A reply is
+  believed only when signed by the connected wallet; a payment with no reply is reported as unconfirmed,
+  never as failed. Without a connected wallet everything goes to your Lightning app as before.
+- **Search the way X does it.** Results come in Top, Latest, People and Media tabs, for anyone or only the
+  people you follow. While typing there are suggestions and matching accounts, and the recent searches can
+  be repeated, removed one by one or cleared. Operators: `"exact phrase"`, `a OR b`, `-word`, `#hashtag`,
+  `@name`, `from:name`, `to:name`, `since:`, `until:`, `filter:media`, `filter:links`, `-filter:replies`,
+  `min_faves:`, `min_replies:`, `min_retweets:`. The advanced search form gained exact phrase, any of these
+  words, hashtags and mentioning. Tapping a hashtag opens its results.
+- **Full-text search relays.** Queries with a search term also go to `search.nos.today`, `relay.ditto.pub`
+  and `nostr.wine`, because most relays refuse NIP-50. Those services see what you search for.
+- **Proof of work (NIP-13).** On by default: 16 bits for notes, comments and polls, 12 for reactions and
+  direct messages (the NIP-04 fallback and the recipient's NIP-59 gift wrap). Mining can be called off,
+  keeping the draft. Settings, Proof of work, changes the difficulty or turns each one off.
+- **Hide strangers' replies and mentions, off by default.** Settings, Web of Trust. Replies, quotes and
+  mentions from outside your network raise no notification and no unread badge; under notes and articles
+  they are hidden, with a button to show them. The network is your follows plus whoever at least 1, 3
+  (default) or 10 of them follow, and is recomputed weekly while a filter is on. Likes, reposts, zaps,
+  follows and direct messages are not filtered.
+- **Proof of work spam filter, off by default.** The same places, but a stranger's post is let through
+  when it carries the chosen work.
+
+### Changed
+
+- Zapping from a notification or from a profile now opens the amount sheet, as on a note, instead of
+  sending at once. The sheet preselects your default amount. The Zaps settings are reachable again, and
+  the amounts set there are now used.
+
+### Fixed
+
+- Computing the web of trust while offline replaced the network with your direct follows alone, and after
+  a restart the settings said it had never been computed.
+- The reaction picker's text field and React button were hidden behind the keyboard.
+- Amounts in the zap sheet and in the zap settings were nearly invisible on dark themes.
+- Search found nothing for `from:` with a user name, ignored `to:` with an npub, matched any word instead
+  of all when two authors were picked, and ignored the minimum likes, replies and reposts and the sort order.
+- Tapping Pay on an invoice with no Lightning app installed crashed the app.
+
 ## [2.6.3] - 2026-11-24
 
 ### Changed

@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class GetInfoResponsePayload(
-    val alias: String,
+    val alias: String? = null,
     val color: String? = null,
     val pubkey: String? = null,
     val network: String? = null,

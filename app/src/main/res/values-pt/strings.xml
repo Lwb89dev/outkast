@@ -724,7 +724,6 @@
     <string name="settings_network_relay_read">Ler</string>
     <string name="settings_network_relay_write">Escrever</string>
     <string name="settings_zaps_title">Zaps</string>
-    <string name="settings_zaps_description">Os zaps de toque simples enviam a mensagem padrão &amp;. Configurar as predefinições personalizadas do zap abaixo:</string>
     <string name="settings_zaps_editor_emoji">Emoji</string>
     <string name="settings_zaps_editor_message">Mensagem</string>
     <string name="settings_zaps_editor_value">Valor</string>

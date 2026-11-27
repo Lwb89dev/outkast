@@ -4,13 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import androidx.paging.filter
 import androidx.paging.map
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.aakira.napier.Napier
-import java.time.Instant
-import java.time.ZoneId
-import javax.inject.Inject
-import kotlin.time.toJavaInstant
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -21,6 +18,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
@@ -37,6 +35,8 @@ import net.primal.android.notes.feed.model.EventStatsUi
 import net.primal.android.notes.feed.model.FeedPostUi
 import net.primal.android.notes.feed.model.asNoteNostrUriUi
 import net.primal.android.notifications.list.ui.NotificationUi
+import net.primal.android.spam.StrangerFilter
+import net.primal.android.spam.StrangerFilterProvider
 import net.primal.android.user.accounts.active.ActiveAccountStore
 import net.primal.android.user.subscriptions.SubscriptionsManager
 import net.primal.core.utils.coroutines.DispatcherProvider
@@ -48,6 +48,10 @@ import net.primal.domain.notifications.NotificationRepository
 import net.primal.domain.notifications.NotificationType
 import net.primal.domain.posts.immediateParentId
 import net.primal.domain.posts.threadRootId
+import java.time.Instant
+import java.time.ZoneId
+import javax.inject.Inject
+import kotlin.time.toJavaInstant
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -56,6 +60,7 @@ class NotificationsViewModel @Inject constructor(
     private val activeAccountStore: ActiveAccountStore,
     private val notificationRepository: NotificationRepository,
     private val subscriptionsManager: SubscriptionsManager,
+    private val strangerFilters: StrangerFilterProvider,
 ) : ViewModel() {
 
     /** Follows can be turned off entirely; the feed has to follow both that toggle and account switches. */
@@ -63,6 +68,12 @@ class NotificationsViewModel @Inject constructor(
         activeAccountStore.activeUserId.filter { it.isNotBlank() },
         activeAccountStore.activeUserAccount.map { it.showFollowNotifications },
     ) { userId, showFollows -> userId to showFollows }.distinctUntilChanged()
+
+    /** Null while strangers are not filtered, which leaves the lists exactly as they were. */
+    private val strangerFilter: Flow<StrangerFilter?> =
+        activeAccountStore.activeUserId
+            .filter { it.isNotBlank() }
+            .flatMapLatest { strangerFilters.observe(it) }
 
     private val seenPagerCache: Map<NotificationGroup, Flow<PagingData<NotificationUi>>> =
         NotificationGroup.entries.associateWith { group ->
@@ -75,7 +86,12 @@ class NotificationsViewModel @Inject constructor(
                         utcOffsetSeconds = currentUtcOffsetSeconds(),
                     )
                 }
-                .map { it.map { notification -> notification.asNotificationUi() } }
+                // Cached on both sides: the filter can change while the pages stay what they are.
+                .cachedIn(viewModelScope + dispatcherProvider.io())
+                .combine(strangerFilter) { paging, filter ->
+                    val shown = if (filter == null) paging else paging.filter { !filter.hides(it) }
+                    shown.map { notification -> notification.asNotificationUi() }
+                }
                 .cachedIn(viewModelScope + dispatcherProvider.io())
         }
 
@@ -89,7 +105,12 @@ class NotificationsViewModel @Inject constructor(
                         showFollows = showFollows,
                     )
                 }
+                .combine(strangerFilter) { notifications, filter ->
+                    if (filter == null) notifications else notifications.filterNot { filter.hides(it) }
+                }
                 .map { notifications -> groupUnseenNotifications(notifications) }
+                // Checking proof of work hashes events: not on the main thread.
+                .flowOn(dispatcherProvider.io())
                 .shareIn(
                     scope = viewModelScope,
                     started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5_000),

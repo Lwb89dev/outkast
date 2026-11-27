@@ -724,7 +724,6 @@
     <string name="settings_network_relay_read">Lue</string>
     <string name="settings_network_relay_write">Kirjoita</string>
     <string name="settings_zaps_title">Zaps</string>
-    <string name="settings_zaps_description">Lähetä oletusmäärä &amp; viesti. Muokkaa alla olevia ohjeita:</string>
     <string name="settings_zaps_editor_emoji">Emoji</string>
     <string name="settings_zaps_editor_message">Viesti</string>
     <string name="settings_zaps_editor_value">Arvo</string>

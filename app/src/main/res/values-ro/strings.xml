@@ -724,7 +724,6 @@
     <string name="settings_network_relay_read">Citit</string>
     <string name="settings_network_relay_write">Scrie</string>
     <string name="settings_zaps_title">Zaps</string>
-    <string name="settings_zaps_description">Un singur robinet Zaps trimite suma implicită &amp; mesaj. Configurează presetări de zap personalizate de mai jos:</string>
     <string name="settings_zaps_editor_emoji">Emoji</string>
     <string name="settings_zaps_editor_message">Mesaj</string>
     <string name="settings_zaps_editor_value">Valoare</string>

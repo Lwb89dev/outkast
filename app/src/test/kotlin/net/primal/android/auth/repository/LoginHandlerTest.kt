@@ -145,6 +145,7 @@ class LoginHandlerTest {
                 userRepository = mockk(relaxed = true),
                 accountsStore = mockk(relaxed = true),
                 connectionRepository = mockk(relaxed = true),
+                nwcRepository = mockk(relaxed = true),
             )
 
             val userRepository = mockk<UserRepository>(relaxed = true) {

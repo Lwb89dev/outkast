@@ -184,7 +184,7 @@ class ProfileDetailsViewModel @Inject constructor(
         when (result) {
             ZapResult.Success -> setEffect(ProfileDetailsContract.SideEffect.ProfileZapSent)
             is ZapResult.Failure -> {
-                when (result.error) {
+                when (val failure = result.error) {
                     is ZapError.InvalidZap, is ZapError.FailedToFetchZapPayRequest,
                     is ZapError.FailedToFetchZapInvoice,
                     -> setState { copy(error = UiError.InvalidZapRequest()) }
@@ -194,6 +194,12 @@ class ProfileDetailsViewModel @Inject constructor(
                     -> {
                         setState { copy(error = UiError.FailedToPublishZapEvent()) }
                     }
+
+                    is ZapError.WalletRefused -> setState {
+                        copy(error = UiError.WalletRefusedPayment(failure.code, failure.message))
+                    }
+
+                    ZapError.PaymentUnconfirmed -> setState { copy(error = UiError.PaymentUnconfirmed) }
 
                     is ZapError.Unknown -> {
                         setState { copy(error = UiError.GenericError()) }

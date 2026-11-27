@@ -226,7 +226,7 @@ class NoteViewModel @AssistedInject constructor(
             )
 
             if (result is ZapResult.Failure) {
-                when (result.error) {
+                when (val failure = result.error) {
                     is ZapError.InvalidZap, is ZapError.FailedToFetchZapPayRequest,
                     is ZapError.FailedToFetchZapInvoice,
                     -> setState { copy(error = InvalidZapRequest()) }
@@ -236,6 +236,12 @@ class NoteViewModel @AssistedInject constructor(
                     -> {
                         setState { copy(error = FailedToPublishZapEvent()) }
                     }
+
+                    is ZapError.WalletRefused -> setState {
+                        copy(error = UiError.WalletRefusedPayment(failure.code, failure.message))
+                    }
+
+                    ZapError.PaymentUnconfirmed -> setState { copy(error = UiError.PaymentUnconfirmed) }
 
                     is ZapError.Unknown -> {
                         setState { copy(error = GenericError()) }
@@ -499,6 +505,7 @@ class NoteViewModel @AssistedInject constructor(
             }
         }
 
+    @Suppress("CyclomaticComplexMethod", "LongMethod") // One branch per way a zap can fail.
     private fun zapPollVote(action: UiEvent.ZapPollVoteAction) =
         viewModelScope.launch {
             applyOptimisticZapPollUpdate(action)
@@ -556,12 +563,16 @@ class NoteViewModel @AssistedInject constructor(
             )
 
             if (result is ZapResult.Failure) {
-                setState { copy(poll = null) }
-                pollsRepository.revertPollVoted(
-                    userId = activeAccountStore.activeUserId(),
-                    pollEventId = action.postId,
-                )
-                when (result.error) {
+                // An unconfirmed payment may well have gone through: unmarking the vote then would
+                // invite the user to pay for it a second time.
+                if (result.error != ZapError.PaymentUnconfirmed) {
+                    setState { copy(poll = null) }
+                    pollsRepository.revertPollVoted(
+                        userId = activeAccountStore.activeUserId(),
+                        pollEventId = action.postId,
+                    )
+                }
+                when (val failure = result.error) {
                     is ZapError.InvalidZap, is ZapError.FailedToFetchZapPayRequest,
                     is ZapError.FailedToFetchZapInvoice,
                     -> setState { copy(error = InvalidZapRequest()) }
@@ -569,6 +580,12 @@ class NoteViewModel @AssistedInject constructor(
                     is ZapError.FailedToPayZap, ZapError.FailedToPublishEvent,
                     ZapError.FailedToSignEvent, is ZapError.Timeout,
                     -> setState { copy(error = FailedToPublishZapEvent()) }
+
+                    is ZapError.WalletRefused -> setState {
+                        copy(error = UiError.WalletRefusedPayment(failure.code, failure.message))
+                    }
+
+                    ZapError.PaymentUnconfirmed -> setState { copy(error = UiError.PaymentUnconfirmed) }
 
                     is ZapError.Unknown -> setState { copy(error = GenericError()) }
                 }

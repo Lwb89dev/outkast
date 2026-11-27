@@ -7,10 +7,10 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
-import kotlin.time.Instant
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import net.primal.android.navigation.ARTICLE_NADDR
@@ -29,6 +29,7 @@ import net.primal.domain.reads.ArticleRepository
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import kotlin.time.Instant
 
 @ExperimentalCoroutinesApi
 @RunWith(AndroidJUnit4::class)
@@ -97,6 +98,7 @@ class ArticleDetailsViewModelTest {
             },
             eventInteractionRepository = mockk(relaxed = true),
             zapHandler = mockk(relaxed = true),
+            strangerFilters = mockk { every { observe(any()) } returns flowOf(null) },
             dispatcherProvider = coroutinesTestRule.dispatcherProvider,
         )
     }

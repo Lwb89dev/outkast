@@ -24,4 +24,7 @@ interface RecentSearchDao {
 
     @Query("DELETE FROM RecentSearch WHERE ownerId = :ownerId")
     fun deleteAllByOwnerId(ownerId: String)
+
+    @Query("DELETE FROM RecentSearch WHERE ownerId = :ownerId AND `query` = :query")
+    fun delete(ownerId: String, query: String)
 }

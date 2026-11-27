@@ -724,7 +724,6 @@
     <string name="settings_network_relay_read">Aqra</string>
     <string name="settings_network_relay_write">Ikteb</string>
     <string name="settings_zaps_title">Żaps</string>
-    <string name="settings_zaps_description">Zapps vit wieħed jibgħat il-messaġġ &amp; ammont default. custom figura zap presets hawn taħt:</string>
     <string name="settings_zaps_editor_emoji">Emoji</string>
     <string name="settings_zaps_editor_message">Messaġġ</string>
     <string name="settings_zaps_editor_value">Valur</string>

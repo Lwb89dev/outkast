@@ -56,6 +56,12 @@ kotlin {
             implementation(libs.secp256k1.kmp.jvm)
         }
 
+        val desktopTest by getting
+        desktopTest.dependencies {
+            // Event ids and signatures are computed for real in tests.
+            implementation(libs.secp256k1.kmp.jni.jvm)
+        }
+
         commonTest {
             dependencies {
                 implementation(kotlin("test"))

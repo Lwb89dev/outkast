@@ -18,6 +18,12 @@ interface WotDao {
     @Query("SELECT * FROM WotNetworkStateData WHERE ownerId = :ownerId")
     suspend fun getState(ownerId: String): WotNetworkStateData?
 
+    @Query("SELECT pubkey FROM WotQualifiedPubkeyData WHERE ownerId = :ownerId AND followers >= :minFollowers")
+    fun observeQualifiedPubkeys(ownerId: String, minFollowers: Int): Flow<List<String>>
+
+    @Query("SELECT COUNT(*) FROM WotQualifiedPubkeyData WHERE ownerId = :ownerId AND followers >= :minFollowers")
+    fun observeNetworkSize(ownerId: String, minFollowers: Int): Flow<Int>
+
     @Query("DELETE FROM WotQualifiedPubkeyData WHERE ownerId = :ownerId")
     suspend fun deleteQualifiedPubkeys(ownerId: String)
 

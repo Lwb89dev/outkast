@@ -4,6 +4,7 @@ import com.vitorpamplona.quartz.nip01Core.core.Event
 import com.vitorpamplona.quartz.nip01Core.signers.EventTemplate
 import com.vitorpamplona.quartz.nip17Dm.NIP17Factory
 import com.vitorpamplona.quartz.nip17Dm.messages.ChatMessageEvent
+import com.vitorpamplona.quartz.nip40Expiration.expiration
 import com.vitorpamplona.quartz.nip10Notes.TextNoteEvent
 import com.vitorpamplona.quartz.nip59Giftwrap.seals.SealedRumorEvent
 import com.vitorpamplona.quartz.nip59Giftwrap.wraps.GiftWrapEvent
@@ -33,6 +34,8 @@ import net.primal.android.core.serialization.json.NostrNotaryJson
 import net.primal.android.networking.relays.FALLBACK_RELAY_URLS
 import net.primal.android.networking.relays.RelaysSocketManager
 import net.primal.android.nostr.notary.NostrNotary
+import net.primal.android.pow.PowSettingsStore
+import net.primal.android.pow.ProofOfWorkService
 import net.primal.android.user.domain.Relay
 import net.primal.android.user.domain.cleanWebSocketUrl
 import net.primal.core.utils.coroutines.DispatcherProvider
@@ -55,6 +58,8 @@ class Nip17TransportImpl @Inject constructor(
     private val relays: RelaysSocketManager,
     private val notary: NostrNotary,
     private val dispatcherProvider: DispatcherProvider,
+    private val powSettingsStore: PowSettingsStore,
+    private val proofOfWork: ProofOfWorkService,
 ) : Nip17Transport {
 
     /**
@@ -113,7 +118,13 @@ class Nip17TransportImpl @Inject constructor(
             // permissively instead.
             requireAnnouncedInbox = true,
             create = { signer ->
-                NIP17Factory().createMessageNIP17(rumorTemplate, signer).asDelivery()
+                val difficulty = powSettingsStore.get(userId).messagesDifficulty
+                if (difficulty == 0) {
+                    NIP17Factory().createMessageNIP17(rumorTemplate, signer).asDelivery()
+                } else {
+                    val rumor = signer.sign<ChatMessageEvent>(rumorTemplate)
+                    Nip17Delivery(rumor, wrapsFor(rumor, signer, userId, receiverId, difficulty))
+                }
             },
         )
     }
@@ -138,19 +149,33 @@ class Nip17TransportImpl @Inject constructor(
             requireAnnouncedInbox = false,
             create = { signer ->
                 val rumor = signer.sign<TextNoteEvent>(rumorTemplate)
-                val wraps = listOf(receiverId, userId).distinct().map { recipientId ->
-                    GiftWrapEvent.create(
-                        event = SealedRumorEvent.create(
-                            event = rumor,
-                            encryptTo = recipientId,
-                            signer = signer,
-                        ),
-                        recipientPubKey = recipientId,
-                    )
-                }
-                Nip17Delivery(rumor, wraps)
+                val difficulty = powSettingsStore.get(userId).messagesDifficulty
+                Nip17Delivery(rumor, wrapsFor(rumor, signer, userId, receiverId, difficulty))
             },
         )
+    }
+
+    /**
+     * One seal and one Gift Wrap for the recipient and one for the sender's own history. Only the
+     * recipient's copy is mined, and only its outer wrap: the rumor is never touched, and the
+     * sender's copy has nobody to convince.
+     */
+    private suspend fun wrapsFor(
+        rumor: Event,
+        signer: LibreNostrQuartzSigner,
+        userId: String,
+        receiverId: String,
+        difficulty: Int,
+    ): List<NostrEvent> {
+        val expirationDelta = rumor.expiration()?.takeIf { it > rumor.createdAt }?.let { it - rumor.createdAt }
+        return listOf(receiverId, userId).distinct().map { recipientId ->
+            val seal = SealedRumorEvent.create(rumor, recipientId, signer, expirationDelta)
+            if (recipientId == receiverId && difficulty > 0) {
+                minedGiftWrap(seal, recipientId, expirationDelta, difficulty, proofOfWork::mine)
+            } else {
+                GiftWrapEvent.create(seal, recipientId, expirationDelta).asDomain()
+            }
+        }
     }
 
     private suspend fun deliver(
@@ -170,17 +195,19 @@ class Nip17TransportImpl @Inject constructor(
                 "sender=${senderRelays.joinToString { it.url }}"
         }
         val result = create(LibreNostrQuartzSigner(pubKey = userId, notary = notary))
-        val wrapsByRecipient = result.wraps.associateBy { it.recipientPubKey() }
+        val wrapsByRecipient = result.wraps.associateBy { wrap ->
+            wrap.tags.firstOrNull { it.stringAt(0) == "p" }?.stringAt(1)
+        }
         val receiverWrap = requireNotNull(wrapsByRecipient[receiverId]) {
-            "Quartz did not create the recipient Gift Wrap."
+            "The recipient Gift Wrap was not created."
         }
 
         // Recipient delivery defines success. A sender-copy failure is recoverable from the local
         // optimistic copy and must not make a successfully delivered message look unsent.
-        relays.publishEvent(receiverWrap.asDomain(), receiverRelays)
+        relays.publishEvent(receiverWrap, receiverRelays)
         // A message to yourself produces exactly one wrap, and it has already been published.
         wrapsByRecipient[userId]?.takeIf { it.id != receiverWrap.id }?.let { senderWrap ->
-            runCatching { relays.publishEvent(senderWrap.asDomain(), senderRelays) }
+            runCatching { relays.publishEvent(senderWrap, senderRelays) }
                 .onFailure { error -> Napier.w(error) { "NIP-17 sender-copy publication failed." } }
         }
         // Announcing the inbox is what lets the other side reply, but it is not what this send
@@ -474,10 +501,10 @@ class Nip17TransportImpl @Inject constructor(
 
 private data class Nip17Delivery(
     val msg: Event,
-    val wraps: List<GiftWrapEvent>,
+    val wraps: List<NostrEvent>,
 )
 
-private fun NIP17Factory.Result.asDelivery() = Nip17Delivery(msg = msg, wraps = wraps)
+private fun NIP17Factory.Result.asDelivery() = Nip17Delivery(msg = msg, wraps = wraps.map { it.asDomain() })
 
 private fun String.asPTag(relayHint: String?): JsonArray = buildJsonArray {
     add(JsonPrimitive("p"))

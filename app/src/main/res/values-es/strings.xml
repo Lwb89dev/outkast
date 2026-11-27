@@ -724,7 +724,6 @@
     <string name="settings_network_relay_read">Leer</string>
     <string name="settings_network_relay_write">Escriba</string>
     <string name="settings_zaps_title">Zaps</string>
-    <string name="settings_zaps_description">Los zaps de pulsación simple envían el mensaje de la cantidad predeterminada &amp;. Configurar los presets zap personalizados a continuación:</string>
     <string name="settings_zaps_editor_emoji">Emoji</string>
     <string name="settings_zaps_editor_message">Mensaje</string>
     <string name="settings_zaps_editor_value">Valor</string>

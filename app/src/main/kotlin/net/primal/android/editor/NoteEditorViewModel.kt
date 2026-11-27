@@ -46,6 +46,7 @@ import net.primal.android.editor.domain.PollOption
 import net.primal.android.editor.domain.PollPublishRequest
 import net.primal.android.emoji.repository.CustomEmojiRepository
 import net.primal.android.gifpicker.domain.GifItem
+import net.primal.android.pow.ProofOfWorkCancelled
 import net.primal.android.networking.relays.errors.NostrPublishException
 import net.primal.android.notes.feed.model.FeedPostUi
 import net.primal.android.notes.feed.model.PollType
@@ -786,8 +787,11 @@ class NoteEditorViewModel @AssistedInject constructor(
 
                 sendEffect(SideEffect.PostPublished)
             } catch (error: SignatureException) {
-                Napier.w(throwable = error) { "Failed to publish post due to signature error." }
-                setErrorState(error = UiError.PublishError(cause = error.cause))
+                // Calling off the proof of work is not a failure: the draft stays and nothing is said.
+                if (error.cause !is ProofOfWorkCancelled) {
+                    Napier.w(throwable = error) { "Failed to publish post due to signature error." }
+                    setErrorState(error = UiError.PublishError(cause = error.cause))
+                }
             } catch (error: NostrPublishException) {
                 Napier.w(throwable = error) { "Failed to publish post due to nostr publish error." }
                 setErrorState(error = UiError.PublishError(cause = error.cause))

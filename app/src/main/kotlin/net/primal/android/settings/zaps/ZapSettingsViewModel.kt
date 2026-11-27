@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.getAndUpdate
-import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
 import net.primal.android.settings.repository.SettingsRepository
 import net.primal.android.settings.zaps.ZapSettingsContract.UiEvent
@@ -18,6 +17,8 @@ import net.primal.android.user.accounts.active.ActiveAccountStore
 import net.primal.domain.common.exception.NetworkException
 import net.primal.domain.notifications.ContentZapConfigItem
 import net.primal.domain.notifications.ContentZapDefault
+import net.primal.domain.notifications.DEFAULT_ZAP_CONFIG
+import net.primal.domain.notifications.DEFAULT_ZAP_DEFAULT
 
 @HiltViewModel
 class ZapSettingsViewModel @Inject constructor(
@@ -68,10 +69,14 @@ class ZapSettingsViewModel @Inject constructor(
     private fun observeActiveAccount() =
         viewModelScope.launch {
             activeAccountStore.activeUserAccount
-                .mapNotNull { it.appSettings }
-                .collect {
+                .collect { account ->
+                    // An account that never changed them has none stored: show what is in effect.
                     setState {
-                        copy(zapDefault = it.zapDefault, zapConfig = it.zapsConfig)
+                        copy(
+                            zapDefault = account.appSettings?.zapDefault ?: DEFAULT_ZAP_DEFAULT,
+                            zapConfig = account.appSettings?.zapsConfig?.takeIf { it.isNotEmpty() }
+                                ?: DEFAULT_ZAP_CONFIG,
+                        )
                     }
                 }
         }

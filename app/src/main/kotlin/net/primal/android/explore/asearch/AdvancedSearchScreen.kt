@@ -171,6 +171,21 @@ private fun AdvancedSearchContent(
             includedWords = state.includedWords,
             onValueChange = { eventPublisher(UiEvent.IncludedWordsValueChanged(it)) },
         )
+        WordsTextField(
+            value = state.exactPhrase,
+            placeholderRes = R.string.asearch_exact_phrase_placeholder,
+            onValueChange = { eventPublisher(UiEvent.ExactPhraseValueChanged(it)) },
+        )
+        WordsTextField(
+            value = state.anyWords,
+            placeholderRes = R.string.asearch_any_words_placeholder,
+            onValueChange = { eventPublisher(UiEvent.AnyWordsValueChanged(it)) },
+        )
+        WordsTextField(
+            value = state.hashtags,
+            placeholderRes = R.string.asearch_hashtags_placeholder,
+            onValueChange = { eventPublisher(UiEvent.HashtagsValueChanged(it)) },
+        )
         ExcludedWordsTextField(
             excludedWords = state.excludedWords,
             onValueChange = { eventPublisher(UiEvent.ExcludedWordsValueChanged(it)) },
@@ -189,6 +204,14 @@ private fun AdvancedSearchContent(
             ReplyingToPicker(
                 replyingTo = state.replyingTo,
                 onUsersSelected = { eventPublisher(UiEvent.ReplyingToSelectUsers(it)) },
+            )
+
+            MultipleUserPickerOptionListItem(
+                labelText = stringResource(id = R.string.asearch_mentioning_label),
+                onUsersSelected = { eventPublisher(UiEvent.MentioningSelectUsers(it)) },
+                placeholderText = stringResource(R.string.asearch_mentioning_label),
+                selectedUsers = state.mentioning,
+                sheetTitle = stringResource(id = R.string.asearch_mentioning_label),
             )
 
             ZappedByPicker(
@@ -243,6 +266,25 @@ private fun IncludedWordsTextField(includedWords: String?, onValueChange: (Strin
         value = includedWords.orEmpty(),
         onValueChange = onValueChange,
         placeholderText = stringResource(id = R.string.asearch_included_words_placeholder),
+        iconImageVector = Icons.Filled.Search,
+        focusRequester = null,
+        singleLine = true,
+    )
+}
+
+@Composable
+private fun WordsTextField(
+    value: String?,
+    placeholderRes: Int,
+    onValueChange: (String) -> Unit,
+) {
+    PrimalIconTextField(
+        modifier = Modifier
+            .padding(horizontal = 8.dp)
+            .fillMaxWidth(),
+        value = value.orEmpty(),
+        onValueChange = onValueChange,
+        placeholderText = stringResource(id = placeholderRes),
         iconImageVector = Icons.Filled.Search,
         focusRequester = null,
         singleLine = true,

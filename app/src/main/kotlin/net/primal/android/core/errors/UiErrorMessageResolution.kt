@@ -45,6 +45,10 @@ fun UiError.resolveUiErrorMessage(context: Context): String {
             R.string.post_action_zap_failed,
         )
 
+        is UiError.WalletRefusedPayment -> walletRefusalMessage(context, code, reason)
+
+        UiError.PaymentUnconfirmed -> context.getString(R.string.wallet_payment_unconfirmed)
+
         is UiError.FailedToPublishLikeEvent -> context.getString(
             R.string.post_action_like_failed,
         )
@@ -123,3 +127,12 @@ fun UiError.resolveUiErrorMessage(context: Context): String {
         is UiError.FailedToBookmarkNote -> context.getString(R.string.app_error_bookmark_note)
     }
 }
+
+/** The common NIP-47 refusals get their own wording; anything else shows what the wallet said. */
+fun walletRefusalMessage(context: Context, code: String, reason: String): String =
+    when (code) {
+        "INSUFFICIENT_BALANCE" -> context.getString(R.string.wallet_error_insufficient_balance)
+        "QUOTA_EXCEEDED" -> context.getString(R.string.wallet_error_quota_exceeded)
+        "UNAUTHORIZED", "RESTRICTED" -> context.getString(R.string.wallet_error_not_allowed)
+        else -> context.getString(R.string.wallet_error_generic, reason.ifBlank { code })
+    }

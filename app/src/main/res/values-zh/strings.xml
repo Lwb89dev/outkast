@@ -724,7 +724,6 @@
     <string name="settings_network_relay_read">读取</string>
     <string name="settings_network_relay_write">写入</string>
     <string name="settings_zaps_title">斑点</string>
-    <string name="settings_zaps_description">单声带zaps发送默认金额&amp;消息. 以下配置自定义 zap 预设 :</string>
     <string name="settings_zaps_editor_emoji">爱莫吉</string>
     <string name="settings_zaps_editor_message">消息</string>
     <string name="settings_zaps_editor_value">数值</string>

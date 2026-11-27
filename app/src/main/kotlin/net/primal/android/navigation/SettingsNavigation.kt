@@ -83,6 +83,10 @@ import net.primal.android.settings.tor.TorSettingsScreen
 import net.primal.android.settings.tor.TorSettingsViewModel
 import net.primal.android.settings.wot.WebOfTrustSettingsScreen
 import net.primal.android.settings.wot.WebOfTrustSettingsViewModel
+import net.primal.android.settings.pow.PowSettingsScreen
+import net.primal.android.settings.pow.PowSettingsViewModel
+import net.primal.android.settings.wallet.WalletSettingsScreen
+import net.primal.android.settings.wallet.WalletSettingsViewModel
 import net.primal.android.settings.zaps.ZapSettingsScreen
 import net.primal.android.settings.zaps.ZapSettingsViewModel
 import net.primal.android.theme.AppTheme
@@ -93,6 +97,8 @@ private fun NavController.navigateToTorSettings() = navigate(route = "tor_settin
 private fun NavController.navigateToAppearanceSettings() = navigate(route = "appearance_settings")
 private fun NavController.navigateToContentDisplaySettings() = navigate(route = "content_display")
 fun NavController.navigateToNotificationsSettings() = navigate(route = "notifications_settings")
+private fun NavController.navigateToWalletSettings() = navigate(route = "wallet_settings")
+private fun NavController.navigateToProofOfWorkSettings() = navigate(route = "pow_settings")
 private fun NavController.navigateToZapsSettings() = navigate(route = "zaps_settings")
 private fun NavController.navigateToMutedAccounts() = navigate(route = "muted_accounts_settings")
 private fun NavController.navigateToWebOfTrustSettings() = navigate(route = "web_of_trust_settings")
@@ -149,6 +155,8 @@ fun NavGraphBuilder.settingsNavigation(route: String, navController: NavControll
                     PrimalSettingsSection.Appearance -> navController.navigateToAppearanceSettings()
                     PrimalSettingsSection.ContentDisplay -> navController.navigateToContentDisplaySettings()
                     PrimalSettingsSection.Notifications -> navController.navigateToNotificationsSettings()
+                    PrimalSettingsSection.ProofOfWork -> navController.navigateToProofOfWorkSettings()
+                    PrimalSettingsSection.Wallet -> navController.navigateToWalletSettings()
                     PrimalSettingsSection.Zaps -> navController.navigateToZapsSettings()
                     PrimalSettingsSection.MutedAccounts -> navController.navigateToMutedAccounts()
                     PrimalSettingsSection.WebOfTrust -> navController.navigateToWebOfTrustSettings()
@@ -171,6 +179,8 @@ fun NavGraphBuilder.settingsNavigation(route: String, navController: NavControll
         mediaUploads(route = "media_uploads_settings", navController = navController)
         emojiPacks(route = EMOJI_PACKS_SETTINGS_ROUTE, navController = navController)
         notifications(route = "notifications_settings", navController = navController)
+        wallet(route = "wallet_settings", navController = navController)
+        proofOfWork(route = "pow_settings", navController = navController)
         zaps(route = "zaps_settings", navController = navController)
         connectedApps(route = "connected_apps", navController = navController)
         developerTools(route = "developer_tools", navController = navController)
@@ -301,6 +311,8 @@ private fun NavGraphBuilder.home(
     )
     }
 
+// One branch per settings section: the complexity is the section count.
+@Suppress("CyclomaticComplexMethod")
 @Composable
 private fun EmbeddedSettingsSection(
     section: PrimalSettingsSection,
@@ -356,6 +368,21 @@ private fun EmbeddedSettingsSection(
         )
         PrimalSettingsSection.Accounts -> AccountsSettingsEmbedded(navController = navController)
         PrimalSettingsSection.Language -> LanguageSettingsScreen()
+        PrimalSettingsSection.ProofOfWork -> PowSettingsScreen(
+            viewModel = hiltViewModel(),
+            onClose = {},
+            embedded = true,
+        )
+        PrimalSettingsSection.Wallet -> WalletSettingsScreen(
+            viewModel = hiltViewModel(),
+            onClose = {},
+            embedded = true,
+        )
+        PrimalSettingsSection.Zaps -> ZapSettingsScreen(
+            viewModel = hiltViewModel(),
+            onClose = {},
+            embedded = true,
+        )
         else -> Unit
     }
 }
@@ -532,6 +559,38 @@ private fun NavGraphBuilder.contentDisplay(route: String, navController: NavCont
         val viewModel = hiltViewModel<ContentDisplaySettingsViewModel>(it)
         LockToOrientationPortrait()
         ContentDisplaySettingsScreen(
+            viewModel = viewModel,
+            onClose = { navController.navigateUp() },
+        )
+    }
+
+private fun NavGraphBuilder.proofOfWork(route: String, navController: NavController) =
+    composable(
+        route = route,
+        enterTransition = { primalSlideInHorizontallyFromEnd },
+        exitTransition = { primalScaleOut },
+        popEnterTransition = { primalScaleIn },
+        popExitTransition = { primalSlideOutHorizontallyToEnd },
+    ) {
+        val viewModel = hiltViewModel<PowSettingsViewModel>(it)
+        LockToOrientationPortrait()
+        PowSettingsScreen(
+            viewModel = viewModel,
+            onClose = { navController.navigateUp() },
+        )
+    }
+
+private fun NavGraphBuilder.wallet(route: String, navController: NavController) =
+    composable(
+        route = route,
+        enterTransition = { primalSlideInHorizontallyFromEnd },
+        exitTransition = { primalScaleOut },
+        popEnterTransition = { primalScaleIn },
+        popExitTransition = { primalSlideOutHorizontallyToEnd },
+    ) {
+        val viewModel = hiltViewModel<WalletSettingsViewModel>(it)
+        LockToOrientationPortrait()
+        WalletSettingsScreen(
             viewModel = viewModel,
             onClose = { navController.navigateUp() },
         )

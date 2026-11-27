@@ -2,6 +2,7 @@ package net.primal.data.local.queries
 
 import androidx.room3.RoomRawQuery
 import androidx.sqlite.SQLiteStatement
+import net.primal.domain.wot.WebOfTrustRepository
 
 class ChronologicalFeedWithRepostsQueryBuilder(
     private val feedSpec: String,
@@ -51,6 +52,7 @@ class ChronologicalFeedWithRepostsQueryBuilder(
             LEFT JOIN MutedItemData AS MutedUser ON MutedUser.item = PostData.authorId AND MutedUser.ownerId = ?
             LEFT JOIN MutedItemData AS MutedThread ON MutedThread.item = PostData.postId AND MutedThread.ownerId = ?
             LEFT JOIN WotQualifiedPubkeyData AS Wot ON Wot.pubkey = PostData.authorId AND Wot.ownerId = ?
+                AND Wot.followers >= ${WebOfTrustRepository.FEED_MIN_FOLLOWERS}
             WHERE FeedPostDataCrossRef.feedSpec = ? AND FeedPostDataCrossRef.ownerId = ?
                 AND isAuthorMuted = 0 AND (isThreadMuted = 0 OR ?) AND (isAuthorOutsideWot = 0 OR ?)
 
@@ -88,6 +90,7 @@ class ChronologicalFeedWithRepostsQueryBuilder(
             LEFT JOIN MutedItemData AS MutedUser ON MutedUser.item = PostData.authorId AND MutedUser.ownerId = ?
             LEFT JOIN MutedItemData AS MutedThread ON MutedThread.item = PostData.postId AND MutedThread.ownerId = ?
             LEFT JOIN WotQualifiedPubkeyData AS Wot ON Wot.pubkey = PostData.authorId AND Wot.ownerId = ?
+                AND Wot.followers >= ${WebOfTrustRepository.FEED_MIN_FOLLOWERS}
             WHERE FeedPostDataCrossRef.feedSpec = ? AND FeedPostDataCrossRef.ownerId = ?
                 AND isAuthorMuted = 0 AND (isThreadMuted = 0 OR ?) AND (isAuthorOutsideWot = 0 OR ?)
         """

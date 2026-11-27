@@ -3,11 +3,12 @@ package net.primal.data.repository.wot
 import kotlin.time.Clock
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.jsonPrimitive
 import net.primal.core.utils.coroutines.DispatcherProvider
-import net.primal.core.utils.getOrDefault
 import net.primal.core.utils.runCatching
 import net.primal.data.local.dao.wot.WotNetworkStateData
 import net.primal.data.local.dao.wot.WotQualifiedPubkeyData
@@ -30,10 +31,11 @@ import net.primal.shared.data.local.db.withTransaction
  *    one; [dedupeLatestPerAuthor] is only a defence against a relay that does not honor that.
  * 2. Count, for every pubkey that shows up in any of those lists, how many of the owner's own
  *    follows follow them.
- * 3. A pubkey *qualifies* once that count reaches [QUALIFICATION_THRESHOLD]. The owner's own
- *    direct follows always count as qualified too, regardless of this count — the whole reason a
- *    repost from a stranger needs checking at all is that its *author* was never followed
- *    directly, only its reposter was.
+ * 3. Every pubkey counted at least once is stored with its count, and each use picks the count it
+ *    asks for (the feed: [WebOfTrustRepository.FEED_MIN_FOLLOWERS]). The owner's own direct
+ *    follows are stored as in every network regardless of this count — the whole reason a repost
+ *    from a stranger needs checking at all is that its *author* was never followed directly, only
+ *    its reposter was.
  *
  * The result is cached, not recomputed on every feed load: it is the caller's job to call
  * [refreshNetwork] again (on a schedule, or from a "refresh" button), not this repository's.
@@ -60,10 +62,33 @@ internal class WebOfTrustRepositoryImpl(
         }
 
     override fun observeDiscoveryState(ownerId: String): Flow<WotDiscoveryState> =
-        discoveryState.map { it[ownerId] ?: WotDiscoveryState.Idle }
+        combine(discoveryState, database.webOfTrust().observeState(ownerId)) { inThisRun, stored ->
+            // Nothing computed since the app started: say what is on disk, not that there is nothing.
+            inThisRun[ownerId] ?: stored.asDiscoveryState()
+        }.distinctUntilChanged()
+
+    private fun WotNetworkStateData?.asDiscoveryState(): WotDiscoveryState =
+        if (this == null || computedAtSeconds == 0L) {
+            WotDiscoveryState.Idle
+        } else {
+            WotDiscoveryState.Complete(
+                firstDegreeCount = firstDegreeCount,
+                qualifiedCount = qualifiedCount,
+                computedAtSeconds = computedAtSeconds,
+            )
+        }
 
     override fun observeFilteringActive(ownerId: String): Flow<Boolean> =
         database.webOfTrust().observeState(ownerId).map { it != null && it.filterEnabled && it.computedAtSeconds > 0 }
+
+    override fun observeQualifiedPubkeys(ownerId: String, minFollowers: Int): Flow<Set<String>> =
+        database.webOfTrust().observeQualifiedPubkeys(ownerId, minFollowers).map { it.toSet() }
+
+    override fun observeNetworkSize(ownerId: String, minFollowers: Int): Flow<Int> =
+        database.webOfTrust().observeNetworkSize(ownerId, minFollowers).distinctUntilChanged()
+
+    override fun observeComputedAt(ownerId: String): Flow<Long> =
+        database.webOfTrust().observeState(ownerId).map { it?.computedAtSeconds ?: 0 }.distinctUntilChanged()
 
     override suspend fun refreshNetwork(ownerId: String, firstDegreeFollows: Set<String>) {
         withContext(dispatcherProvider.io()) {
@@ -80,9 +105,11 @@ internal class WebOfTrustRepositoryImpl(
             reportProgress(fetchedFollowLists = 0)
             val secondDegreeCounts = mutableMapOf<String, Int>()
             var fetched = 0
+            var answered = false
             for (chunk in firstDegreeFollows.chunked(FOLLOW_LIST_CHUNK_SIZE)) {
                 val events = fetchFollowLists(authors = chunk)
-                for (event in dedupeLatestPerAuthor(events)) {
+                if (events != null) answered = true
+                for (event in dedupeLatestPerAuthor(events.orEmpty())) {
                     for (followed in event.followingPubkeys()) {
                         secondDegreeCounts[followed] = (secondDegreeCounts[followed] ?: 0) + 1
                     }
@@ -91,21 +118,31 @@ internal class WebOfTrustRepositoryImpl(
                 reportProgress(fetchedFollowLists = fetched)
             }
 
-            val qualifiedBySecondDegree = secondDegreeCounts.filterValues { it >= QUALIFICATION_THRESHOLD }.keys
-            val network = firstDegreeFollows + qualifiedBySecondDegree
+            // Offline, or every relay down: nothing was learned, and writing that down would shrink
+            // the network to the direct follows until somebody noticed.
+            if (!answered) {
+                setDiscoveryState(ownerId, WotDiscoveryState.Failed(reason = "no relay answered"))
+                return@withContext
+            }
+
+            val qualifiedCount =
+                secondDegreeCounts.count { it.value >= WebOfTrustRepository.FEED_MIN_FOLLOWERS }
+            val network = secondDegreeCounts + firstDegreeFollows.associateWith { Int.MAX_VALUE }
             val computedAt = nowSeconds()
 
             database.withTransaction {
                 database.webOfTrust().deleteQualifiedPubkeys(ownerId = ownerId)
                 database.webOfTrust().insertQualifiedPubkeys(
-                    data = network.map { WotQualifiedPubkeyData(ownerId = ownerId, pubkey = it) },
+                    data = network.map { (pubkey, followers) ->
+                        WotQualifiedPubkeyData(ownerId = ownerId, pubkey = pubkey, followers = followers)
+                    },
                 )
                 val existing = database.webOfTrust().getState(ownerId) ?: emptyState(ownerId)
                 database.webOfTrust().upsertState(
                     existing.copy(
                         computedAtSeconds = computedAt,
                         firstDegreeCount = firstDegreeFollows.size,
-                        qualifiedCount = qualifiedBySecondDegree.size,
+                        qualifiedCount = qualifiedCount,
                     ),
                 )
             }
@@ -114,7 +151,7 @@ internal class WebOfTrustRepositoryImpl(
                 ownerId,
                 WotDiscoveryState.Complete(
                     firstDegreeCount = firstDegreeFollows.size,
-                    qualifiedCount = qualifiedBySecondDegree.size,
+                    qualifiedCount = qualifiedCount,
                     computedAtSeconds = computedAt,
                 ),
             )
@@ -129,20 +166,22 @@ internal class WebOfTrustRepositoryImpl(
      * were mixed and the limit was left generous. Never combined with any other kind, and the
      * limit matches the chunk size (one relay is meant to answer with one event per author anyway).
      *
+     * Null when no relay answered for this chunk.
+     *
      * A relay being unreachable for one chunk should not fail the whole discovery — it just makes
      * that chunk's follows contribute nothing to anyone's count, the same as if they had no
      * followers at all, which is the safe direction for a trust computation to fail in.
      */
-    private suspend fun fetchFollowLists(authors: List<String>): List<NostrEvent> =
+    private suspend fun fetchFollowLists(authors: List<String>): List<NostrEvent>? =
         runCatching {
-            relayEventQuerier.query(
+            relayEventQuerier.queryWithOutcome(
                 RelayFilter(
                     kinds = listOf(NostrEventKind.FollowList.value),
                     authors = authors,
                     limit = authors.size,
                 ),
             )
-        }.getOrDefault(emptyList())
+        }.getOrNull()?.takeIf { it.answered }?.events
 
     private fun dedupeLatestPerAuthor(events: List<NostrEvent>): Collection<NostrEvent> =
         events.groupBy { it.pubKey }.mapNotNull { (_, revisions) -> revisions.maxByOrNull { it.createdAt } }
@@ -167,14 +206,6 @@ internal class WebOfTrustRepositoryImpl(
     }
 
     private companion object {
-        /**
-         * How many of the owner's own follows must also follow a pubkey before it counts as
-         * qualified. Matches wisp's own value: low enough that a real, socially-integrated account
-         * clears it easily, high enough that a spam account — which by construction has close to
-         * no genuine mutual social ties — essentially never does without deliberately farming them.
-         */
-        const val QUALIFICATION_THRESHOLD = 10
-
         /** See [fetchFollowLists]'s own doc for why this stays small. */
         const val FOLLOW_LIST_CHUNK_SIZE = 50
     }

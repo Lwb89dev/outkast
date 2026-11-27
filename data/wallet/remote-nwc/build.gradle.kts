@@ -65,5 +65,11 @@ kotlin {
         val desktopMain by getting
         desktopMain.dependencies {
         }
+
+        val desktopTest by getting
+        desktopTest.dependencies {
+            // The signatures and the NIP-44/NIP-04 round trips are real in tests, not stubbed.
+            implementation(libs.secp256k1.kmp.jni.jvm)
+        }
     }
 }

@@ -9,6 +9,10 @@ interface AdvancedSearchContract {
     data class UiState(
         val includedWords: String? = null,
         val excludedWords: String? = null,
+        val exactPhrase: String? = null,
+        val anyWords: String? = null,
+        val hashtags: String? = null,
+        val mentioning: Set<UserProfileItemUi> = emptySet(),
         val searchKind: SearchKind = SearchKind.Notes,
         val postedBy: Set<UserProfileItemUi> = emptySet(),
         val replyingTo: Set<UserProfileItemUi> = emptySet(),
@@ -23,6 +27,10 @@ interface AdvancedSearchContract {
     sealed class UiEvent {
         data class IncludedWordsValueChanged(val query: String) : UiEvent()
         data class ExcludedWordsValueChanged(val query: String) : UiEvent()
+        data class ExactPhraseValueChanged(val query: String) : UiEvent()
+        data class AnyWordsValueChanged(val query: String) : UiEvent()
+        data class HashtagsValueChanged(val query: String) : UiEvent()
+        data class MentioningSelectUsers(val users: Set<UserProfileItemUi>) : UiEvent()
         data class SearchKindChanged(val kind: SearchKind) : UiEvent()
         data class PostedBySelectUsers(val users: Set<UserProfileItemUi>) : UiEvent()
         data class ReplyingToSelectUsers(val users: Set<UserProfileItemUi>) : UiEvent()

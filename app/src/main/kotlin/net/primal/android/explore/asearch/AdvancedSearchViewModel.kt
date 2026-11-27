@@ -82,12 +82,17 @@ class AdvancedSearchViewModel @Inject constructor(
         }
     }
 
+    @Suppress("CyclomaticComplexMethod") // One branch per field of the form.
     private fun observeEvents() =
         viewModelScope.launch {
             events.collect {
                 when (it) {
                     is UiEvent.ExcludedWordsValueChanged -> setState { copy(excludedWords = it.query) }
                     is UiEvent.IncludedWordsValueChanged -> setState { copy(includedWords = it.query) }
+                    is UiEvent.ExactPhraseValueChanged -> setState { copy(exactPhrase = it.query) }
+                    is UiEvent.AnyWordsValueChanged -> setState { copy(anyWords = it.query) }
+                    is UiEvent.HashtagsValueChanged -> setState { copy(hashtags = it.query) }
+                    is UiEvent.MentioningSelectUsers -> setState { copy(mentioning = it.users) }
                     is UiEvent.OrderByChanged -> setState { copy(orderBy = it.orderBy) }
                     is UiEvent.PostedBySelectUsers -> setState { copy(postedBy = it.users) }
                     is UiEvent.ReplyingToSelectUsers -> setState { copy(replyingTo = it.users) }
@@ -191,7 +196,11 @@ class AdvancedSearchViewModel @Inject constructor(
             val searchParams = listOf(
                 uiState.searchKind.toSearchCommand(),
                 uiState.includedWords,
-                uiState.excludedWords?.let { it.split(" ").joinToString(separator = " ") { "-$it" } },
+                uiState.exactPhrase?.replace("\"", "")?.trim()?.takeIf { it.isNotEmpty() }?.let { "\"$it\"" },
+                uiState.anyWords.words().joinToString(separator = " OR "),
+                uiState.hashtags.words().joinToString(separator = " ") { "#" + it.removePrefix("#") },
+                uiState.excludedWords.words().joinToString(separator = " ") { "-$it" },
+                uiState.mentioning.joinToString(separator = " ") { "@" + it.profileId.hexToNpubHrp() },
                 uiState.postedBy.joinWithPrefix("from:"),
                 uiState.replyingTo.joinWithPrefix("to:"),
                 uiState.zappedBy.joinWithPrefix("zappedby:"),
@@ -225,6 +234,8 @@ class AdvancedSearchViewModel @Inject constructor(
                 )
             }
         }
+
+    private fun String?.words(): List<String> = orEmpty().split(' ', ',').filter { it.isNotBlank() }
 
     private fun String.buildFeedSpec(): String = "$this pas:1".buildAdvancedSearchFeedSpec()
 

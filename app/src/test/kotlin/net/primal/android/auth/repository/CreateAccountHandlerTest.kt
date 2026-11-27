@@ -65,6 +65,7 @@ class CreateAccountHandlerTest {
         userRepository = userRepository,
         accountsStore = accountsStore,
         connectionRepository = connectionRepository,
+        nwcRepository = mockk(relaxed = true),
     )
 
     @Test

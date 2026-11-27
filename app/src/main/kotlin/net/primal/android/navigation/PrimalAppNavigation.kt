@@ -27,7 +27,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.TransformOrigin
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NamedNavArgument
@@ -152,12 +151,13 @@ import net.primal.android.thread.articles.details.ArticleDetailsViewModel
 import net.primal.android.thread.notes.ThreadContract
 import net.primal.android.thread.notes.ThreadScreen
 import net.primal.android.thread.notes.ThreadViewModel
-import net.primal.android.zaps.AndroidLightningWallet
+import net.primal.android.pow.ProofOfWorkHost
+import net.primal.android.wallet.ui.InvoicePaymentHost
+import net.primal.android.wallet.ui.LocalInvoicePayer
 import net.primal.core.utils.map
 import net.primal.core.utils.runCatching
 import net.primal.core.utils.serialization.decodeFromJsonStringOrNull
 import net.primal.core.utils.serialization.encodeToJsonString
-import net.primal.domain.feeds.buildAdvancedSearchNotesFeedSpec
 import net.primal.domain.feeds.buildAdvancedSearchNotificationsFeedSpec
 import net.primal.domain.feeds.buildAdvancedSearchReadsFeedSpec
 import net.primal.domain.feeds.buildReadsTopicFeedSpec
@@ -179,8 +179,19 @@ fun NavController.navigateToOnboarding() = navigate(route = "onboarding")
 
 fun NavController.navigateToLogout(profileId: String) = navigate(route = "logout?$PROFILE_ID=$profileId")
 
-internal fun NavController.navigateToSearch(searchScope: SearchScope, initialQuery: String? = null) =
-    navigate(route = "search?$SEARCH_SCOPE=$searchScope&$INITIAL_QUERY=$initialQuery")
+/**
+ * Opens the search screen. With an [initialQuery] its results are shown at once, unless [submit] is
+ * false, which puts the text in the field to be edited.
+ */
+internal fun NavController.navigateToSearch(
+    searchScope: SearchScope,
+    initialQuery: String? = null,
+    submit: Boolean = true,
+) = navigate(
+    // Encoded: a bare "#" would cut the route short and "&" would start another argument.
+    route = "search?$SEARCH_SCOPE=$searchScope&$INITIAL_QUERY=${initialQuery?.let(Uri::encode)}" +
+        "&$SEARCH_SUBMIT=$submit",
+)
 
 internal fun NavController.navigateToAdvancedSearch(
     initialQuery: String? = null,
@@ -190,7 +201,7 @@ internal fun NavController.navigateToAdvancedSearch(
     editingFeedSpec: String? = null,
 ) = navigate(
     route = "asearch" +
-        "?$INITIAL_QUERY=$initialQuery" +
+        "?$INITIAL_QUERY=${initialQuery?.let(Uri::encode)}" +
         "&$POSTED_BY=${initialPostedBy.encodeToJsonString()}" +
         "&$SEARCH_KIND=$initialSearchKind" +
         "&$ADV_SEARCH_SCOPE=$initialSearchScope" +
@@ -304,10 +315,7 @@ fun accountSwitcherCallbacksHandler(navController: NavController) =
 @Composable
 fun noteCallbacksHandler(
     navController: NavController,
-    onPayInvoice: (String) -> Unit = run {
-        val context = LocalContext.current
-        { invoice: String -> AndroidLightningWallet(context).payBolt11(invoice) }
-    },
+    onPayInvoice: (String) -> Unit = LocalInvoicePayer.current,
 ) =
     NoteCallbacks(
         onNoteClick = { noteId -> navController.navigateToThread(noteId = noteId) },
@@ -355,7 +363,8 @@ fun noteCallbacksHandler(
         },
         onProfileClick = { profileId -> navController.navigateToProfile(profileId = profileId) },
         onHashtagClick = { hashtag ->
-            navController.navigateToExploreFeed(feedSpec = buildAdvancedSearchNotesFeedSpec(query = hashtag))
+            // As on X, a hashtag opens its search results.
+            navController.navigateToSearch(SearchScope.Notes, initialQuery = "#" + hashtag.removePrefix("#"))
         },
         onMediaClick = {
             navController.navigateToMediaGallery(
@@ -376,10 +385,6 @@ fun noteCallbacksHandler(
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun PrimalAppNavigation(navController: NavHostController, startDestination: String) {
-    val context = LocalContext.current
-    val openExternalWallet: (String) -> Unit = { invoice ->
-        AndroidLightningWallet(context).payBolt11(invoice)
-    }
     val drawerDestinationHandler: (DrawerScreenDestination) -> Unit = {
         when (it) {
             is DrawerScreenDestination.Profile -> navController.navigateToProfile(profileId = it.userId)
@@ -392,6 +397,24 @@ fun PrimalAppNavigation(navController: NavHostController, startDestination: Stri
         }
     }
 
+    InvoicePaymentHost {
+        ProofOfWorkHost()
+        PrimalAppNavigationLayout(
+            navController = navController,
+            startDestination = startDestination,
+            drawerDestinationHandler = drawerDestinationHandler,
+        )
+    }
+}
+
+@OptIn(ExperimentalSharedTransitionApi::class)
+@Composable
+private fun PrimalAppNavigationLayout(
+    navController: NavHostController,
+    startDestination: String,
+    drawerDestinationHandler: (DrawerScreenDestination) -> Unit,
+) {
+    val payInvoice = LocalInvoicePayer.current
     SharedTransitionLayout {
         AppOverlays {
             PiPManagerProvider {
@@ -405,7 +428,7 @@ fun PrimalAppNavigation(navController: NavHostController, startDestination: Stri
                             navController = navController,
                             startDestination = startDestination,
                             drawerDestinationHandler = drawerDestinationHandler,
-                            onPayInvoice = openExternalWallet,
+                            onPayInvoice = payInvoice,
                         )
                     }
                 }
@@ -592,7 +615,8 @@ private fun PrimalAppNavigation(
         )
 
         search(
-            route = "search?$SEARCH_SCOPE={$SEARCH_SCOPE}&$INITIAL_QUERY={$INITIAL_QUERY}",
+            route = "search?$SEARCH_SCOPE={$SEARCH_SCOPE}&$INITIAL_QUERY={$INITIAL_QUERY}" +
+                "&$SEARCH_SUBMIT={$SEARCH_SUBMIT}",
             arguments = listOf(
                 navArgument(SEARCH_SCOPE) {
                     type = NavType.StringType
@@ -600,6 +624,10 @@ private fun PrimalAppNavigation(
                 navArgument(INITIAL_QUERY) {
                     type = NavType.StringType
                     nullable = true
+                },
+                navArgument(SEARCH_SUBMIT) {
+                    type = NavType.BoolType
+                    defaultValue = true
                 },
             ),
             navController = navController,
@@ -1046,7 +1074,7 @@ private fun NavGraphBuilder.scanCode(
     },
 ) {
     val viewModel = hiltViewModel<ScanCodeViewModel>()
-    val context = LocalContext.current
+    val payInvoice = LocalInvoicePayer.current
     ApplyEdgeToEdge()
     LockToOrientationPortrait()
     ScanCodeScreen(
@@ -1059,7 +1087,7 @@ private fun NavGraphBuilder.scanCode(
             },
             onPayLightningInvoice = { invoice ->
                 navController.popBackStack()
-                AndroidLightningWallet(context).payBolt11(invoice)
+                payInvoice(invoice)
             },
             onProfileScan = { profileId ->
                 navController.popBackStack()
@@ -1350,6 +1378,7 @@ private fun NavGraphBuilder.search(
         searchScope = searchScope,
         callbacks = SearchContract.ScreenCallbacks(
             onClose = { navController.navigateUp() },
+            onOpenAsFeedClick = { feedSpec -> navController.navigateToExploreFeed(feedSpec = feedSpec) },
             onAdvancedSearchClick = { query ->
                 navController.popBackStack()
                 when (searchScope) {
@@ -1848,7 +1877,7 @@ private fun NavGraphBuilder.profileQrCodeViewer(
     popEnterTransition = { primalScaleIn },
     popExitTransition = { primalSlideOutHorizontallyToEnd },
 ) {
-    val context = LocalContext.current
+    val payInvoice = LocalInvoicePayer.current
     val viewModel = hiltViewModel<ProfileQrCodeViewModel>()
     PrimalTheme(primalTheme = PrimalTheme.OutkastDark) {
         ApplyEdgeToEdge(isDarkTheme = false)
@@ -1871,7 +1900,7 @@ private fun NavGraphBuilder.profileQrCodeViewer(
                 },
                 onPayLightningInvoice = { invoice ->
                     navController.popBackStack()
-                    AndroidLightningWallet(context).payBolt11(invoice)
+                    payInvoice(invoice)
                 },
             ),
         )

@@ -724,7 +724,6 @@
     <string name="settings_network_relay_read">Czytaj</string>
     <string name="settings_network_relay_write">Napisz</string>
     <string name="settings_zaps_title">Zaps</string>
-    <string name="settings_zaps_description">Pojedyncze zapy stukania wysyłają domyślną ilość wiadomości &amp;. Konfiguracja własnych ustawień zap poniżej:</string>
     <string name="settings_zaps_editor_emoji">Emoji</string>
     <string name="settings_zaps_editor_message">Wiadomość</string>
     <string name="settings_zaps_editor_value">Wartość</string>

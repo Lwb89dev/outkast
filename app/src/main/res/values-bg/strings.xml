@@ -724,7 +724,6 @@
     <string name="settings_network_relay_read">Четене</string>
     <string name="settings_network_relay_write">Запис</string>
     <string name="settings_zaps_title">Зайчета</string>
-    <string name="settings_zaps_description">Един клип zaps изпрати сумата по подразбиране &amp; съобщение. Настройване на настройките за зап по- долу:</string>
     <string name="settings_zaps_editor_emoji">Емоджи.</string>
     <string name="settings_zaps_editor_message">Съобщение</string>
     <string name="settings_zaps_editor_value">Стойност</string>

@@ -724,7 +724,6 @@
     <string name="settings_network_relay_read">Loe</string>
     <string name="settings_network_relay_write">Kirjuta</string>
     <string name="settings_zaps_title">Zaps</string>
-    <string name="settings_zaps_description">Ühe nupuvajutusega zapid saadavad vaikimisi summa &amp; sõnumi. Kohandatud zap- eelseadistuste seadistamine allpool:</string>
     <string name="settings_zaps_editor_emoji">Emoji</string>
     <string name="settings_zaps_editor_message">Sõnum</string>
     <string name="settings_zaps_editor_value">Väärtus</string>

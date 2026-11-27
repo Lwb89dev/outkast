@@ -24,12 +24,14 @@ class ZappingStateStore @Inject constructor(
 
     val zappingState: StateFlow<ZappingState> =
         activeAccountStore.activeUserAccount
-            .map { _ ->
+            .map { account ->
+                // Always "connected": without a Nostr Wallet Connect wallet the invoice goes to the
+                // phone's Lightning app instead.
                 ZappingState(
                     walletConnected = true,
                     walletBalanceInBtc = null,
-                    zapDefault = DEFAULT_ZAP_DEFAULT,
-                    zapsConfig = DEFAULT_ZAP_CONFIG,
+                    zapDefault = account.appSettings?.zapDefault ?: DEFAULT_ZAP_DEFAULT,
+                    zapsConfig = account.appSettings?.zapsConfig?.takeIf { it.isNotEmpty() } ?: DEFAULT_ZAP_CONFIG,
                 )
             }
             .stateIn(scope, SharingStarted.WhileSubscribed(stopTimeoutMillis = 5_000), ZappingState())

@@ -5,6 +5,8 @@ import javax.inject.Inject
 import net.primal.android.networking.relays.RelaysSocketManager
 import net.primal.android.networking.relays.errors.NostrPublishException
 import net.primal.android.nostr.notary.NostrNotary
+import net.primal.android.pow.PowSettingsStore
+import net.primal.android.pow.ProofOfWorkService
 import net.primal.android.user.domain.Relay
 import net.primal.core.utils.onFailure
 import net.primal.core.utils.runCatching
@@ -14,6 +16,7 @@ import net.primal.domain.nostr.NostrEvent
 import net.primal.domain.nostr.NostrUnsignedEvent
 import net.primal.domain.nostr.cryptography.SignatureException
 import net.primal.domain.nostr.cryptography.utils.unwrapOrThrow
+import net.primal.domain.nostr.pow.provenWork
 import net.primal.domain.publisher.PrimalPublishResult
 import net.primal.domain.publisher.PrimalPublisher
 
@@ -21,6 +24,8 @@ class NostrPublisher @Inject constructor(
     private val relaysSocketManager: RelaysSocketManager,
     private val nostrNotary: NostrNotary,
     private val cachingImportRepository: CachingImportRepository,
+    private val powSettingsStore: PowSettingsStore,
+    private val proofOfWork: ProofOfWorkService,
 ) : PrimalPublisher {
 
     private suspend fun persistEventLocally(event: NostrEvent) {
@@ -52,11 +57,29 @@ class NostrPublisher @Inject constructor(
         unsignedNostrEvent: NostrUnsignedEvent,
         outboxRelays: List<String>,
     ): PrimalPublishResult {
-        val signedNostrEvent = nostrNotary.signNostrEvent(unsignedNostrEvent = unsignedNostrEvent).unwrapOrThrow()
+        val signedNostrEvent = signWithProofOfWork(unsignedNostrEvent)
         publishAndImportEvent(signedNostrEvent = signedNostrEvent, outboxRelays = outboxRelays)
         return PrimalPublishResult(
             nostrEvent = signedNostrEvent,
         )
+    }
+
+    /**
+     * Mines the event first when the account asks for it for this kind (NIP-13), because the nonce
+     * is part of what gets signed. Profile, follow list and relay list have their own methods
+     * below and are never mined.
+     */
+    private suspend fun signWithProofOfWork(unsigned: NostrUnsignedEvent): NostrEvent {
+        val difficulty = powSettingsStore.get(unsigned.pubKey).difficultyFor(unsigned.kind)
+        val prepared = proofOfWork.mine(unsigned, difficulty)
+        val signed = nostrNotary.signNostrEvent(unsignedNostrEvent = prepared).unwrapOrThrow()
+        // An external signer that rewrites created_at or the tags changes the id, and the work is
+        // gone. The event is already signed and wanted, so it goes out, but not silently.
+        if (difficulty > 0 && signed.provenWork() < difficulty) {
+            Napier.w { "The signer returned kind ${signed.kind} without its proof of work." }
+            proofOfWork.reportSignerDroppedWork()
+        }
+        return signed
     }
 
     @Throws(NostrPublishException::class, SignatureException::class)

@@ -63,12 +63,17 @@ import net.primal.domain.notifications.DEFAULT_ZAP_CONFIG
 import net.primal.domain.notifications.DEFAULT_ZAP_DEFAULT
 
 @Composable
-fun ZapSettingsScreen(viewModel: ZapSettingsViewModel, onClose: () -> Unit) {
+fun ZapSettingsScreen(
+    viewModel: ZapSettingsViewModel,
+    onClose: () -> Unit,
+    embedded: Boolean = false,
+) {
     val uiState = viewModel.state.collectAsState()
     ZapSettingsScreen(
         uiState = uiState.value,
         onClose = onClose,
         eventPublisher = { viewModel.setEvent(it) },
+        embedded = embedded,
     )
 }
 
@@ -78,6 +83,7 @@ fun ZapSettingsScreen(
     uiState: ZapSettingsContract.UiState,
     onClose: () -> Unit,
     eventPublisher: (ZapSettingsContract.UiEvent) -> Unit,
+    embedded: Boolean = false,
 ) {
     val backSequence = {
         if (uiState.editPresetIndex == null) {
@@ -89,6 +95,15 @@ fun ZapSettingsScreen(
 
     BackHandler(enabled = uiState.editPresetIndex != null) {
         backSequence()
+    }
+
+    if (embedded) {
+        ZapSettingsAnimatedContent(
+            uiState = uiState,
+            contentPadding = PaddingValues(),
+            eventPublisher = eventPublisher,
+        )
+        return
     }
 
     PrimalScaffold(
@@ -225,7 +240,7 @@ fun ZapPresetsList(
 
                 Text(
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
-                    text = stringResource(id = R.string.settings_zaps_description),
+                    text = stringResource(id = R.string.settings_zaps_preselected_description),
                     style = AppTheme.typography.bodySmall,
                     color = AppTheme.extraColorScheme.onSurfaceVariantAlt3,
                 )
@@ -264,7 +279,7 @@ private fun ZapDefaultListItem(
             headlineContent = {
                 Text(
                     text = text.ifBlank { "${numberFormat.format(amount)} sats" },
-                    color = AppTheme.colorScheme.onPrimary,
+                    color = AppTheme.colorScheme.onSurface,
                 )
             },
             supportingContent = {
@@ -306,7 +321,7 @@ private fun ZapCustomPresets(
                     headlineContent = {
                         Text(
                             text = zapItem.message.ifBlank { "${zapItem.amount} sats" },
-                            color = AppTheme.colorScheme.onPrimary,
+                            color = AppTheme.colorScheme.onSurface,
                         )
                     },
                     supportingContent = {

@@ -724,7 +724,6 @@
     <string name="settings_network_relay_read">Читать</string>
     <string name="settings_network_relay_write">Писать</string>
     <string name="settings_zaps_title">Защита</string>
-    <string name="settings_zaps_description">Одиночные зажимы нажатия отправляют сообщение о сумме &amp; по умолчанию. Настройка пользовательских пресетов Zap ниже:</string>
     <string name="settings_zaps_editor_emoji">Эмодзи</string>
     <string name="settings_zaps_editor_message">Послание</string>
     <string name="settings_zaps_editor_value">ценность</string>

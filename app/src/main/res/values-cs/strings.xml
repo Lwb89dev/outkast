@@ -724,7 +724,6 @@
     <string name="settings_network_relay_read">Čtení</string>
     <string name="settings_network_relay_write">Zapsat</string>
     <string name="settings_zaps_title">Zaps</string>
-    <string name="settings_zaps_description">Jeden kohoutek zaps odeslat výchozí částku &amp; zprávy. Nastavit vlastní nastavení zap níže:</string>
     <string name="settings_zaps_editor_emoji">Emoji</string>
     <string name="settings_zaps_editor_message">Zpráva</string>
     <string name="settings_zaps_editor_value">Hodnota</string>

@@ -315,6 +315,7 @@ dependencies {
     implementation(project(":domain:nostr"))
     implementation(project(":domain:primal"))
     implementation(project(":domain:account"))
+    implementation(project(":data:wallet:remote-nwc"))
 
     implementation(project(":data:caching:remote"))
     implementation(project(":data:caching:repository"))

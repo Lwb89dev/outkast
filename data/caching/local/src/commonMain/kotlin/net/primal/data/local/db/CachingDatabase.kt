@@ -145,7 +145,7 @@ import net.primal.shared.data.local.serialization.ListsTypeConverters
         WotNetworkStateData::class,
         WotQualifiedPubkeyData::class,
     ],
-    version = 7,
+    version = 8,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
         AutoMigration(from = 2, to = 3),
@@ -153,6 +153,7 @@ import net.primal.shared.data.local.serialization.ListsTypeConverters
         AutoMigration(from = 4, to = 5, spec = DeckTablesRemoved::class),
         AutoMigration(from = 5, to = 6),
         AutoMigration(from = 6, to = 7),
+        AutoMigration(from = 7, to = 8),
     ],
     exportSchema = true,
 )

@@ -724,7 +724,6 @@
     <string name="settings_network_relay_read">Lasīt</string>
     <string name="settings_network_relay_write">Rakstīt</string>
     <string name="settings_zaps_title">Zaps</string>
-    <string name="settings_zaps_description">Viena piesitiena zaps nosūta noklusēto summu &amp; ziņojumu. Konfigurēt zemāk pielāgotos zap regulējumus:</string>
     <string name="settings_zaps_editor_emoji">Emoji</string>
     <string name="settings_zaps_editor_message">Ziņojums</string>
     <string name="settings_zaps_editor_value">Vērtība</string>

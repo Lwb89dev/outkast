@@ -724,7 +724,6 @@
     <string name="settings_network_relay_read">Läs mer</string>
     <string name="settings_network_relay_write">Skriv</string>
     <string name="settings_zaps_title">Zaps</string>
-    <string name="settings_zaps_description">Enstaka kranar skickar standardbeloppet &amp; meddelande. Konfigurera anpassade zap förinställningar nedan:</string>
     <string name="settings_zaps_editor_emoji">Emoji</string>
     <string name="settings_zaps_editor_message">Meddelande</string>
     <string name="settings_zaps_editor_value">Värde</string>

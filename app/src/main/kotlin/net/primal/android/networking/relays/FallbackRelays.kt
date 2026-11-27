@@ -32,6 +32,24 @@ val FALLBACK_RELAY_URLS = listOf(
 )
 
 /**
+ * Relays that implement NIP-50 full-text search, asked in addition to the pools above whenever a
+ * query carries a `search` term. Most general relays refuse that field, so without these the search
+ * box only ever matched against whatever recent events happened to come back.
+ *
+ * Measured 2026-11-27: each answered a `search` request for notes and for profiles, anonymously.
+ * `search.nos.today` returns recent matches, the other two rank by relevance. Dropped:
+ * `relay.nostr.band` (did not connect), `relay.noswhere.com` (empty answers), `nos.lol` and
+ * `relay.primal.net` (reject `search`).
+ *
+ * Whoever runs these sees what is searched for, so they are only contacted for a search.
+ */
+val SEARCH_RELAY_URLS = listOf(
+    "wss://search.nos.today",
+    "wss://relay.ditto.pub",
+    "wss://nostr.wine",
+)
+
+/**
  * Relays worth asking for profile metadata specifically.
  *
  * `purplepag.es` exists to serve kind 0 and kind 3 and is unusually complete at it, which is the

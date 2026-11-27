@@ -7,14 +7,11 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.aakira.napier.Napier
-import kotlin.time.Clock
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.Instant
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOn
@@ -23,6 +20,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.primal.android.articles.feed.ui.mapAsFeedArticleUi
+import net.primal.android.spam.StrangerFilter
+import net.primal.android.spam.StrangerFilterProvider
 import net.primal.android.thread.notes.ThreadContract.UiEvent
 import net.primal.android.thread.notes.ThreadContract.UiState
 import net.primal.android.user.accounts.active.ActiveAccountStore
@@ -33,10 +32,16 @@ import net.primal.domain.common.exception.NetworkException
 import net.primal.domain.events.EventRepository
 import net.primal.domain.nostr.Nip19TLV
 import net.primal.domain.nostr.cryptography.utils.bech32ToHexOrThrow
+import net.primal.domain.posts.FeedPost
 import net.primal.domain.posts.FeedRepository
 import net.primal.domain.reads.ArticleRepository
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 
 @HiltViewModel(assistedFactory = ThreadViewModel.Factory::class)
+@Suppress("LongParameterList")
 class ThreadViewModel @AssistedInject constructor(
     @Assisted noteId: String,
     private val activeAccountStore: ActiveAccountStore,
@@ -44,7 +49,12 @@ class ThreadViewModel @AssistedInject constructor(
     private val feedRepository: FeedRepository,
     private val eventRepository: EventRepository,
     private val articleRepository: ArticleRepository,
+    private val strangerFilters: StrangerFilterProvider,
 ) : ViewModel() {
+
+    /** The user asked, for this thread only, to see what the filter had hidden. */
+    private val showHiddenReplies = MutableStateFlow(false)
+
 
     @AssistedFactory
     interface Factory {
@@ -83,6 +93,7 @@ class ThreadViewModel @AssistedInject constructor(
                     UiEvent.UpdateConversation -> fetchData(force = true)
                     UiEvent.ScreenStarted -> fetchData(force = false)
                     UiEvent.DismissError -> setState { copy(error = null) }
+                    UiEvent.ShowHiddenReplies -> showHiddenReplies.value = true
                 }
             }
         }
@@ -90,12 +101,24 @@ class ThreadViewModel @AssistedInject constructor(
     private fun observeConversationChanges() =
         viewModelScope.launch {
             var articleObserverStarted = false
-            feedRepository.observeConversation(userId = activeAccountStore.activeUserId(), noteId = highlightPostId)
-                .filter { it.isNotEmpty() }
-                .map { posts -> posts.asDisplayOrderedFeedPostUi(highlightPostId = highlightPostId) }
+            val userId = activeAccountStore.activeUserId()
+            combine(
+                feedRepository.observeConversation(userId = userId, noteId = highlightPostId)
+                    .filter { it.isNotEmpty() },
+                strangerFilters.observe(userId),
+                showHiddenReplies,
+            ) { posts, filter, showHidden ->
+                val visible = posts.withoutStrangers(filter.takeUnless { showHidden })
+                visible.asDisplayOrderedFeedPostUi(highlightPostId = highlightPostId) to posts.size - visible.size
+            }
                 .flowOn(dispatcherProvider.io())
-                .collect { conversation ->
-                    setState { copy(highlightNote = conversation.find { it.postId == highlightPostId }) }
+                .collect { (conversation, hidden) ->
+                    setState {
+                        copy(
+                            highlightNote = conversation.find { it.postId == highlightPostId },
+                            hiddenReplies = hidden,
+                        )
+                    }
 
                     val highlightPostIndex = conversation.indexOfFirst { it.postId == highlightPostId }
                     if (_state.value.conversation.isEmpty() && highlightPostIndex != -1) {
@@ -122,6 +145,19 @@ class ThreadViewModel @AssistedInject constructor(
                     }
                 }
         }
+
+    /** Only replies are filtered: the opened note and what it answers are what the user came to read. */
+    private fun List<FeedPost>.withoutStrangers(filter: StrangerFilter?): List<FeedPost> {
+        val highlightIndex = indexOfFirst { it.eventId == highlightPostId }
+        if (filter == null || highlightIndex < 0) return this
+        return filterIndexed { index, post ->
+            index <= highlightIndex || !filter.hides(
+                authorId = post.author.authorId,
+                rawEvent = post.rawNostrEvent,
+                isPrivate = post.isPrivate,
+            )
+        }
+    }
 
     private fun observeArticle() =
         viewModelScope.launch {

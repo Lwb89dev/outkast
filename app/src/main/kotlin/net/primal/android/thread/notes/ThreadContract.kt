@@ -13,6 +13,8 @@ interface ThreadContract {
         val highlightPostIndex: Int = 0,
         val conversation: List<FeedPostUi> = emptyList(),
         val fetching: Boolean = false,
+        /** Replies the proof of work filter is keeping out of sight. */
+        val hiddenReplies: Int = 0,
         val replyToArticle: FeedArticleUi? = null,
         val error: UiError? = null,
     )
@@ -24,6 +26,7 @@ interface ThreadContract {
         /** The screen becoming visible (`ON_START`): skippable when already fetched recently. */
         data object ScreenStarted : UiEvent()
         data object DismissError : UiEvent()
+        data object ShowHiddenReplies : UiEvent()
     }
 
     data class ScreenCallbacks(

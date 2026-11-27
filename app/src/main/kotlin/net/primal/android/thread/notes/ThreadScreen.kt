@@ -8,7 +8,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,6 +26,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AlternateEmail
 import androidx.compose.material.icons.filled.Lock
@@ -71,10 +71,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import com.librenostr.android.R
-import java.time.Instant
-import java.time.format.FormatStyle
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.primal.android.articles.feed.ui.FeedArticleListItem
@@ -122,12 +118,17 @@ import net.primal.android.notes.feed.model.asNeventString
 import net.primal.android.notes.feed.note.FeedNoteCard
 import net.primal.android.notes.feed.note.ui.ThreadNoteStatsRow
 import net.primal.android.notes.feed.note.ui.events.NoteCallbacks
+import net.primal.android.spam.HiddenRepliesRow
 import net.primal.android.theme.AppTheme
 import net.primal.android.theme.domain.PrimalTheme
 import net.primal.android.thread.articles.ArticleContract
 import net.primal.android.thread.articles.ArticleViewModel
 import net.primal.domain.nostr.NostrEventKind
 import net.primal.domain.nostr.ReactionType
+import java.time.Instant
+import java.time.format.FormatStyle
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 private const val REPLIES_LOADING_PLACEHOLDER_DEFAULT_MAX_COUNT = 3
 
@@ -455,6 +456,7 @@ private fun ThreadConversationLazyColumn(
             ThreadLazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 state = state,
+                onShowHiddenReplies = { eventPublisher(ThreadContract.UiEvent.ShowHiddenReplies) },
                 noteCallbacks = noteCallbacks,
                 onRootPostDeleted = onRootPostDeleted,
                 articleEventPublisher = articleEventPublisher,
@@ -469,6 +471,7 @@ private fun ThreadConversationLazyColumn(
 private fun ThreadLazyColumn(
     modifier: Modifier,
     state: ThreadContract.UiState,
+    onShowHiddenReplies: () -> Unit,
     noteCallbacks: NoteCallbacks,
     onRootPostDeleted: () -> Unit,
     articleEventPublisher: (ArticleContract.UiEvent) -> Unit,
@@ -656,6 +659,12 @@ private fun ThreadLazyColumn(
                 repeat = state.highlightNote.stats.repliesCount.toInt()
                     .coerceAtMost(maxRepliesPlaceholderItems),
             )
+        }
+
+        if (state.hiddenReplies > 0) {
+            item(key = "hiddenReplies") {
+                HiddenRepliesRow(count = state.hiddenReplies, onShowClick = onShowHiddenReplies)
+            }
         }
 
         if (state.conversation.isNotEmpty()) {

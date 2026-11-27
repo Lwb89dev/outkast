@@ -32,6 +32,7 @@ import net.primal.data.repository.feed.RelayEventStatsFetcher
 import net.primal.data.repository.feed.RelayEventStatsSnapshot
 import net.primal.data.repository.feed.RelayNotesFeedFetcher
 import net.primal.data.repository.feed.asReferencedPrimalEvent
+import net.primal.data.repository.feed.findProfileCandidates
 import net.primal.data.repository.feed.processors.FeedProcessor
 import net.primal.data.repository.feed.toFeedResponse
 import net.primal.data.repository.fetch.FetchCoordinator
@@ -83,7 +84,11 @@ internal class NoteFeedRemoteMediator(
         )
     }
     private val relayAdvancedSearchFetcher = relayEventQuerier?.let {
-        RelayAdvancedSearchFeedFetcher(querier = it, coordinator = fetchCoordinator)
+        RelayAdvancedSearchFeedFetcher(
+            querier = it,
+            coordinator = fetchCoordinator,
+            findLocalProfiles = database::findProfileCandidates,
+        )
     }
     private val relayEventStatsFetcher = relayEventQuerier?.let {
         RelayEventStatsFetcher(querier = it, coordinator = fetchCoordinator)
@@ -446,7 +451,10 @@ internal class NoteFeedRemoteMediator(
             val response = if (metadata.isEmpty()) {
                 eventsOnlyResponse
             } else {
-                val fullResponse = feedPage.page.toFeedResponse(metadata = metadata, referencedEvents = referencedEvents)
+                val fullResponse = feedPage.page.toFeedResponse(
+                    metadata = metadata,
+                    referencedEvents = referencedEvents,
+                )
                 feedProcessor.processAndPersistToDatabase(userId = userId, response = fullResponse, clearFeed = false)
                 fullResponse
             }
@@ -460,10 +468,7 @@ internal class NoteFeedRemoteMediator(
         return SyncResult(request = requestBody, response = response)
     }
 
-    private suspend fun syncPrepend(
-        remoteKey: FeedPostRemoteKey?,
-        pageSize: Int,
-    ): SyncResult {
+    private suspend fun syncPrepend(remoteKey: FeedPostRemoteKey?, pageSize: Int): SyncResult {
         val requestBody = MultiKindFeedBySpecRequestBody(
             spec = feedSpec,
             userPubKey = userId,
@@ -483,10 +488,7 @@ internal class NoteFeedRemoteMediator(
         return SyncResult(request = requestBody, response = feedResponse)
     }
 
-    private suspend fun syncAppend(
-        remoteKey: FeedPostRemoteKey?,
-        pageSize: Int,
-    ): SyncResult {
+    private suspend fun syncAppend(remoteKey: FeedPostRemoteKey?, pageSize: Int): SyncResult {
         // An empty batch writes no FeedPostRemoteKey (see FeedProcessor.processRemoteKeys), so
         // candidateUntil can resolve to the exact same boundary a previous attempt already
         // queried. When it hasn't advanced past the furthest point already probed, step back by

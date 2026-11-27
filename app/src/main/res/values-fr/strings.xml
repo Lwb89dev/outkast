@@ -724,7 +724,6 @@
     <string name="settings_network_relay_read">Lire</string>
     <string name="settings_network_relay_write">Écrire</string>
     <string name="settings_zaps_title">Zaps</string>
-    <string name="settings_zaps_description">Un seul bouton zaps envoie le montant par défaut &amp; message. Configurez les préréglages zap personnalisés ci-dessous :</string>
     <string name="settings_zaps_editor_emoji">Emoji</string>
     <string name="settings_zaps_editor_message">Message</string>
     <string name="settings_zaps_editor_value">Valeur</string>

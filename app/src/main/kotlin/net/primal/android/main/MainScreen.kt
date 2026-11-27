@@ -141,7 +141,6 @@ import net.primal.android.navigation.navigateToSearch
 import net.primal.android.navigation.navigateToSettings
 import net.primal.android.navigation.navigateToThread
 import net.primal.android.navigation.noteCallbacksHandler
-import net.primal.android.zaps.AndroidLightningWallet
 import net.primal.android.notes.feed.note.ui.events.NoteCallbacks
 import net.primal.android.notifications.list.ui.NotificationUi
 import net.primal.domain.feeds.FeedSpecKind
@@ -186,11 +185,7 @@ fun MainScreen(
     }
 
     // Shared callbacks
-    val externalWallet = AndroidLightningWallet(LocalContext.current)
-    val noteCallbacks = noteCallbacksHandler(
-        navController = navController,
-        onPayInvoice = { invoice -> externalWallet.payBolt11(invoice) },
-    )
+    val noteCallbacks = noteCallbacksHandler(navController = navController)
     val accountSwitcherCallbacks = accountSwitcherCallbacksHandler(navController)
 
     val mainViewModel = hiltViewModel<MainViewModel>(navBackStackEntry)
@@ -530,7 +525,7 @@ private fun MainScreenContent(
                                 navController.navigateToFollowPack(profileId, identifier)
                             },
                             onRecentSearchEditClick = { query ->
-                                navController.navigateToSearch(SearchScope.Notes, query)
+                                navController.navigateToSearch(SearchScope.Notes, query, submit = false)
                             },
                             onRecentSearchExecuteClick = { query ->
                                 navController.navigateToSearch(SearchScope.Notes, query)

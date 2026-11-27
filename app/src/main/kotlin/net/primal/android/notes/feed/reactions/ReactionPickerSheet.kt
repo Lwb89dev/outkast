@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -86,7 +87,9 @@ fun ReactionPickerSheet(
         sheetGesturesEnabled = selectedPack != null,
         containerColor = AppTheme.colorScheme.surfaceVariant,
     ) {
-        Column(modifier = Modifier.navigationBarsPadding()) {
+        // The emoji list takes what is left over and gives it back when there is less: with the keyboard
+        // open, or on a short or zoomed screen, a fixed height pushed the text field out of sight.
+        Column(modifier = Modifier.navigationBarsPadding().imePadding()) {
             Text(
                 modifier = Modifier.padding(horizontal = 24.dp),
                 text = stringResource(id = R.string.reaction_picker_title),
@@ -113,7 +116,10 @@ fun ReactionPickerSheet(
                 },
             )
             if (selectedPack == null) {
-                EmojiList(onEmojiSelected = onEmojiSelected)
+                EmojiList(
+                    modifier = Modifier.weight(weight = 1f, fill = false),
+                    onEmojiSelected = onEmojiSelected,
+                )
                 EmojiKeyboardInput(onEmojiSelected = onEmojiSelected)
             } else {
                 Text(
@@ -126,6 +132,7 @@ fun ReactionPickerSheet(
                 )
                 EmojiGrid(
                     modifier = Modifier
+                        .weight(weight = 1f, fill = false)
                         .fillMaxWidth()
                         .height(PICKER_HEIGHT_DP.dp)
                         .padding(horizontal = 16.dp, vertical = 8.dp),
@@ -160,10 +167,10 @@ private fun QuickReactionsRow(onEmojiSelected: (String) -> Unit) {
 }
 
 @Composable
-private fun EmojiList(onEmojiSelected: (String) -> Unit) {
+private fun EmojiList(onEmojiSelected: (String) -> Unit, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     AndroidView(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .height(KEYBOARD_PICKER_HEIGHT_DP.dp),
         factory = {
