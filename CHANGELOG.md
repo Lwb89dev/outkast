@@ -9,6 +9,8 @@ the LibreNostr/OUTKAST fork on top of the imported `3.5.25` baseline.
 
 ## [Unreleased]
 
+## [2.7.0] - 2026-11-27
+
 ### Added
 
 - **Nostr Wallet Connect (NIP-47).** Settings, Wallet (NWC): paste or scan the connection string of a
@@ -51,6 +53,9 @@ the LibreNostr/OUTKAST fork on top of the imported `3.5.25` baseline.
 - Search found nothing for `from:` with a user name, ignored `to:` with an npub, matched any word instead
   of all when two authors were picked, and ignored the minimum likes, replies and reposts and the sort order.
 - Tapping Pay on an invoice with no Lightning app installed crashed the app.
+- Wallet settings reported that a connection did not share its balance when the wallet was unreachable.
+- The Zap button in the zap sheet could sit under the system navigation bar.
+- The publish countdown overlay displayed a literal `%d` instead of the remaining seconds.
 
 ## [2.6.3] - 2026-11-24
 
